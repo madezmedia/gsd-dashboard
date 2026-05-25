@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GSD Dashboard — The ACMI Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;
+  background:#faf9f5;
+  color:#1a1a1a;
+  line-height:1.6;
+  overflow-x:hidden
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+
+/* ===== TYPOGRAPHY ===== */
+h1,h2,h3,h4,.display-font{font-family:'Source Serif 4',Georgia,'Times New Roman',serif;font-weight:600;line-height:1.2}
+h1{font-size:clamp(2.4rem,5vw,4rem);letter-spacing:-0.02em}
+h2{font-size:clamp(1.8rem,3.5vw,2.8rem);letter-spacing:-0.015em}
+h3{font-size:clamp(1.25rem,2vw,1.65rem)}
+h4{font-size:1.125rem}
+.mono{font-family:'JetBrains Mono','SF Mono',Menlo,monospace;font-weight:500;letter-spacing:-0.01em}
+.mono-light{font-family:'JetBrains Mono','SF Mono',Menlo,monospace;font-weight:400}
+
+/* ===== CONTAINER ===== */
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 2rem}
+@media(max-width:800px){.container{padding:0 1.25rem}}
+
+/* ===== STICKY NAV ===== */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(250,249,245,0.88);
+  backdrop-filter:blur(14px) saturate(1.2);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid rgba(45,74,62,0.10);
+  padding:0.8rem 0
+}
+nav .container{
+  display:flex;align-items:center;justify-content:space-between
+}
+.nav-logo{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-weight:600;font-size:1.15rem;
+  color:#2d4a3e;letter-spacing:-0.01em
+}
+.nav-logo span{font-weight:400;color:#6b7a73}
+.nav-links{display:flex;gap:1.75rem;align-items:center}
+.nav-links a{
+  font-size:0.85rem;font-weight:500;
+  color:#4a4a4a;transition:color 0.2s;
+  position:relative
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-3px;left:0;
+  width:0;height:1.5px;background:#2d4a3e;
+  transition:width 0.3s
+}
+.nav-links a:hover{color:#2d4a3e}
+.nav-links a:hover::after{width:100%}
+.nav-cta a{
+  display:inline-block;
+  padding:0.45rem 1.2rem;
+  background:#2d4a3e;color:#faf9f5;
+  border-radius:4px;font-size:0.82rem;font-weight:500;
+  transition:background 0.2s
+}
+.nav-cta a:hover{background:#1f352c}
+.mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:0.25rem}
+.mobile-toggle span{display:block;width:22px;height:2px;background:#2d4a3e;margin:4px 0;border-radius:1px;transition:0.3s}
+@media(max-width:800px){
+  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(250,249,245,0.98);backdrop-filter:blur(14px);flex-direction:column;padding:1rem 2rem 1.5rem;border-bottom:1px solid rgba(45,74,62,0.10);gap:1rem}
+  .nav-links.open{display:flex}
+  .mobile-toggle{display:block}
+}
+
+/* ===== SECTIONS ===== */
+.section{padding:5rem 0}
+.section-label{
+  display:inline-block;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.7rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.12em;
+  color:#6b7a73;margin-bottom:0.75rem
+}
+.section-title{margin-bottom:0.75rem}
+.section-subtitle{
+  font-size:1.05rem;color:#5a5a5a;
+  max-width:600px;line-height:1.65
+}
+@media(max-width:800px){
+  .section{padding:3.5rem 0}
+}
+
+/* ===== HERO ===== */
+.hero{
+  padding:4.5rem 0 5rem;
+  position:relative;
+  overflow:hidden
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-40%;right:-10%;
+  width:55%;height:120%;
+  background:radial-gradient(ellipse at center,rgba(45,74,62,0.04) 0%,transparent 70%);
+  pointer-events:none
+}
+.hero .container{position:relative;z-index:1}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1fr 1.1fr;
+  gap:3.5rem;
+  align-items:center
+}
+.hero-eyebrow{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.7rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.15em;
+  color:#6b7a73;margin-bottom:1rem
+}
+.hero h1{
+  margin-bottom:1rem;
+  color:#1a1a1a
+}
+.hero h1 .accent{color:#2d4a3e}
+.hero-tagline{
+  font-size:1.2rem;color:#5a5a5a;
+  max-width:520px;line-height:1.7;
+  margin-bottom:2rem;
+  font-family:'Inter',sans-serif;
+  font-weight:400
+}
+.hero-actions{display:flex;gap:0.75rem;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  padding:0.7rem 1.6rem;
+  border-radius:4px;
+  font-size:0.9rem;font-weight:500;
+  cursor:pointer;transition:all 0.2s;
+  border:none;font-family:'Inter',sans-serif
+}
+.btn-primary{
+  background:#2d4a3e;color:#faf9f5
+}
+.btn-primary:hover{background:#1f352c}
+.btn-secondary{
+  background:transparent;color:#2d4a3e;
+  border:1px solid #2d4a3e
+}
+.btn-secondary:hover{background:rgba(45,74,62,0.06)}
+.btn-ghost{
+  background:transparent;color:#4a4a4a;
+  border:1px solid rgba(0,0,0,0.10)
+}
+.btn-ghost:hover{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.2)}
+.hero-visual{
+  background:#f3f1eb;
+  border:1px solid rgba(45,74,62,0.10);
+  border-radius:8px;
+  padding:1.5rem;
+  position:relative;
+  box-shadow:0 2px 20px rgba(0,0,0,0.04)
+}
+.hero-visual .mono-bar{
+  display:flex;gap:0.5rem;margin-bottom:1.25rem;
+  font-size:0.65rem;color:#6b7a73
+}
+.hero-visual .mono-bar .dot{width:8px;height:8px;border-radius:50%;background:#2d4a3e;opacity:0.3}
+.hero-visual .mono-bar .dot:nth-child(1){opacity:0.8}
+.mockup-nav{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0.5rem
+}
+.mockup-nav-item{
+  background:rgba(255,255,255,0.6);
+  border:1px solid rgba(45,74,62,0.06);
+  border-radius:4px;
+  padding:0.6rem 0.4rem;
+  text-align:center;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.6rem;color:#4a4a4a;
+  transition:all 0.2s
+}
+.mockup-nav-item.active{
+  background:#2d4a3e;color:#faf9f5;border-color:#2d4a3e
+}
+.mockup-nav-item .icon{font-size:1rem;display:block;margin-bottom:0.15rem;font-family:sans-serif}
+.mockup-preview{
+  margin-top:1.25rem;
+  background:rgba(255,255,255,0.45);
+  border:1px solid rgba(45,74,62,0.06);
+  border-radius:4px;
+  padding:1rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0.75rem
+}
+.mockup-card{
+  background:rgba(255,255,255,0.7);
+  border-radius:3px;
+  padding:0.6rem
+}
+.mockup-card .label{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.55rem;color:#6b7a73;
+  text-transform:uppercase;letter-spacing:0.08em;
+  margin-bottom:0.3rem
+}
+.mockup-card .val{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:0.85rem;color:#1a1a1a
+}
+.mockup-card .val.mono{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.65rem;color:#5a5a5a
+}
+.mockup-agent-row{
+  display:flex;align-items:center;gap:0.4rem;
+  padding:0.3rem 0
+}
+.mockup-agent-row .status{
+  width:6px;height:6px;border-radius:50%;background:#2d4a3e;
+  flex-shrink:0
+}
+@media(max-width:800px){
+  .hero-grid{grid-template-columns:1fr;gap:2rem}
+  .hero{padding:2.5rem 0 3rem}
+}
+
+/* ===== TRUST BAR ===== */
+.trust-bar{
+  padding:1.75rem 0;
+  border-top:1px solid rgba(45,74,62,0.07);
+  border-bottom:1px solid rgba(45,74,62,0.07);
+  background:rgba(45,74,62,0.02)
+}
+.trust-bar .container{
+  display:flex;align-items:center;justify-content:center;
+  gap:0.75rem;
+  font-size:0.9rem;color:#5a5a5a
+}
+.trust-bar .mono{font-size:0.75rem;color:#2d4a3e}
+.trust-bar strong{color:#2d4a3e;font-weight:600}
+
+/* ===== FEATURES GRID ===== */
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1.5rem;
+  margin-top:2.5rem
+}
+.feature-card{
+  background:#f3f1eb;
+  border:1px solid rgba(45,74,62,0.06);
+  border-radius:6px;
+  padding:1.75rem 1.5rem;
+  transition:border-color 0.2s,box-shadow 0.2s
+}
+.feature-card:hover{
+  border-color:rgba(45,74,62,0.15);
+  box-shadow:0 2px 12px rgba(0,0,0,0.03)
+}
+.feature-icon{
+  width:36px;height:36px;
+  background:rgba(45,74,62,0.07);
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;margin-bottom:1rem;
+  color:#2d4a3e
+}
+.feature-card h3{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:1.1rem;font-weight:600;
+  margin-bottom:0.4rem
+}
+.feature-card p{
+  font-size:0.88rem;color:#5a5a5a;
+  line-height:1.6
+}
+.feature-card .feature-tag{
+  display:inline-block;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.6rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:#6b7a73;
+  margin-top:0.75rem
+}
+@media(max-width:960px){
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:800px){
+  .features-grid{grid-template-columns:1fr}
+}
+
+/* ===== DEEP DIVE ===== */
+.deep-dive-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:3rem;
+  align-items:center;
+  margin-top:2rem
+}
+.deep-dive-text h3{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:1.35rem;font-weight:600;
+  margin-bottom:0.75rem
+}
+.deep-dive-text p{
+  color:#5a5a5a;font-size:0.95rem;
+  line-height:1.7;margin-bottom:1rem
+}
+.deep-dive-text ul{margin-bottom:1.25rem}
+.deep-dive-text ul li{
+  padding:0.35rem 0;
+  font-size:0.9rem;color:#4a4a4a;
+  display:flex;align-items:flex-start;gap:0.5rem
+}
+.deep-dive-text ul li::before{
+  content:'→';
+  color:#2d4a3e;font-family:'JetBrains Mono',monospace;
+  font-size:0.75rem;flex-shrink:0;
+  margin-top:0.05rem
+}
+.deep-dive-visual{
+  background:#f3f1eb;
+  border:1px solid rgba(45,74,62,0.08);
+  border-radius:8px;
+  padding:1.75rem
+}
+.deep-dive-visual h4{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.7rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.1em;
+  color:#6b7a73;
+  margin-bottom:1.25rem
+}
+.nav-rail-visual{
+  display:flex;flex-direction:column;gap:0.35rem
+}
+.nav-rail-item{
+  display:flex;align-items:center;gap:0.75rem;
+  padding:0.55rem 0.75rem;
+  border-radius:4px;
+  transition:background 0.2s;
+  cursor:default
+}
+.nav-rail-item:hover{background:rgba(255,255,255,0.5)}
+.nav-rail-item.active{background:rgba(45,74,62,0.08)}
+.nav-rail-item .nr-icon{
+  width:28px;height:28px;
+  background:rgba(255,255,255,0.7);
+  border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;flex-shrink:0
+}
+.nav-rail-item.active .nr-icon{
+  background:#2d4a3e;color:#faf9f5
+}
+.nav-rail-item .nr-label{
+  font-size:0.85rem;font-weight:450;color:#1a1a1a
+}
+.nav-rail-item .nr-desc{
+  font-size:0.7rem;color:#6b7a73;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  margin-left:auto;letter-spacing:0.02em
+}
+@media(max-width:800px){
+  .deep-dive-grid{grid-template-columns:1fr;gap:2rem}
+}
+
+/* ===== STATS ===== */
+.stats-section{
+  background:rgba(45,74,62,0.02);
+  border-top:1px solid rgba(45,74,62,0.07);
+  border-bottom:1px solid rgba(45,74,62,0.07)
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1.5rem;
+  margin-top:1rem
+}
+.stat-card{
+  text-align:center;
+  padding:1.5rem 1rem
+}
+.stat-number{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:clamp(2.5rem,4vw,3.5rem);
+  font-weight:700;color:#2d4a3e;
+  line-height:1.1;margin-bottom:0.35rem;
+  letter-spacing:-0.02em
+}
+.stat-label{
+  font-size:0.85rem;color:#6b7a73;
+  font-weight:450
+}
+@media(max-width:800px){
+  .stats-grid{
+    grid-template-columns:repeat(2,1fr);
+    gap:0.5rem
+  }
+}
+
+/* ===== PRICING ===== */
+.pricing-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1.5rem;
+  margin-top:2.5rem;
+  align-items:start
+}
+.pricing-card{
+  background:#f3f1eb;
+  border:1px solid rgba(45,74,62,0.06);
+  border-radius:6px;
+  padding:2rem 1.75rem;
+  position:relative;
+  transition:border-color 0.2s,box-shadow 0.2s
+}
+.pricing-card:hover{
+  border-color:rgba(45,74,62,0.15);
+  box-shadow:0 4px 16px rgba(0,0,0,0.04)
+}
+.pricing-card.featured{
+  border-color:#2d4a3e;
+  box-shadow:0 0 0 1px #2d4a3e
+}
+.pricing-card.featured .popular-badge{
+  display:inline-block;
+  background:#2d4a3e;color:#faf9f5;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.55rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:0.1em;
+  padding:0.2rem 0.6rem;
+  border-radius:3px;
+  margin-bottom:0.75rem
+}
+.pricing-card h3{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:1.25rem;font-weight:600;
+  margin-bottom:0.25rem
+}
+.pricing-price{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:2.2rem;font-weight:700;
+  color:#2d4a3e;
+  line-height:1.1;margin-bottom:0.15rem
+}
+.pricing-price-sub{
+  font-size:0.82rem;color:#6b7a73;
+  margin-bottom:1.25rem
+}
+.pricing-features{margin-bottom:1.5rem}
+.pricing-features li{
+  padding:0.4rem 0;
+  font-size:0.85rem;color:#4a4a4a;
+  display:flex;align-items:center;gap:0.5rem
+}
+.pricing-features li::before{
+  content:'✓';
+  color:#2d4a3e;
+  font-family:'JetBrains Mono',monospace;
+  font-weight:500;font-size:0.8rem
+}
+.pricing-card .btn{width:100%;justify-content:center}
+@media(max-width:960px){
+  .pricing-grid{grid-template-columns:1fr;max-width:450px;margin-left:auto;margin-right:auto}
+}
+
+/* ===== FAQ ===== */
+.faq-list{
+  max-width:720px;
+  margin:2rem auto 0
+}
+.faq-item{
+  border-bottom:1px solid rgba(45,74,62,0.08)
+}
+.faq-question{
+  width:100%;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 0;
+  background:none;border:none;
+  font-family:'Inter',sans-serif;
+  font-size:0.95rem;font-weight:500;
+  color:#1a1a1a;
+  cursor:pointer;
+  text-align:left;
+  transition:color 0.2s;
+  gap:1rem
+}
+.faq-question:hover{color:#2d4a3e}
+.faq-question .faq-toggle{
+  font-family:'JetBrains Mono','SF Mono',monospace;
+  font-size:0.85rem;color:#6b7a73;
+  flex-shrink:0;
+  transition:transform 0.3s
+}
+.faq-item.open .faq-toggle{transform:rotate(45deg)}
+.faq-answer{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.35s ease,padding 0.35s ease;
+  padding:0
+}
+.faq-item.open .faq-answer{
+  max-height:300px;
+  padding-bottom:1.25rem
+}
+.faq-answer p{
+  font-size:0.9rem;color:#5a5a5a;
+  line-height:1.7
+}
+
+/* ===== FOOTER ===== */
+footer{
+  border-top:1px solid rgba(45,74,62,0.07);
+  padding:3rem 0 2.5rem;
+  background:rgba(45,74,62,0.015)
+}
+.footer-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:2rem;
+  margin-bottom:2.5rem
+}
+.footer-brand .footer-logo{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:1.1rem;font-weight:600;
+  color:#2d4a3e;margin-bottom:0.5rem
+}
+.footer-brand p{
+  font-size:0.85rem;color:#6b7a73;
+  max-width:300px;line-height:1.6
+}
+.footer-col h4{
+  font-size:0.75rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.08em;
+  color:#4a4a4a;margin-bottom:0.75rem;
+  font-family:'Inter',sans-serif
+}
+.footer-col a{
+  display:block;
+  font-size:0.85rem;color:#5a5a5a;
+  padding:0.2rem 0;
+  transition:color 0.2s
+}
+.footer-col a:hover{color:#2d4a3e}
+.footer-bottom{
+  border-top:1px solid rgba(45,74,62,0.06);
+  padding-top:1.5rem;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:0.75rem;
+  font-size:0.82rem;color:#6b7a73
+}
+.footer-bottom .mono{font-size:0.72rem}
+@media(max-width:800px){
+  .footer-grid{grid-template-columns:1fr 1fr;gap:1.5rem}
+  .footer-brand{grid-column:1 / -1}
+  .footer-bottom{flex-direction:column;text-align:center}
+}
+
+/* ===== UTILITY ===== */
+.text-center{text-align:center}
+.mx-auto{margin-left:auto;margin-right:auto}
+.mt-1{margin-top:1rem}
+.mb-1{margin-bottom:1rem}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav role="navigation" aria-label="Main navigation">
+  <div class="container">
+    <div class="nav-logo">GSD<span> Dashboard</span></div>
+    <div class="nav-links" id="navLinks">
+      <a href="#features">Features</a>
+      <a href="#deep-dive">Overview</a>
+      <a href="#stats">Metrics</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <span class="nav-cta"><a href="#demo">Launch Demo</a></span>
+    </div>
+    <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="hero-eyebrow">v2.4 · Now available</div>
+        <h1>The <span class="accent">GSD Dashboard</span></h1>
+        <p class="hero-tagline">The ACMI Command Center — real-time agent orchestration, project pipelines, and knowledge management in one editorial-grade interface.</p>
+        <div class="hero-actions">
+          <a href="#demo" class="btn btn-primary">Launch Demo →</a>
+          <a href="#docs" class="btn btn-secondary">Read Docs</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="mono-bar">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span style="margin-left:auto">GSD v2.4 · acmi:session:active</span>
+        </div>
+        <div class="mockup-nav">
+          <div class="mockup-nav-item active"><span class="icon">⊙</span>Fleet</div>
+          <div class="mockup-nav-item"><span class="icon">⊞</span>Tasks</div>
+          <div class="mockup-nav-item"><span class="icon">◈</span>Knowledge</div>
+          <div class="mockup-nav-item"><span class="icon">◷</span>Calendar</div>
+          <div class="mockup-nav-item"><span class="icon">⚙</span>Agents</div>
+          <div class="mockup-nav-item"><span class="icon">▦</span>Docs</div>
+          <div class="mockup-nav-item"><span class="icon">⇄</span>ACMI</div>
+          <div class="mockup-nav-item"><span class="icon">☰</span>Settings</div>
+        </div>
+        <div class="mockup-preview">
+          <div class="mockup-card">
+            <div class="label">Agents Online</div>
+            <div class="val">7<span style="font-size:0.6rem;color:#6b7a73;font-family:'Inter',sans-serif"> / 8</span></div>
+            <div class="mockup-agent-row"><span class="status"></span><span class="mono" style="font-size:0.55rem">writer-01</span></div>
+            <div class="mockup-agent-row"><span class="status"></span><span class="mono" style="font-size:0.55rem">analyst-03</span></div>
+            <div class="mockup-agent-row"><span class="status"></span><span class="mono" style="font-size:0.55rem">coder-07</span></div>
+          </div>
+          <div class="mockup-card">
+            <div class="label">Active Tasks</div>
+            <div class="val">12</div>
+            <div class="mono" style="font-size:0.55rem;margin-top:0.3rem">3 high priority</div>
+            <div style="margin-top:0.4rem;display:flex;gap:2px">
+              <span style="flex:1;height:3px;background:#2d4a3e;border-radius:1px"></span>
+              <span style="flex:1;height:3px;background:#2d4a3e;border-radius:1px"></span>
+              <span style="flex:1;height:3px;background:#ddd;border-radius:1px"></span>
+              <span style="flex:1;height:3px;background:#ddd;border-radius:1px"></span>
+            </div>
+          </div>
+          <div class="mockup-card">
+            <div class="label">Next Event</div>
+            <div class="val" style="font-size:0.75rem">Sprint Review</div>
+            <div class="mono" style="font-size:0.55rem">Today 15:00 UTC</div>
+          </div>
+          <div class="mockup-card">
+            <div class="label">ACMI Sync</div>
+            <div class="val" style="font-size:0.7rem;color:#2d4a3e">● Live</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<section class="trust-bar" aria-label="Social proof">
+  <div class="container">
+    <span class="mono">◆</span>
+    <span>Used by <strong>12 AI agents</strong> across <strong>3 projects</strong></span>
+    <span class="mono" style="opacity:0.4">—</span>
+    <span style="font-size:0.8rem;color:#6b7a73">Running on ACMI Protocol v1.0</span>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Capabilities</span>
+      <h2 class="section-title">Everything you need to command<br>your agent fleet.</h2>
+      <p class="section-subtitle mx-auto">Four integrated workspaces designed for production AI workflows — from real-time monitoring to long-term knowledge.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">◉</div>
+        <h3>Fleet Command</h3>
+        <p>Real-time agent monitoring with live status, session telemetry, and per-agent logs. See what every agent is doing, right now.</p>
+        <span class="feature-tag">Real-time monitoring</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⊞</div>
+        <h3>Task &amp; Project Pipeline</h3>
+        <p>Kanban boards and Gantt timelines for managing agent tasks. Assign, track, and review work across your entire multi-agent operation.</p>
+        <span class="feature-tag">Kanban + Gantt</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◈</div>
+        <h3>Knowledge Hub</h3>
+        <p>A living library of notes, documents, and agent-generated artifacts. Search across everything with full-text and semantic retrieval.</p>
+        <span class="feature-tag">Notes + Docs</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◷</div>
+        <h3>Calendar Timeline</h3>
+        <p>Unified event view synced with ACMI protocol. Track milestones, deadlines, and agent rendezvous in a single chronological surface.</p>
+        <span class="feature-tag">Event + ACMI sync</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DEEP DIVE ===== -->
+<section class="section" id="deep-dive">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Product Deep-Dive</span>
+      <h2 class="section-title">An 8-page system for<br>agent operations.</h2>
+    </div>
+    <div class="deep-dive-grid">
+      <div class="deep-dive-text">
+        <h3>Built for teams that live in the terminal — and those who don't.</h3>
+        <p>The GSD Dashboard organizes your multi-agent workflow into eight purpose-built pages. Each page maps to a core operational concern: fleet health, task execution, knowledge retention, scheduling, agent configuration, documentation, protocol plumbing, and system preferences.</p>
+        <p>Whether you're debugging a stalled agent session, reviewing a week of project output, or onboarding a new team member, the nav rail puts every surface one click away. No buried menus, no modal hell — just clean, hierarchical navigation designed for daily use.</p>
+        <ul>
+          <li><strong>Fleet</strong> — Live agent status &amp; session telemetry</li>
+          <li><strong>Tasks</strong> — Kanban boards &amp; Gantt timelines</li>
+          <li><strong>Knowledge</strong> — Notes, docs &amp; semantic search</li>
+          <li><strong>Calendar</strong> — Event timeline &amp; ACMI sync</li>
+          <li><strong>Agents</strong> — Configure and spawn new agents</li>
+          <li><strong>Docs</strong> — Protocol specs &amp; runbooks</li>
+          <li><strong>ACMI</strong> — Protocol monitor &amp; event log</li>
+          <li><strong>Settings</strong> — Account, team &amp; deployment</li>
+        </ul>
+        <a href="#demo" class="btn btn-primary" style="margin-top:0.5rem">Explore the Dashboard →</a>
+      </div>
+      <div class="deep-dive-visual">
+        <h4>Navigation Rail · 8 Pages</h4>
+        <div class="nav-rail-visual">
+          <div class="nav-rail-item active">
+            <span class="nr-icon">⊙</span>
+            <span class="nr-label">Fleet</span>
+            <span class="nr-desc">7 live</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">⊞</span>
+            <span class="nr-label">Tasks</span>
+            <span class="nr-desc">12 active</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">◈</span>
+            <span class="nr-label">Knowledge</span>
+            <span class="nr-desc">43 notes</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">◷</span>
+            <span class="nr-label">Calendar</span>
+            <span class="nr-desc">today</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">⚙</span>
+            <span class="nr-label">Agents</span>
+            <span class="nr-desc">4 idle</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">▦</span>
+            <span class="nr-label">Docs</span>
+            <span class="nr-desc">v1.0</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">⇄</span>
+            <span class="nr-label">ACMI</span>
+            <span class="nr-desc">live</span>
+          </div>
+          <div class="nav-rail-item">
+            <span class="nr-icon">☰</span>
+            <span class="nr-label">Settings</span>
+            <span class="nr-desc">team</span>
+          </div>
+        </div>
+        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(45,74,62,0.08);font-size:0.75rem;color:#6b7a73;font-family:'JetBrains Mono','SF Mono',monospace">
+          <span style="color:#2d4a3e">●</span> Fleet active · <span style="color:#2d4a3e">●</span> ACMI syncing
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="section stats-section" id="stats">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">By the Numbers</span>
+      <h2 class="section-title">A dashboard built to scale.</h2>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">8</div>
+        <div class="stat-label">Pages in the navigation system</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Live agents managed concurrently</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3k+</div>
+        <div class="stat-label">Lines of protocol-driven config</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">1</div>
+        <div class="stat-label">Protocol to rule them all — ACMI</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Pricing</span>
+      <h2 class="section-title">Plans for every agent fleet.</h2>
+      <p class="section-subtitle mx-auto">From solo experiments to enterprise deployments — start for free, upgrade as you grow.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <h3>Free</h3>
+        <div class="pricing-price">$0</div>
+        <div class="pricing-price-sub">Forever free for individuals</div>
+        <ul class="pricing-features">
+          <li>1 agent slot</li>
+          <li>Basic fleet view</li>
+          <li>Task board (10 tasks max)</li>
+          <li>Knowledge Hub (read-only)</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#signup" class="btn btn-secondary">Get Started</a>
+      </div>
+      <div class="pricing-card featured">
+        <span class="popular-badge">Most popular</span>
+        <h3>Pro</h3>
+        <div class="pricing-price">$29</div>
+        <div class="pricing-price-sub">Per month · up to 10 agents</div>
+        <ul class="pricing-features">
+          <li>Up to 10 agent slots</li>
+          <li>Full fleet command &amp; telemetry</li>
+          <li>Unlimited tasks &amp; projects</li>
+          <li>Full Knowledge Hub (read/write)</li>
+          <li>Calendar &amp; ACMI sync</li>
+          <li>Full ACMI protocol access</li>
+          <li>Email &amp; chat support</li>
+        </ul>
+        <a href="#signup" class="btn btn-primary">Start Pro Trial →</a>
+      </div>
+      <div class="pricing-card">
+        <h3>Enterprise</h3>
+        <div class="pricing-price" style="font-size:1.8rem">Custom</div>
+        <div class="pricing-price-sub">Tailored to your organization</div>
+        <ul class="pricing-features">
+          <li>Unlimited agent slots</li>
+          <li>Custom deployment (self-hosted)</li>
+          <li>Dedicated infrastructure</li>
+          <li>SSO &amp; RBAC</li>
+          <li>Audit logging &amp; compliance</li>
+          <li>White-label options</li>
+          <li>Priority support &amp; SLAs</li>
+        </ul>
+        <a href="#contact" class="btn btn-secondary">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">FAQ</span>
+      <h2 class="section-title">Common questions.</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-question" aria-expanded="true">
+          <span>What is ACMI?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>ACMI — the Agent Communication &amp; Machine Intelligence protocol — is an open standard for inter-agent communication, state management, and event logging. It provides a structured way for AI agents to share context, hand off work, and maintain persistent state across sessions. The GSD Dashboard is built on top of ACMI, giving you full visibility into every message, state change, and event in your agent ecosystem.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          <span>How does the dashboard use live data?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>The dashboard connects directly to your ACMI protocol bus and agent runtimes. Every agent status update, task transition, and logged event is reflected in real time via WebSocket and server-sent events. There is no polling — the Fleet page, Calendar Timeline, and ACMI monitor all update instantly as agents broadcast their state changes through the protocol.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          <span>Can I deploy on my own infrastructure?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. The Enterprise plan includes custom deployment on your own infrastructure — whether that is bare metal, Kubernetes, or a private cloud. The dashboard ships as a set of containerized services (Go backend, static frontend, and a lightweight ACMI relay). We provide Terraform modules for AWS, GCP, and Azure, plus Ansible playbooks for on-premise setups. Self-hosted deployments include full audit logging, SSO integration, and dedicated support.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          <span>What browsers are supported?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>We support the latest two versions of Chrome, Firefox, Safari, and Edge. The dashboard requires a modern browser with ES2020 support and CSS Grid. Safari 15+ and Firefox 100+ are fully supported. Internet Explorer is not supported. Mobile browsers work for read-only views; the full dashboard is optimized for desktop use.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          <span>How do I get started?</span>
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Sign up for a Free account — no credit card required. The onboarding wizard will walk you through connecting your first agent, setting up a project, and exploring the Fleet view. Comprehensive documentation is available at docs.gsddashboard.io, including quickstart guides for Python, TypeScript, and Go agent SDKs. Most users go from signup to their first agent session in under 10 minutes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">GSD Dashboard</div>
+        <p>The ACMI Command Center. Real-time agent orchestration for teams building with AI.</p>
+        <p style="margin-top:0.75rem;font-family:'JetBrains Mono','SF Mono',monospace;font-size:0.72rem">Built on the ACMI Protocol</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#docs">Documentation</a>
+        <a href="#changelog">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#about">About</a>
+        <a href="#blog">Blog</a>
+        <a href="#careers">Careers</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Protocol</h4>
+        <a href="#acmi">ACMI Spec</a>
+        <a href="#github">GitHub</a>
+        <a href="#status">Status</a>
+        <a href="#privacy">Privacy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 GSD Dashboard. All rights reserved.</span>
+      <span class="mono">Built on <a href="#acmi" style="color:#2d4a3e">ACMI Protocol</a></span>
+      <span>
+        <a href="#twitter" style="margin-right:1rem">Twitter</a>
+        <a href="#github" style="margin-right:1rem">GitHub</a>
+        <a href="#discord">Discord</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+// Mobile nav toggle
+document.getElementById('mobileToggle').addEventListener('click', function(){
+  const links = document.getElementById('navLinks');
+  const expanded = this.getAttribute('aria-expanded') === 'true' ? false : true;
+  links.classList.toggle('open');
+  this.setAttribute('aria-expanded', expanded);
+});
+
+// Close mobile nav on link click
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+    document.getElementById('mobileToggle').setAttribute('aria-expanded', 'false');
+  });
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(btn => {
+  btn.addEventListener('click', function(){
+    const item = this.parentElement;
+    const isOpen = item.classList.contains('open');
+    // close all
+    document.querySelectorAll('.faq-item').forEach(el => {
+      el.classList.remove('open');
+      el.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+    });
+    if(!isOpen){
+      item.classList.add('open');
+      this.setAttribute('aria-expanded', 'true');
+    }
+  });
+});
+
+// Smooth scroll offset for sticky nav
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e){
+    const href = this.getAttribute('href');
+    if(href === '#') return;
+    const target = document.querySelector(href);
+    if(target){
+      e.preventDefault();
+      const navHeight = document.querySelector('nav').offsetHeight;
+      const targetPos = target.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+      window.scrollTo({top: targetPos, behavior: 'smooth'});
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACMI — Fleet Command</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@500;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── MZM Design System · tokens ───────────────────────────── */
+    :root {
+      --paper:        #faf9f5;
+      --paper-warm:   #f4f2eb;
+      --paper-shadow: #ebe8de;
+      --paper-deep:   #e4dfd3;
+
+      --ink:       #1a1a1a;
+      --ink-soft:  #2c2c2a;
+      --ink-mute:  #4a4a48;
+      --ink-fade:  #7a7a76;
+      --ink-quiet: #9a9a96;
+      --ink-rule:  #d4d2cc;
+
+      --accent:        #2d4a3e;
+      --accent-soft:   #5a7d6f;
+      --accent-quiet:  #1c3027;
+      --accent-glow:   rgba(45, 74, 62, 0.12);
+
+      --quote-rule: #b8b0a0;
+      --quote-deep: #5c5648;
+
+      --font-display: 'Montserrat', system-ui, sans-serif;
+      --font-body:    'Raleway', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+      --radius-sm: 3px;
+      --radius-md: 4px;
+      --radius-lg: 8px;
+
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --dur-fast: 180ms;
+      --dur-norm: 320ms;
+
+      --header-h: 56px;
+      --nav-w: 200px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 14px; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-weight: 400;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    ::selection { background: var(--ink); color: var(--paper); }
+
+    /* ─── Scrollbar ───────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--paper); }
+    ::-webkit-scrollbar-thumb { background: var(--ink-rule); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-soft); }
+
+    /* ─── Layout Shell ─────────────────────────────── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--nav-w) 1fr;
+      grid-template-rows: var(--header-h) 1fr;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ───────────────────────────────────── */
+    .app-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--ink);
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-sm);
+    }
+    .brand-mark svg { width: 18px; height: 18px; fill: var(--paper); }
+    .brand-name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .brand-name span { color: var(--ink-fade); font-weight: 400; }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-clock {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-fade);
+      letter-spacing: 0.04em;
+    }
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .header-status .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .header-status .dot-warn {
+      background: #b8860b;
+    }
+
+    /* ─── Sidebar Nav ──────────────────────────────── */
+    .app-nav {
+      grid-row: 2;
+      border-right: 1px solid var(--ink-rule);
+      padding: 16px 0;
+      background: var(--paper);
+    }
+    .nav-section {
+      padding: 0 16px;
+      margin-bottom: 20px;
+    }
+    .nav-section-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--ink-fade);
+      margin-bottom: 8px;
+      padding: 0 8px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-mute);
+      text-decoration: none;
+      transition: all var(--dur-fast) var(--ease);
+      cursor: pointer;
+    }
+    .nav-item:hover { color: var(--ink); background: var(--paper-warm); }
+    .nav-item.active {
+      color: var(--ink);
+      background: var(--paper-warm);
+      border-left: 2px solid var(--accent);
+    }
+    .nav-item .badge {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-fade);
+    }
+    .nav-item .badge-accent {
+      color: var(--accent);
+    }
+    .nav-item .nav-icon {
+      width: 16px; height: 16px;
+      display: grid;
+      place-items: center;
+      opacity: 0.6;
+    }
+    .nav-item .nav-icon svg { width: 14px; height: 14px; }
+
+    /* ─── Main Content ─────────────────────────────── */
+    .app-main {
+      grid-row: 2;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+
+    /* ─── Page Header ──────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .page-title .sub {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--ink-fade);
+      letter-spacing: normal;
+      display: block;
+      margin-top: 2px;
+    }
+    .page-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ─── Fleet Health Bar ─────────────────────────── */
+    .fleet-health {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--ink-rule);
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .health-stat {
+      background: var(--paper);
+      padding: 14px 16px;
+    }
+    .health-stat .value {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .health-stat .label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ink-fade);
+      margin-top: 4px;
+    }
+    .health-stat .value.online { color: var(--accent); }
+    .health-stat .value.blocked { color: #b8860b; }
+    .health-stat .value.warn { color: #8b3a3a; }
+
+    /* ─── Two-column content ───────────────────────── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ─── Section ──────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .section-link {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-fade);
+      text-decoration: none;
+      transition: color var(--dur-fast) var(--ease);
+    }
+    .section-link:hover { color: var(--accent); }
+
+    /* ─── Agent Grid ───────────────────────────────── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--ink-rule);
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .agent-card {
+      background: var(--paper);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background var(--dur-fast) var(--ease);
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+    }
+    .agent-card:hover { background: var(--paper-warm); }
+    .agent-card:active { background: var(--paper-shadow); }
+
+    .agent-card .top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .agent-indicator {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .agent-indicator.online { background: var(--accent); }
+    .agent-indicator.idle { background: var(--ink-fade); }
+    .agent-indicator.blocked { background: #b8860b; }
+    .agent-indicator.offline { background: var(--ink-rule); }
+
+    .agent-card .name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--ink);
+    }
+    .agent-card .role {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-fade);
+      margin-left: auto;
+    }
+    .agent-card .signal {
+      font-size: 11px;
+      color: var(--ink-mute);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .agent-card .signal .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+    }
+    .agent-card .ts {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-quiet);
+      margin-top: 6px;
+    }
+
+    /* ─── Timeline Feed ────────────────────────────── */
+    .timeline-feed {
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .tl-event {
+      display: flex;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+      transition: background var(--dur-fast) var(--ease);
+      cursor: pointer;
+    }
+    .tl-event:last-child { border-bottom: none; }
+    .tl-event:hover { background: var(--paper-warm); }
+
+    .tl-event .tl-line {
+      width: 2px;
+      flex-shrink: 0;
+      background: var(--ink-rule);
+      border-radius: 1px;
+      position: relative;
+    }
+    .tl-event .tl-line::before {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: -2px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--ink-rule);
+    }
+    .tl-event .tl-line.is-accent { background: var(--accent); }
+    .tl-event .tl-line.is-accent::before { background: var(--accent); }
+
+    .tl-event .tl-body { flex: 1; min-width: 0; }
+    .tl-event .tl-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .tl-event .tl-source {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--ink-fade);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .tl-event .tl-kind {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--accent);
+      background: var(--accent-glow);
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+    .tl-event .tl-ts {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-quiet);
+      margin-left: auto;
+    }
+    .tl-event .tl-summary {
+      font-size: 12px;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .tl-event .tl-summary .at {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ─── Work Items Sidebar ───────────────────────── */
+    .work-list {
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .work-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+      transition: background var(--dur-fast) var(--ease);
+      cursor: pointer;
+    }
+    .work-item:last-child { border-bottom: none; }
+    .work-item:hover { background: var(--paper-warm); }
+
+    .work-item .wi-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .work-item .wi-status {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 1px 5px;
+      border-radius: 2px;
+      border: 1px solid var(--ink-rule);
+      color: var(--ink-fade);
+    }
+    .work-item .wi-status.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .work-item .wi-status.stalled {
+      border-color: #b8860b;
+      color: #8b6914;
+      background: rgba(184, 134, 11, 0.08);
+    }
+    .work-item .wi-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--ink);
+    }
+    .work-item .wi-meta {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-fade);
+      margin-top: 4px;
+    }
+    .work-item .wi-meta .assignee {
+      color: var(--accent);
+    }
+
+    /* ─── Button ───────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid var(--ink-rule);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      border-color: var(--ink-mute);
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--paper);
+    }
+    .btn-primary:hover {
+      background: var(--accent-quiet);
+      border-color: var(--accent-quiet);
+    }
+
+    /* ─── Empty State ──────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--ink-fade);
+    }
+    .empty-state .icon { font-size: 24px; margin-bottom: 8px; opacity: 0.5; }
+    .empty-state p { font-size: 12px; line-height: 1.5; }
+
+    /* ─── Responsive ───────────────────────────────── */
+    @media (max-width: 1024px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--header-h) auto 1fr;
+      }
+      .app-nav {
+        grid-row: 2;
+        grid-column: 1;
+        border-right: none;
+        border-bottom: 1px solid var(--ink-rule);
+        padding: 8px 16px;
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+      }
+      .nav-section { padding: 0; margin-bottom: 0; }
+      .nav-section-title { display: none; }
+      .nav-item { white-space: nowrap; font-size: 11px; }
+      .nav-item .badge { display: none; }
+      .app-main { grid-row: 3; padding: 16px; }
+      .content-grid { grid-template-columns: 1fr; }
+      .fleet-health { grid-template-columns: repeat(2, 1fr); }
+      .agent-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .header-meta .header-clock { display: none; }
+      .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .agent-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v4l-4 4 4 4v4H4v-4l4-4-4-4V4zm2 2v2.5l4 3.5-4 3.5V18h12v-2.5l-4-3.5 4-3.5V6H6z"/></svg>
+        </div>
+        <div class="brand-name">ACMI <span>Fleet Command</span></div>
+      </div>
+      <div class="header-meta">
+        <span class="header-clock" id="clock">—</span>
+        <span class="header-status">
+          <span class="dot"></span>
+          all systems nominal
+        </span>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="app-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Overview</div>
+        <a class="nav-item active" href="index.html">
+          <span class="nav-icon"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></span>
+          Fleet
+          <span class="badge badge-accent">8</span>
+        </a>
+        <a class="nav-item" href="agent.html">
+          <span class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg></span>
+          Agents
+          <span class="badge">7</span>
+        </a>
+        <a class="nav-item" href="timeline.html">
+          <span class="nav-icon"><svg viewBox="0 0 16 16"><path d="M1 4h14M1 8h10M1 12h12" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></span>
+          Timeline
+          <span class="badge">142</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Management</div>
+        <div class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 6h12M6 2v12"/></svg></span>
+          Work Items
+          <span class="badge">5</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 16 16"><path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="1.5"/></svg></span>
+          Threads
+          <span class="badge">3</span>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">System</div>
+        <div class="nav-item">
+          <span class="nav-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3 3l2 2M11 11l2 2M3 13l2-2M11 5l2-2" stroke="currentColor" stroke-width="1.5"/></svg></span>
+          Settings
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">
+            Fleet Overview
+            <span class="sub">Live ACMI agent cluster · 7 agents online</span>
+          </h1>
+        </div>
+        <div class="page-actions">
+          <a href="#" class="btn btn-primary">+ Bootstrap Session</a>
+          <a href="#" class="btn">Export Report</a>
+        </div>
+      </div>
+
+      <!-- Fleet Health -->
+      <div class="fleet-health">
+        <div class="health-stat">
+          <div class="value online">7</div>
+          <div class="label">Agents Online</div>
+        </div>
+        <div class="health-stat">
+          <div class="value">3</div>
+          <div class="label">Active Threads</div>
+        </div>
+        <div class="health-stat">
+          <div class="value">5</div>
+          <div class="label">Work Items</div>
+        </div>
+        <div class="health-stat">
+          <div class="value blocked">1</div>
+          <div class="label">Blocked</div>
+        </div>
+      </div>
+
+      <!-- Grid: Agent Cards + Sidebar -->
+      <div class="content-grid">
+        <!-- Left: Agent Grid -->
+        <div>
+          <div class="section-header">
+            <h2 class="section-title">Agent Roster</h2>
+            <a href="agent.html" class="section-link">View all →</a>
+          </div>
+
+          <div class="agent-grid">
+            <!-- design-agency -->
+            <a href="agent.html?id=design-agency" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator online"></span>
+                <span class="name">design-agency</span>
+                <span class="role">Lead</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[scope-decision]</span> Audit cowork-kanban redesign — Mad EZ v3 + ACMI DS
+              </div>
+              <div class="ts">23m ago · audit-kickoff</div>
+            </a>
+
+            <!-- design-ux-architect -->
+            <a href="agent.html?id=design-ux-architect" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator online"></span>
+                <span class="name">ux-architect</span>
+                <span class="role">Architecture</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[coord-note]</span> Typographic hierarchy audit — Montserrat/Raleway pairing
+              </div>
+              <div class="ts">18m ago · in-progress</div>
+            </a>
+
+            <!-- design-brand-guardian -->
+            <a href="agent.html?id=design-brand-guardian" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator online"></span>
+                <span class="name">brand-guardian</span>
+                <span class="role">Brand</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[design-system-spec]</span> Validating forest green accent rules against MZM tokens
+              </div>
+              <div class="ts">15m ago · reviewing</div>
+            </a>
+
+            <!-- design-visual-storyteller -->
+            <a href="agent.html?id=design-visual-storyteller" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator idle"></span>
+                <span class="name">visual-storyteller</span>
+                <span class="role">Visual</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[heartbeat]</span> Awaiting design researcher input on mobile viewport audit
+              </div>
+              <div class="ts">1h ago · idle</div>
+            </a>
+
+            <!-- design-ui-designer -->
+            <a href="agent.html?id=design-ui-designer" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator blocked"></span>
+                <span class="name">ui-designer</span>
+                <span class="role">UI</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[blocked]</span> Letterpress tactile states — needs final accent color approval
+              </div>
+              <div class="ts">45m ago · blocked</div>
+            </a>
+
+            <!-- design-ux-researcher -->
+            <a href="agent.html?id=design-ux-researcher" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator online"></span>
+                <span class="name">ux-researcher</span>
+                <span class="role">Research</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[milestone-shipped]</span> Mobile viewport scaling report — 4 breakpoints verified
+              </div>
+              <div class="ts">8m ago · completed</div>
+            </a>
+
+            <!-- design-inclusive-visuals-specialist -->
+            <a href="agent.html?id=design-inclusive-visuals-specialist" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator online"></span>
+                <span class="name">inclusive-visuals</span>
+                <span class="role">Accessibility</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[coord-note]</span> WCAG contrast check — ink on ivory passes AA at 14px+
+              </div>
+              <div class="ts">12m ago · reporting</div>
+            </a>
+
+            <!-- ops-center -->
+            <a href="agent.html?id=ops-center" class="agent-card">
+              <div class="top">
+                <span class="agent-indicator online"></span>
+                <span class="name">ops-center</span>
+                <span class="role">Orchestrator</span>
+              </div>
+              <div class="signal">
+                <span class="tag">[coord-note]</span> Fleet audit complete — 0 stalled, 1 archival candidate
+              </div>
+              <div class="ts">5m ago · monitoring</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Timeline + Work Items -->
+        <div>
+          <!-- Recent Timeline -->
+          <div style="margin-bottom: 20px;">
+            <div class="section-header">
+              <h2 class="section-title">Recent Timeline</h2>
+              <a href="timeline.html" class="section-link">All events →</a>
+            </div>
+            <div class="timeline-feed">
+              <div class="tl-event">
+                <div class="tl-line is-accent"></div>
+                <div class="tl-body">
+                  <div class="tl-meta">
+                    <span class="tl-source">design-agency</span>
+                    <span class="tl-kind">scope-decision</span>
+                    <span class="tl-ts">14:32</span>
+                  </div>
+                  <div class="tl-summary">
+                    Audit kickoff: cowork-kanban redesign — Mad EZ v3 + ACMI DS <span class="at">@team</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tl-event">
+                <div class="tl-line is-accent"></div>
+                <div class="tl-body">
+                  <div class="tl-meta">
+                    <span class="tl-source">ux-researcher</span>
+                    <span class="tl-kind">milestone-shipped</span>
+                    <span class="tl-ts">14:28</span>
+                  </div>
+                  <div class="tl-summary">
+                    Mobile viewport scale report — 4 breakpoints verified <span class="at">@design-agency</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tl-event">
+                <div class="tl-line"></div>
+                <div class="tl-body">
+                  <div class="tl-meta">
+                    <span class="tl-source">ui-designer</span>
+                    <span class="tl-kind">incident-update</span>
+                    <span class="tl-ts">14:02</span>
+                  </div>
+                  <div class="tl-summary">
+                    Letterpress tactile states blocked — awaiting accent color approval <span class="at">@brand-guardian</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tl-event">
+                <div class="tl-line"></div>
+                <div class="tl-body">
+                  <div class="tl-meta">
+                    <span class="tl-source">inclusive-visuals</span>
+                    <span class="tl-kind">coord-note</span>
+                    <span class="tl-ts">13:48</span>
+                  </div>
+                  <div class="tl-summary">
+                    WCAG contrast check: #2d4a3e / #faf9f5 passes AA at 14px+
+                  </div>
+                </div>
+              </div>
+              <div class="tl-event">
+                <div class="tl-line"></div>
+                <div class="tl-body">
+                  <div class="tl-meta">
+                    <span class="tl-source">ops-center</span>
+                    <span class="tl-kind">fleet-audit</span>
+                    <span class="tl-ts">13:22</span>
+                  </div>
+                  <div class="tl-summary">
+                    Fleet audit: 0 stalled projects, 1 archival candidate identified
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Work Items -->
+          <div>
+            <div class="section-header">
+              <h2 class="section-title">Active Work Items</h2>
+              <a href="#" class="section-link">All →</a>
+            </div>
+            <div class="work-list">
+              <div class="work-item">
+                <div class="wi-top">
+                  <span class="wi-status active">active</span>
+                </div>
+                <div class="wi-title">cowork-kanban-design-audit</div>
+                <div class="wi-meta">
+                  <span class="assignee">design-agency</span> · 4 milestones · 35m ago
+                </div>
+              </div>
+              <div class="work-item">
+                <div class="wi-top">
+                  <span class="wi-status active">active</span>
+                </div>
+                <div class="wi-title">vapi-security-fix-kit</div>
+                <div class="wi-meta">
+                  <span class="assignee">gemini-cli</span> · blocked · VAPI API key missing
+                </div>
+              </div>
+              <div class="work-item">
+                <div class="wi-top">
+                  <span class="wi-status stalled">stalled</span>
+                </div>
+                <div class="wi-title">secret-manager-fleet-rollout</div>
+                <div class="wi-meta">
+                  <span class="assignee">ops-center</span> · 72h+ no activity
+                </div>
+              </div>
+              <div class="work-item">
+                <div class="wi-top">
+                  <span class="wi-status active">active</span>
+                </div>
+                <div class="wi-title">smithery-listing-quality</div>
+                <div class="wi-meta">
+                  <span class="assignee">claude-engineer</span> · 90% score · PR in review
+                </div>
+              </div>
+              <div class="work-item">
+                <div class="wi-top">
+                  <span class="wi-status">completed</span>
+                </div>
+                <div class="wi-title">acmi-token-rotation</div>
+                <div class="wi-meta">
+                  <span class="assignee">ops-center</span> · completed May 14
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Correlation chain mini-view -->
+      <div style="margin-top: 28px;">
+        <div class="section-header">
+          <h2 class="section-title">Active Correlation Chain</h2>
+          <span class="section-link">designTeamAuditKickoff-2026-05-24</span>
+        </div>
+        <div style="display:flex;gap:0;border:1px solid var(--ink-rule);border-radius:var(--radius-md);overflow:hidden;">
+          <div style="flex:1;padding:10px 12px;background:var(--paper);border-right:1px solid var(--ink-rule);">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:2px;">⟵ parent</div>
+            <div style="font-size:11px;color:var(--ink-mute);">opsCenterArchivalProtocolRatified</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);">May 14, 14:22</div>
+          </div>
+          <div style="flex:1;padding:10px 12px;background:var(--paper-warm);border-right:1px solid var(--ink-rule);">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:2px;">● current</div>
+            <div style="font-size:11px;font-weight:600;color:var(--ink);">designTeamAuditKickoff</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);">May 24, 14:10</div>
+          </div>
+          <div style="flex:1;padding:10px 12px;background:var(--paper);">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--ink-fade);margin-bottom:2px;">⟶ child</div>
+            <div style="font-size:11px;color:var(--ink-mute);">coworkKanbanMobileAudit</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);">pending</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Live clock
+    function tick() {
+      var now = new Date();
+      var h = String(now.getHours()).padStart(2, '0');
+      var m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clock').textContent = h + ':' + m + ' UTC-4';
+    }
+    tick();
+    setInterval(tick, 30000);
+
+    // Simulate live agent indicator pulse
+    document.querySelectorAll('.agent-indicator.online').forEach(function(dot) {
+      dot.style.animation = 'acmi-pulse 2.5s ease-in-out infinite';
+    });
+    var style = document.createElement('style');
+    style.textContent = '@keyframes acmi-pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }';
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

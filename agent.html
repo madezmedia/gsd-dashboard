@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACMI — Agent Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@500;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper:        #faf9f5;
+      --paper-warm:   #f4f2eb;
+      --paper-shadow: #ebe8de;
+      --paper-deep:   #e4dfd3;
+      --ink:       #1a1a1a;
+      --ink-soft:  #2c2c2a;
+      --ink-mute:  #4a4a48;
+      --ink-fade:  #7a7a76;
+      --ink-quiet: #9a9a96;
+      --ink-rule:  #d4d2cc;
+      --accent:        #2d4a3e;
+      --accent-soft:   #5a7d6f;
+      --accent-quiet:  #1c3027;
+      --accent-glow:   rgba(45, 74, 62, 0.12);
+      --quote-rule: #b8b0a0;
+      --quote-deep: #5c5648;
+      --font-display: 'Montserrat', system-ui, sans-serif;
+      --font-body:    'Raleway', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'SF Mono', Consolas, monospace;
+      --radius-sm: 3px;
+      --radius-md: 4px;
+      --radius-lg: 8px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --dur-fast: 180ms;
+      --dur-norm: 320ms;
+      --header-h: 56px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    ::selection { background: var(--ink); color: var(--paper); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--paper); }
+    ::-webkit-scrollbar-thumb { background: var(--ink-rule); border-radius: 2px; }
+
+    .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* Header */
+    .app-header {
+      display: flex; align-items: center; justify-content: space-between;
+      height: var(--header-h); padding: 0 20px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .back-link {
+      font-family: var(--font-mono); font-size: 11px; color: var(--ink-fade);
+      text-decoration: none; display: flex; align-items: center; gap: 4px;
+      transition: color var(--dur-fast) var(--ease);
+    }
+    .back-link:hover { color: var(--accent); }
+    .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .brand-name span { color: var(--ink-fade); font-weight: 400; }
+
+    .agent-status-badge {
+      font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.12em; display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: var(--radius-sm);
+      border: 1px solid var(--ink-rule);
+    }
+    .agent-status-badge .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+    }
+    .agent-status-badge.online { border-color: var(--accent); color: var(--accent); }
+    .agent-status-badge.online .dot { background: var(--accent); }
+
+    /* Main */
+    .app-main { flex: 1; padding: 24px 28px; overflow-y: auto; }
+
+    /* Agent Hero */
+    .agent-hero {
+      display: flex; align-items: center; gap: 16px;
+      padding-bottom: 20px; border-bottom: 1px solid var(--ink-rule);
+      margin-bottom: 24px;
+    }
+    .agent-avatar {
+      width: 44px; height: 44px; border-radius: var(--radius-sm);
+      background: var(--accent); display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .agent-avatar svg { width: 22px; height: 22px; fill: var(--paper); }
+    .agent-info { flex: 1; }
+    .agent-info .name {
+      font-family: var(--font-display); font-weight: 600; font-size: 18px;
+      letter-spacing: -0.02em; color: var(--ink);
+    }
+    .agent-info .meta {
+      display: flex; align-items: center; gap: 12px; margin-top: 2px;
+    }
+    .agent-info .meta-item {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-fade);
+    }
+    .agent-info .meta-item .val { color: var(--ink); }
+
+    .agent-actions { display: flex; gap: 6px; }
+
+    /* Content columns */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-family: var(--font-display); font-weight: 600; font-size: 12px;
+      letter-spacing: -0.01em; color: var(--ink);
+    }
+    .section-count {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-fade);
+    }
+
+    /* Timeline */
+    .timeline-stream {
+      border: 1px solid var(--ink-rule); border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .tl-event {
+      display: flex; gap: 10px; padding: 10px 14px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+      transition: background var(--dur-fast) var(--ease);
+    }
+    .tl-event:last-child { border-bottom: none; }
+    .tl-event:hover { background: var(--paper-warm); }
+
+    .tl-line {
+      width: 2px; flex-shrink: 0; background: var(--ink-rule);
+      border-radius: 1px; position: relative;
+    }
+    .tl-line::before {
+      content: ''; position: absolute; top: 5px; left: -2px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--ink-rule);
+    }
+    .tl-line.is-accent { background: var(--accent); }
+    .tl-line.is-accent::before { background: var(--accent); }
+    .tl-line.is-em { background: var(--quote-deep); }
+    .tl-line.is-em::before { background: var(--quote-deep); }
+
+    .tl-body { flex: 1; min-width: 0; }
+    .tl-meta {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 2px;
+    }
+    .tl-source {
+      font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+      color: var(--ink-fade); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .tl-kind {
+      font-family: var(--font-mono); font-size: 9px; color: var(--accent);
+      background: var(--accent-glow); padding: 1px 5px; border-radius: 2px;
+    }
+    .tl-ts {
+      font-family: var(--font-mono); font-size: 9px; color: var(--ink-quiet);
+      margin-left: auto; white-space: nowrap;
+    }
+    .tl-summary {
+      font-size: 12px; color: var(--ink); line-height: 1.4;
+    }
+    .tl-summary .at { color: var(--accent); font-weight: 500; }
+    .tl-summary .corr {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-fade);
+      background: var(--paper-shadow); padding: 1px 4px; border-radius: 2px;
+    }
+
+    /* Profile Panel */
+    .profile-panel {
+      border: 1px solid var(--ink-rule); border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .profile-section {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+    }
+    .profile-section:last-child { border-bottom: none; }
+
+    .prof-label {
+      font-family: var(--font-mono); font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--ink-fade); margin-bottom: 6px;
+    }
+    .prof-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--ink-rule);
+    }
+    .prof-row:last-child { border-bottom: none; }
+    .prof-row dt {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-fade);
+    }
+    .prof-row dd {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink);
+      text-align: right;
+    }
+
+    /* Signals */
+    .signal-grid {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .signal-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0; border-bottom: 1px dashed var(--ink-rule);
+    }
+    .signal-row:last-child { border-bottom: none; }
+    .signal-key {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-fade);
+      min-width: 100px;
+    }
+    .signal-value {
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink);
+      font-weight: 500;
+    }
+    .signal-value.accent { color: var(--accent); }
+
+    /* Thread List */
+    .thread-list {
+      border: 1px solid var(--ink-rule); border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .thread-item {
+      padding: 10px 14px; border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper);
+      transition: background var(--dur-fast) var(--ease);
+    }
+    .thread-item:last-child { border-bottom: none; }
+    .thread-item:hover { background: var(--paper-warm); }
+    .thread-name {
+      font-family: var(--font-display); font-weight: 600; font-size: 12px;
+      color: var(--ink);
+    }
+    .thread-meta {
+      font-family: var(--font-mono); font-size: 9px; color: var(--ink-fade);
+      margin-top: 2px; display: flex; gap: 8px;
+    }
+    .thread-meta .role { color: var(--accent); }
+
+    /* Button */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; font-family: var(--font-display);
+      font-size: 11px; font-weight: 500;
+      border: 1px solid var(--ink-rule); background: var(--paper);
+      color: var(--ink); border-radius: var(--radius-sm);
+      cursor: pointer; transition: all var(--dur-fast) var(--ease);
+      text-decoration: none; white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--ink-mute); }
+    .btn-primary {
+      background: var(--accent); border-color: var(--accent); color: var(--paper);
+    }
+    .btn-primary:hover { background: var(--accent-quiet); border-color: var(--accent-quiet); }
+
+    /* Rollup */
+    .rollup-block {
+      background: var(--paper-warm);
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .rollup-title {
+      font-family: var(--font-mono); font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--ink-fade); margin-bottom: 6px;
+    }
+    .rollup-line {
+      display: flex; gap: 8px; align-items: flex-start;
+      padding: 3px 0;
+      font-size: 11px; line-height: 1.4;
+    }
+    .rollup-line .label {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--ink-fade); min-width: 80px; flex-shrink: 0;
+    }
+
+    @media (max-width: 860px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .app-main { padding: 16px; }
+      .agent-hero { flex-wrap: wrap; }
+      .agent-actions { width: 100%; margin-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <a href="index.html" class="back-link">← Fleet</a>
+        <div class="brand-name">ACMI <span>Agent Detail</span></div>
+      </div>
+      <div class="agent-status-badge online">
+        <span class="dot"></span> online
+      </div>
+    </header>
+
+    <main class="app-main">
+
+      <!-- Agent Hero -->
+      <div class="agent-hero">
+        <div class="agent-avatar">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4.5"/><path d="M4 21c0-4.5 3.6-7.5 8-7.5s8 3 8 7.5"/></svg>
+        </div>
+        <div class="agent-info">
+          <div class="name">design-agency</div>
+          <div class="meta">
+            <span class="meta-item">role: <span class="val">Lead Designer</span></span>
+            <span class="meta-item">actor_type: <span class="val">agent</span></span>
+            <span class="meta-item">tenant: <span class="val">madez</span></span>
+            <span class="meta-item">sessions: <span class="val">12</span></span>
+          </div>
+        </div>
+        <div class="agent-actions">
+          <button class="btn btn-primary" onclick="alert('Bootstrap session initiated')">Bootstrap</button>
+          <button class="btn">Rollup</button>
+          <button class="btn">Spawn</button>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <!-- Left: Timeline -->
+        <div>
+          <div class="section-header">
+            <h2 class="section-title">Timeline</h2>
+            <span class="section-count">14 events</span>
+          </div>
+          <div class="timeline-stream">
+            <div class="tl-event">
+              <div class="tl-line is-accent"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">scope-decision</span>
+                  <span class="tl-ts">14:10</span>
+                </div>
+                <div class="tl-summary">
+                  Audit kickoff: cowork-kanban redesign <span class="at">@team</span>
+                  <span class="corr">designTeamAuditKickoff-2026-05-24</span>
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">coord-note</span>
+                  <span class="tl-ts">14:08</span>
+                </div>
+                <div class="tl-summary">
+                  Scope breakdown: Swarm 3-column flight deck, HITL command center, Detail spec pages
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">design-system-spec</span>
+                  <span class="tl-ts">14:05</span>
+                </div>
+                <div class="tl-summary">
+                  Full palette + typography spec documented (warm ivory foundation, charcoal ink, forest green accent)
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">coord-note</span>
+                  <span class="tl-ts">13:55</span>
+                </div>
+                <div class="tl-summary">
+                  Audit checklist: tactile contrast, state highlights, monospace telemetry, mobile scaling
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">work-created</span>
+                  <span class="tl-ts">13:50</span>
+                </div>
+                <div class="tl-summary">
+                  Work item created: cowork-kanban-design-audit with 4 milestones
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">task-delegation</span>
+                  <span class="tl-ts">May 23</span>
+                </div>
+                <div class="tl-summary">
+                  Delegated typographic audit <span class="at">@ux-architect</span>
+                  <span class="corr">agencyHandoffUxArchitect-1778400000000</span>
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">handoff-ack</span>
+                  <span class="tl-ts">May 23</span>
+                </div>
+                <div class="tl-summary">
+                  Handoff ack from <span class="at">@brand-guardian</span>: color system validation underway
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">milestone-shipped</span>
+                  <span class="tl-ts">May 22</span>
+                </div>
+                <div class="tl-summary">
+                  Design tokens finalized — 6 ink values, 3 accent variants, radii scale
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">coord-note</span>
+                  <span class="tl-ts">May 21</span>
+                </div>
+                <div class="tl-summary">
+                  Received brand spec update — Mad EZ v3 aesthetic directives incorporated
+                </div>
+              </div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-line is-em"></div>
+              <div class="tl-body">
+                <div class="tl-meta">
+                  <span class="tl-source">design-agency</span>
+                  <span class="tl-kind">heartbeat</span>
+                  <span class="tl-ts">May 20</span>
+                </div>
+                <div class="tl-summary">
+                  Idle prior to brief — no pending tasks
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Profile + Signals + Threads -->
+        <div>
+          <!-- Profile -->
+          <div class="profile-panel" style="margin-bottom:16px;">
+            <div class="profile-section">
+              <div class="prof-label">Profile</div>
+              <dl class="kv">
+                <div class="prof-row">
+                  <dt>agent_id</dt>
+                  <dd>design-agency</dd>
+                </div>
+                <div class="prof-row">
+                  <dt>actor_type</dt>
+                  <dd>agent</dd>
+                </div>
+                <div class="prof-row">
+                  <dt>role</dt>
+                  <dd>Lead Designer</dd>
+                </div>
+                <div class="prof-row">
+                  <dt>tenant_id</dt>
+                  <dd>madez</dd>
+                </div>
+                <div class="prof-row">
+                  <dt>model_default</dt>
+                  <dd>claude-sonnet-4</dd>
+                </div>
+                <div class="prof-row">
+                  <dt>created</dt>
+                  <dd>2026-04-15</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- Signals -->
+          <div class="profile-panel" style="margin-bottom:16px;">
+            <div class="profile-section">
+              <div class="prof-label">Signals · current state</div>
+              <div class="signal-grid">
+                <div class="signal-row">
+                  <span class="signal-key">status</span>
+                  <span class="signal-value accent">active</span>
+                </div>
+                <div class="signal-row">
+                  <span class="signal-key">current_phase</span>
+                  <span class="signal-value">audit-kickoff</span>
+                </div>
+                <div class="signal-row">
+                  <span class="signal-key">assigned_work</span>
+                  <span class="signal-value">cowork-kanban-design-audit</span>
+                </div>
+                <div class="signal-row">
+                  <span class="signal-key">blocked_by</span>
+                  <span class="signal-value" style="color:var(--ink-fade);">—</span>
+                </div>
+                <div class="signal-row">
+                  <span class="signal-key">last_activity</span>
+                  <span class="signal-value">23m ago</span>
+                </div>
+                <div class="signal-row">
+                  <span class="signal-key">mood</span>
+                  <span class="signal-value">engaged · awaiting feedback</span>
+                </div>
+                <div class="signal-row">
+                  <span class="signal-key">session_count</span>
+                  <span class="signal-value">12</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Threads -->
+          <div class="section-header">
+            <h2 class="section-title">Active Threads</h2>
+            <span class="section-count">2</span>
+          </div>
+          <div class="thread-list" style="margin-bottom:16px;">
+            <div class="thread-item">
+              <div class="thread-name">design-team-review</div>
+              <div class="thread-meta">
+                <span class="role">Lead</span> · 5 events today · 7 participants
+              </div>
+            </div>
+            <div class="thread-item">
+              <div class="thread-name">agent-coordination</div>
+              <div class="thread-meta">
+                <span class="role">Participant</span> · fleet-wide sync
+              </div>
+            </div>
+          </div>
+
+          <!-- Rollup -->
+          <div class="section-header">
+            <h2 class="section-title">Latest Rollup</h2>
+            <span class="section-count">May 24, 14:10</span>
+          </div>
+          <div class="rollup-block">
+            <div class="rollup-title">Session Summary</div>
+            <div class="rollup-line">
+              <span class="label">decisions</span>
+              <span>Adopt Mad EZ v3 for cowork-kanban; enforce Purple & Glow Ban</span>
+            </div>
+            <div class="rollup-line">
+              <span class="label">blockers</span>
+              <span>ui-designer waiting on accent color approval from brand-guardian</span>
+            </div>
+            <div class="rollup-line">
+              <span class="label">next</span>
+              <span>Consolidate design audit report; schedule review with Mikey</span>
+            </div>
+            <div class="rollup-line" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--ink-rule);">
+              <span class="label">corrIds</span>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-fade);word-break:break-all;">
+                designTeamAuditKickoff-2026-05-24, agencyHandoffUxArchitect-1778400000000
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Correlation chain trace -->
+      <div style="margin-top:28px;">
+        <div class="section-header">
+          <h2 class="section-title">Correlation Chain</h2>
+          <span class="section-count">designTeamAuditKickoff-2026-05-24</span>
+        </div>
+        <div style="display:flex;gap:0;border:1px solid var(--ink-rule);border-radius:var(--radius-md);overflow:hidden;">
+          <div style="flex:1;padding:10px 12px;background:var(--paper);border-right:1px solid var(--ink-rule);">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-fade);margin-bottom:1px;">parent</div>
+            <div style="font-size:11px;color:var(--ink-mute);">opsCenterArchivalProtocolRatified</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);margin-top:2px;">May 14 · ops-center</div>
+          </div>
+          <div style="flex:1;padding:10px 12px;background:var(--paper-warm);border-right:1px solid var(--ink-rule);">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--accent);margin-bottom:1px;">● origin</div>
+            <div style="font-size:11px;font-weight:600;color:var(--ink);">designTeamAuditKickoff</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);margin-top:2px;">May 24 · design-agency</div>
+          </div>
+          <div style="flex:1;padding:10px 12px;background:var(--paper);border-right:1px solid var(--ink-rule);">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-fade);margin-bottom:1px;">child</div>
+            <div style="font-size:11px;color:var(--ink-mute);">agencyHandoffUxArchitect</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);margin-top:2px;">May 23 · delegation</div>
+          </div>
+          <div style="flex:1;padding:10px 12px;background:var(--paper);">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-fade);margin-bottom:1px;">child</div>
+            <div style="font-size:11px;color:var(--ink-mute);">coworkKanbanMobileAudit</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);margin-top:2px;">pending · ux-researcher</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>

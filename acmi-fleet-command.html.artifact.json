@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "ACMI Fleet Command — Ops Dashboard",
+  "entry": "acmi-fleet-command.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-05-24T05:46:08.642Z",
+  "updatedAt": "2026-05-24T05:46:08.655Z",
+  "metadata": {
+    "identifier": "acmi-fleet-command",
+    "artifactType": "text/html",
+    "inferred": false
+  }
+}

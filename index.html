@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GSD Dashboard — System Launchpad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── MZM Design System — System Launchpad ──────────────────────── */
+    :root {
+      --paper:         #faf9f5;
+      --paper-elev:    #f4f2eb;
+      --paper-deep:    #efece2;
+      --paper-shade:   #e8e4d8;
+      --paper-inverse: #ffffff;
+      --divider:       #ebe8de;
+      --ink-1: #1a1a1a;
+      --ink-2: #2c2c2a;
+      --ink-3: #4a4a48;
+      --ink-4: #7a7a76;
+      --ink-5: #9a9a96;
+      --border: #d4d2cc;
+      --forest:        #2d4a3e;
+      --forest-2:      #5a7d6f;
+      --forest-3:      #7fa090;
+      --forest-deep:   #1c3027;
+      --forest-glow:   rgba(45,74,62,0.1);
+      --danger:        #c75050;
+      --danger-bg:     #fdf2f2;
+      --warning:       #c4903a;
+      --warning-bg:    #fdf8f0;
+      --success:       var(--forest-2);
+      --font-serif: 'Source Serif 4', Georgia, Palatino, serif;
+      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono:  'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
+      --radius-sm: 3px;
+      --radius-md: 4px;
+      --radius-lg: 6px;
+      --ease: cubic-bezier(0.16,1,0.3,1);
+      --d-fast: 150ms;
+      --d-norm: 280ms;
+    }
+    .theme-deep {
+      --paper:         #121418;
+      --paper-elev:    #1c1e24;
+      --paper-deep:    #262830;
+      --paper-shade:   #2e3038;
+      --divider:       #2a2c34;
+      --ink-1: #e8e6e0;
+      --ink-2: #c8c6c0;
+      --ink-3: #989690;
+      --ink-4: #686660;
+      --ink-5: #484640;
+      --border: #3a3c42;
+      --forest:        #7fa090;
+      --forest-2:      #5a7d6f;
+      --forest-3:      #4a6d5f;
+      --forest-deep:   #9cc0b0;
+      --forest-glow:   rgba(127,160,144,0.12);
+      --danger:        #e07070;
+      --danger-bg:     #2a1a1a;
+      --warning:       #d4a050;
+      --warning-bg:    #2a2210;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink-1);
+      font-family: var(--font-sans);
+      font-weight: 400;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    ::selection { background: var(--ink-1); color: var(--paper); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--paper); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ─── Header ──────────────────────────────────── */
+    .hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--paper);
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .hdr-brand {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: inherit;
+    }
+    .hdr-mark {
+      width: 28px; height: 28px;
+      background: var(--forest); border-radius: var(--radius-sm);
+      display: grid; place-items: center;
+    }
+    .hdr-mark svg { width: 16px; height: 16px; fill: #fff; }
+    .hdr-name {
+      font-family: var(--font-serif);
+      font-weight: 600; font-size: 16px; color: var(--ink-1);
+    }
+    .hdr-name span { color: var(--ink-4); font-weight: 400; }
+    .hdr-actions { display: flex; align-items: center; gap: 12px; }
+    .hdr-badge {
+      font-family: var(--font-mono);
+      font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--ink-4);
+    }
+    .hdr-badge.online { border-color: var(--forest); color: var(--forest); }
+
+    /* ─── Hero ─────────────────────────────────────── */
+    .hero {
+      padding: 80px 32px 60px;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: clamp(36px, 5vw, 56px);
+      line-height: 1.1;
+      color: var(--ink-1);
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--ink-3);
+      max-width: 600px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+    .hero-actions {
+      display: flex; gap: 12px; justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 13px; font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--d-fast) var(--ease);
+    }
+    .btn-primary {
+      background: var(--forest);
+      color: #fff;
+      border: 1px solid var(--forest);
+    }
+    .btn-primary:hover { background: var(--forest-2); }
+    .btn-outline {
+      background: transparent;
+      color: var(--ink-1);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--ink-3); background: var(--paper-elev); }
+
+    /* ─── Section ──────────────────────────────────── */
+    .section {
+      padding: 48px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--forest);
+      margin-bottom: 8px;
+    }
+    .section h2 {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 28px;
+      color: var(--ink-1);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    .section .sub {
+      color: var(--ink-4);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    /* ─── Dashboard Card ───────────────────────────── */
+    .dash-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--paper);
+      overflow: hidden;
+      transition: all var(--d-fast) var(--ease);
+    }
+    .dash-card:hover {
+      background: var(--paper-elev);
+    }
+    .dash-card a {
+      display: block;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .dash-card .icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      display: grid; place-items: center;
+      font-size: 16px;
+      margin-bottom: 12px;
+      background: var(--paper-deep);
+    }
+    .dash-card h3 {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--ink-1);
+      margin-bottom: 4px;
+    }
+    .dash-card p {
+      font-size: 12px;
+      color: var(--ink-4);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .dash-card .meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-5);
+    }
+    .dash-card .status-dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    .dash-card .status-dot.green { background: var(--forest); }
+    .dash-card .status-dot.amber { background: var(--warning); }
+
+    /* ─── Grids ────────────────────────────────────── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .grid-3 > .dash-card { border: 0; border-radius: 0; }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .grid-4 > .dash-card { border: 0; border-radius: 0; }
+
+    /* ─── Screens Grid ─────────────────────────────── */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .screen-card {
+      background: var(--paper);
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: background var(--d-fast) var(--ease);
+      display: flex; flex-direction: column;
+    }
+    .screen-card:hover { background: var(--paper-elev); }
+    .screen-card:active { background: var(--paper-deep); }
+    .screen-card .num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-5);
+      margin-bottom: 4px;
+    }
+    .screen-card .title {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--ink-1);
+      margin-bottom: 4px;
+    }
+    .screen-card .desc {
+      font-size: 12px;
+      color: var(--ink-4);
+      line-height: 1.5;
+      flex: 1;
+    }
+    .screen-card .filepath {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-5);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--divider);
+    }
+
+    /* ─── Tools Grid ───────────────────────────────── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .tool-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: all var(--d-fast) var(--ease);
+      background: var(--paper);
+    }
+    .tool-card:hover { background: var(--paper-elev); }
+    .tool-card .tool-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .tool-card .tool-name {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--ink-1);
+      margin-bottom: 2px;
+    }
+    .tool-card .tool-desc {
+      font-size: 11px;
+      color: var(--ink-4);
+      line-height: 1.4;
+    }
+
+    /* ─── Divider ──────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 0 32px; }
+
+    /* ─── Files Table ──────────────────────────────── */
+    .files-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .files-table th {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ink-4);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .files-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--divider);
+      color: var(--ink-2);
+    }
+    .files-table td:first-child {
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .files-table td a {
+      color: var(--forest);
+      text-decoration: none;
+    }
+    .files-table td a:hover { text-decoration: underline; }
+    .files-table tr:hover td { background: var(--paper-elev); }
+
+    /* ─── Footer ───────────────────────────────────── */
+    .footer {
+      padding: 24px 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--ink-4);
+    }
+    .footer a { color: var(--forest); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .footer .mono { font-family: var(--font-mono); font-size: 10px; }
+
+    /* ─── Responsive ───────────────────────────────── */
+    @media (max-width: 860px) {
+      .screen-grid { grid-template-columns: repeat(2, 1fr); }
+      .tools-grid { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .hdr { padding: 12px 16px; }
+      .hero { padding: 48px 16px 40px; }
+      .section { padding: 32px 16px; }
+      .divider { margin: 0 16px; }
+      .footer { padding: 16px; flex-direction: column; gap: 8px; text-align: center; }
+      .files-table th:nth-child(3),
+      .files-table td:nth-child(3) { display: none; }
+    }
+    @media (max-width: 540px) {
+      .screen-grid { grid-template-columns: 1fr; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-4 { grid-template-columns: 1fr; }
+      .hdr-actions .hdr-badge { display: none; }
+      .files-table th:nth-child(4),
+      .files-table td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────── -->
+<header class="hdr">
+  <a class="hdr-brand" href="#">
+    <div class="hdr-mark">
+      <svg viewBox="0 0 16 16" fill="none">
+        <rect x="1" y="1" width="6" height="6" rx="1" fill="currentColor"/>
+        <rect x="9" y="1" width="6" height="6" rx="1" fill="currentColor" opacity="0.6"/>
+        <rect x="1" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.6"/>
+        <rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/>
+      </svg>
+    </div>
+    <span class="hdr-name">GSD <span>Dashboard</span></span>
+  </a>
+  <div class="hdr-actions">
+    <span class="hdr-badge online">● ACMI v1.3</span>
+    <span class="hdr-badge" id="themeToggle" style="cursor:pointer;">☾ Dark</span>
+  </div>
+</header>
+
+<!-- ─── Hero ────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-eyebrow">ACMI Fleet Operations</div>
+  <h1>Get Shit Done.<br/>The ACMI Command Center.</h1>
+  <p>
+    A complete 8-page operations dashboard for managing AI agents, tasks, projects, notes, documents, calendar events, and fleet health — built on the ACMI Protocol with live Upstash Redis streams.
+  </p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="gsd-dashboard.html">Launch Dashboard →</a>
+    <a class="btn btn-outline" href="fleet-ops.html">Fleet Ops →</a>
+    <a class="btn btn-outline" href="explainer.html">Watch Explainer</a>
+    <a class="btn btn-outline" href="marketing.html">Marketing Site</a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── Dashboard ───────────────────────────────────── -->
+<section class="section">
+  <div class="section-label">● Core Application</div>
+  <h2>The 8-Page Dashboard</h2>
+  <p class="sub">One SPA, 8 interconnected views, full dark mode, keyboard shortcuts, live ACMI data ready.</p>
+
+  <div class="dash-card" style="margin-bottom:24px;">
+    <a href="gsd-dashboard.html" style="display:flex;align-items:center;gap:16px;padding:24px;">
+      <div style="font-size:32px;">🚀</div>
+      <div style="flex:1;">
+        <h3 style="font-size:20px;margin-bottom:2px;">GSD Dashboard</h3>
+        <p style="font-size:13px;margin-bottom:0;">Command Center · Todo · Notes · Projects · Calendar · Docs · Agent Console · Settings — all in one SPA</p>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--ink-4);text-align:right;">
+        3,453 lines<br/>134 KB
+      </div>
+    </a>
+  </div>
+
+  <div class="grid-4">
+    <div class="dash-card"><a href="gsd-dashboard.html#page-command"><div class="icon">🏠</div><h3>Command Center</h3><p>KPI strip, urgent actions, active agents, timeline feed, quick actions</p><div class="meta"><span class="status-dot green"></span> live data ready</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-todo"><div class="icon">✅</div><h3>Todo List</h3><p>Kanban columns, Gantt toggle, natural language input, task filtering</p><div class="meta"><span class="status-dot green"></span> detail view →</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-notes"><div class="icon">📝</div><h3>Notes</h3><p>Rich markdown editor, tag filter, searchable list, auto-save</p><div class="meta"><span class="status-dot green"></span> detail view →</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-projects"><div class="icon">📊</div><h3>Project Tracker</h3><p>Pipeline funnel, progress bars, health dashboard, semantic search</p><div class="meta"><span class="status-dot green"></span> detail view →</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-calendar"><div class="icon">📅</div><h3>Calendar</h3><p>Month grid, Gantt overlay, event types, ACMI timeline integration</p><div class="meta"><span class="status-dot green"></span> detail view →</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-docs"><div class="icon">📄</div><h3>Docs</h3><p>Tree browser, viewer, full-text search, version history, templates</p><div class="meta"><span class="status-dot green"></span> detail view →</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-agents"><div class="icon">🤖</div><h3>Agent Console</h3><p>Fleet health, agent detail, comm channel, task assignment, event timeline</p><div class="meta"><span class="status-dot green"></span> detail view →</div></a></div>
+    <div class="dash-card"><a href="gsd-dashboard.html#page-settings"><div class="icon">🔧</div><h3>Settings</h3><p>API keys, theme toggle, widget manager, data source health, export</p><div class="meta"><span class="status-dot green"></span> fully interactive</div></a></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── Fleet Ops ─────────────────────────────────────→
+<section class="section">
+  <div class="section-label">● Fleet Operations</div>
+  <h2>Fleet Ops Command Center</h2>
+  <p class="sub">Live fleet state — 57 agents, active threads, health signals, stalled work items, archival queue.</p>
+  <div style="margin-top: 16px;">
+    <a class="btn btn-primary" href="fleet-ops.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">Open Fleet Ops →</a>
+    <a class="btn btn-outline" href="agent.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin-left:8px;">Agent Detail View</a>
+    <a class="btn btn-outline" href="timeline.html" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;margin-left:8px;">Timeline Stream</a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── Detail Screens ──────────────────────────────── -->
+<section class="section">
+  <div class="section-label">● Detail Views</div>
+  <h2>Drill-Through Screens</h2>
+  <p class="sub">Standalone detail pages accessible from the dashboard — each with its own full layout, interactions, and data.</p>
+
+  <div class="screen-grid">
+    <a class="screen-card" href="screens/task-detail.html">
+      <div class="num">01</div>
+      <div class="title">Task Detail</div>
+      <div class="desc">Full task view: status badge, subtask checklist, comment thread with 3 posts, status history timeline, assignee, due date, tags</div>
+      <div class="filepath">screens/task-detail.html</div>
+    </a>
+    <a class="screen-card" href="screens/note-detail.html">
+      <div class="num">02</div>
+      <div class="title">Note Editor</div>
+      <div class="desc">Rich contenteditable editor with Bold/Italic/Heading/Code/List toolbar, tag chips, auto-save indicator, word count, metadata panel</div>
+      <div class="filepath">screens/note-detail.html</div>
+    </a>
+    <a class="screen-card" href="screens/project-detail.html">
+      <div class="num">03</div>
+      <div class="title">Project Deep-Dive</div>
+      <div class="desc">KPI strip ($184K budget), 5 milestone timeline, 4 agent team cards, budget bar chart, activity feed, progress bar</div>
+      <div class="filepath">screens/project-detail.html</div>
+    </a>
+    <a class="screen-card" href="screens/event-detail.html">
+      <div class="num">04</div>
+      <div class="title">Event / Day View</div>
+      <div class="desc">Mini day-view with 8 hourly slots, event details panel, 5 related ACMI timeline events, recurrence info, attendee list</div>
+      <div class="filepath">screens/event-detail.html</div>
+    </a>
+    <a class="screen-card" href="screens/doc-viewer.html">
+      <div class="num">05</div>
+      <div class="title">Document Reader</div>
+      <div class="desc">Table of contents sidebar, rendered markdown content, full-text search with highlighting, metadata panel, version info</div>
+      <div class="filepath">screens/doc-viewer.html</div>
+    </a>
+    <a class="screen-card" href="screens/agent-detail.html">
+      <div class="num">06</div>
+      <div class="title">Agent Detail</div>
+      <div class="desc">Status dot, 4 KPI metrics (142 sessions, 89 tasks), profile KV table, 8 event timeline, active threads, comm channel</div>
+      <div class="filepath">screens/agent-detail.html</div>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── Media & Marketing ───────────────────────────── -->
+<section class="section">
+  <div class="section-label">● Media & Marketing</div>
+  <h2>Launch Materials</h2>
+  <p class="sub">Explainer video and marketing site — everything you need to ship the product.</p>
+
+  <div class="tools-grid">
+    <a class="tool-card" href="explainer.html">
+      <div class="tool-icon">🎬</div>
+      <div class="tool-name">Explainer Video</div>
+      <div class="tool-desc">Cinematic animated explainer with 8 scenes: product tour, KPI counters, agent telemetry, architecture flow, and CTA. Auto-advances with manual controls.</div>
+    </a>
+    <a class="tool-card" href="marketing.html">
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">Marketing Site</div>
+      <div class="tool-desc">Full landing page with hero, trust bar, features grid, product deep-dive, stats, 3-tier pricing, FAQ accordion, and footer.</div>
+    </a>
+    <a class="tool-card" href="ACMI-INTEGRATION-PLAN.md" style="border-style:dashed;">
+      <div class="tool-icon">📋</div>
+      <div class="tool-name">Integration Plan</div>
+      <div class="tool-desc">607-line backend architecture plan with key registry (35+ ACMI keys), API contract shapes, phase ordering, and data flow.</div>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── Project Files ───────────────────────────────── -->
+<section class="section">
+  <div class="section-label">● File Manifest</div>
+  <h2>All Project Artifacts</h2>
+  <p class="sub">Complete file listing for the GSD Dashboard / ACMI Launchpad project.</p>
+
+  <div style="overflow-x:auto;">
+  <table class="files-table">
+    <thead>
+      <tr><th>File</th><th>Size</th><th>Type</th><th>Description</th></tr>
+    </thead>
+    <tbody id="fileTable"></tbody>
+  </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── Footer ──────────────────────────────────────── -->
+<footer class="footer">
+  <div class="mono">GSD Dashboard · ACMI Command Center</div>
+  <div>
+    <a href="gsd-dashboard.html">Dashboard</a>
+    <span style="color:var(--border);margin:0 6px;">·</span>
+    <a href="explainer.html">Explainer</a>
+    <span style="color:var(--border);margin:0 6px;">·</span>
+    <a href="marketing.html">Marketing</a>
+    <span style="color:var(--border);margin:0 6px;">·</span>
+    <a href="ACMI-INTEGRATION-PLAN.md">Docs</a>
+  </div>
+  <div class="mono" style="color:var(--ink-5);">Built on ACMI Protocol v1.3</div>
+</footer>
+
+<script>
+  // ─── File manifest ─────────────────────────────────
+  var files = [
+    { name:'gsd-dashboard.html', size:'134 KB', type:'Application', desc:'8-page SPA — main dashboard with all views' },
+    { name:'index.html',         size:'—',       type:'System',     desc:'System launchpad (this page)' },
+    { name:'explainer.html',     size:'61 KB',   type:'Media',      desc:'Animated explainer video (8 scenes)' },
+    { name:'marketing.html',     size:'36 KB',   type:'Marketing',  desc:'Product landing / sales page' },
+    { name:'acmi-client.js',     size:'27 KB',   type:'Library',    desc:'ACMI MCP client wrapper (17 tools)' },
+    { name:'ACMI-INTEGRATION-PLAN.md', size:'28 KB', type:'Docs',   desc:'Backend architecture & wiring plan' },
+    { name:'screens/task-detail.html', size:'—', type:'Detail',     desc:'Task detail with comments, subtasks' },
+    { name:'screens/note-detail.html', size:'—', type:'Detail',     desc:'Note editor with toolbar, tags, auto-save' },
+    { name:'screens/project-detail.html',size:'—',type:'Detail',    desc:'Project deep-dive with milestones, budget' },
+    { name:'screens/event-detail.html', size:'—', type:'Detail',    desc:'Event day-view with hourly schedule' },
+    { name:'screens/doc-viewer.html',  size:'—', type:'Detail',     desc:'Doc reader with TOC, search, rendering' },
+    { name:'screens/agent-detail.html',size:'—', type:'Detail',     desc:'Agent detail with KV, timeline, comm' },
+  ];
+  var tbody = document.getElementById('fileTable');
+  files.forEach(function(f) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td><a href="'+f.name+'">'+f.name+'</a></td><td>'+f.size+'</td><td>'+f.type+'</td><td>'+f.desc+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  // ─── Theme toggle ─────────────────────────────────
+  var themeToggle = document.getElementById('themeToggle');
+  var isDark = localStorage.getItem('gsd:theme') === 'deep';
+  if (isDark) document.body.classList.add('theme-deep');
+  if (isDark) themeToggle.textContent = '☀ Light';
+  themeToggle.addEventListener('click', function() {
+    document.body.classList.toggle('theme-deep');
+    var d = document.body.classList.contains('theme-deep');
+    themeToggle.textContent = d ? '☀ Light' : '☾ Dark';
+    localStorage.setItem('gsd:theme', d ? 'deep' : 'light');
+  });
+
+  // ─── Keyboard shortcut ────────────────────────────
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'd' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      themeToggle.click();
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACMI — Timeline Stream</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@500;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper:        #faf9f5;
+      --paper-warm:   #f4f2eb;
+      --paper-shadow: #ebe8de;
+      --paper-deep:   #e4dfd3;
+      --ink:       #1a1a1a;
+      --ink-soft:  #2c2c2a;
+      --ink-mute:  #4a4a48;
+      --ink-fade:  #7a7a76;
+      --ink-quiet: #9a9a96;
+      --ink-rule:  #d4d2cc;
+      --accent:        #2d4a3e;
+      --accent-soft:   #5a7d6f;
+      --accent-quiet:  #1c3027;
+      --accent-glow:   rgba(45, 74, 62, 0.12);
+      --danger:   #8b3a3a;
+      --warn:     #8b6914;
+      --font-display: 'Montserrat', system-ui, sans-serif;
+      --font-body:    'Raleway', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'SF Mono', Consolas, monospace;
+      --radius-sm: 3px;
+      --radius-md: 4px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --dur-fast: 180ms;
+      --header-h: 56px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    ::selection { background: var(--ink); color: var(--paper); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--paper); }
+    ::-webkit-scrollbar-thumb { background: var(--ink-rule); border-radius: 2px; }
+
+    .app-shell { display: flex; flex-direction: column; height: 100vh; }
+
+    /* Header */
+    .app-header {
+      display: flex; align-items: center; justify-content: space-between;
+      height: var(--header-h); padding: 0 20px;
+      border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper); flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .back-link {
+      font-family: var(--font-mono); font-size: 11px; color: var(--ink-fade);
+      text-decoration: none; display: flex; align-items: center; gap: 4px;
+      transition: color var(--dur-fast) var(--ease);
+    }
+    .back-link:hover { color: var(--accent); }
+    .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .brand-name span { color: var(--ink-fade); font-weight: 400; }
+
+    .header-meta {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--ink-fade);
+    }
+    .header-meta .live-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-bottom: 1px solid var(--ink-rule);
+      background: var(--paper-warm); flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .toolbar-search {
+      display: flex; align-items: center; gap: 6px;
+      flex: 1; min-width: 200px;
+    }
+    .toolbar-search input {
+      flex: 1; min-width: 160px;
+      height: 28px; padding: 0 8px;
+      font-family: var(--font-mono); font-size: 11px;
+      background: var(--paper);
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-sm);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast) var(--ease);
+    }
+    .toolbar-search input:focus { border-color: var(--accent); }
+    .toolbar-search input::placeholder { color: var(--ink-quiet); }
+
+    .filter-chip-group {
+      display: flex; gap: 4px; flex-wrap: wrap;
+    }
+    .filter-chip {
+      font-family: var(--font-mono); font-size: 9px;
+      text-transform: uppercase; letter-spacing: 0.10em;
+      padding: 3px 8px; border-radius: 2px;
+      border: 1px solid var(--ink-rule);
+      background: var(--paper);
+      color: var(--ink-fade);
+      cursor: pointer; transition: all var(--dur-fast) var(--ease);
+      white-space: nowrap;
+    }
+    .filter-chip:hover { border-color: var(--ink-mute); color: var(--ink); }
+    .filter-chip.active {
+      border-color: var(--accent); background: var(--accent-glow);
+      color: var(--accent);
+    }
+    .filter-chip.active-warn {
+      border-color: var(--warn); background: rgba(139, 105, 20, 0.08);
+      color: var(--warn);
+    }
+    .toolbar-actions { display: flex; gap: 6px; }
+
+    /* Stream area */
+    .stream-wrapper {
+      flex: 1; overflow-y: auto; position: relative;
+    }
+
+    /* Day divider */
+    .day-divider {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px 4px;
+      font-family: var(--font-mono); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--ink-fade);
+      position: sticky; top: 0;
+      background: var(--paper);
+      z-index: 2;
+    }
+    .day-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--ink-rule);
+    }
+
+    /* Event row */
+    .tl-event {
+      display: flex; gap: 10px;
+      padding: 6px 20px 6px 20px;
+      border-bottom: 1px solid var(--ink-rule);
+      transition: background var(--dur-fast) var(--ease);
+      cursor: pointer;
+    }
+    .tl-event:hover { background: var(--paper-warm); }
+    .tl-event.expanded { background: var(--paper-warm); }
+
+    .tl-line {
+      width: 2px; flex-shrink: 0; background: var(--ink-rule);
+      border-radius: 1px; position: relative; margin-top: 4px;
+    }
+    .tl-line::before {
+      content: ''; position: absolute; top: 0; left: -2px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--ink-rule);
+    }
+    .tl-line.is-accent { background: var(--accent); }
+    .tl-line.is-accent::before { background: var(--accent); }
+    .tl-line.is-warn { background: var(--warn); }
+    .tl-line.is-warn::before { background: var(--warn); }
+    .tl-line.is-danger { background: var(--danger); }
+    .tl-line.is-danger::before { background: var(--danger); }
+
+    .tl-body { flex: 1; min-width: 0; }
+    .tl-meta {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 1px;
+    }
+    .tl-source {
+      font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+      color: var(--ink-fade); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .tl-kind {
+      font-family: var(--font-mono); font-size: 9px; padding: 1px 5px;
+      border-radius: 2px; color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .tl-kind.warn-kind { color: var(--warn); background: rgba(139, 105, 20, 0.08); }
+    .tl-kind.danger-kind { color: var(--danger); background: rgba(139, 58, 58, 0.08); }
+    .tl-kind.quiet-kind { color: var(--ink-fade); background: transparent; }
+
+    .tl-ns {
+      font-family: var(--font-mono); font-size: 8px;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--ink-quiet);
+    }
+    .tl-ts {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--ink-quiet); margin-left: auto; white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .tl-summary {
+      font-size: 12px; color: var(--ink);
+      line-height: 1.4;
+    }
+    .tl-summary .at { color: var(--accent); font-weight: 500; }
+
+    /* Expanded detail */
+    .tl-detail {
+      display: none;
+      margin-top: 8px; padding: 10px 12px;
+      background: var(--paper-shadow);
+      border: 1px solid var(--ink-rule);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono); font-size: 10px;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .tl-event.expanded .tl-detail { display: block; }
+
+    .tl-detail-row {
+      display: flex; gap: 8px; padding: 2px 0;
+    }
+    .tl-detail-row .key {
+      color: var(--ink-fade); min-width: 90px; flex-shrink: 0;
+    }
+    .tl-detail-row .val {
+      color: var(--ink); word-break: break-all;
+    }
+    .tl-detail-row .val.corr { color: var(--accent); }
+
+    /* Empty */
+    .tl-empty {
+      text-align: center; padding: 60px 20px;
+      color: var(--ink-fade);
+    }
+    .tl-empty p { font-size: 13px; }
+
+    /* Live badge */
+    .live-badge {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 8px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--accent);
+      background: var(--accent-glow);
+      padding: 1px 4px; border-radius: 2px;
+      margin-left: 4px;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; gap: 16px; align-items: center;
+      padding: 4px 20px;
+      border-top: 1px solid var(--ink-rule);
+      background: var(--paper-warm);
+      font-family: var(--font-mono); font-size: 9px;
+      color: var(--ink-fade);
+      flex-shrink: 0;
+    }
+    .stats-bar .stat { display: flex; gap: 4px; }
+    .stats-bar .stat .num { color: var(--ink); font-weight: 500; }
+
+    @media (max-width: 768px) {
+      .toolbar { padding: 8px 12px; }
+      .filter-chip-group { order: 3; width: 100%; }
+      .tl-event { padding: 6px 12px; }
+      .day-divider { padding: 10px 12px 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <a href="index.html" class="back-link">← Fleet</a>
+        <div class="brand-name">ACMI <span>Timeline</span></div>
+      </div>
+      <div class="header-meta">
+        <span class="live-dot"></span>
+        <span>streaming live</span>
+        <span id="eventCount" style="font-variant-numeric:tabular-nums;">142 events</span>
+      </div>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-search">
+        <input type="text" id="searchInput" placeholder="Search events, @mentions, correlationId…" />
+      </div>
+      <div class="filter-chip-group" id="filterGroup">
+        <span class="filter-chip active" data-filter="all">All</span>
+        <span class="filter-chip" data-filter="coord-note">coord-note</span>
+        <span class="filter-chip" data-filter="milestone-shipped">milestone</span>
+        <span class="filter-chip" data-filter="design-system-spec">design-spec</span>
+        <span class="filter-chip" data-filter="scope-decision">decision</span>
+        <span class="filter-chip" data-filter="task-delegation">handoff</span>
+        <span class="filter-chip" data-filter="heartbeat">heartbeat</span>
+        <span class="filter-chip" data-filter="incident-update">incident</span>
+      </div>
+      <div class="toolbar-actions">
+        <button class="filter-chip" id="clearFilters" title="Clear filters">Clear</button>
+      </div>
+    </div>
+
+    <!-- Stream -->
+    <div class="stream-wrapper" id="stream">
+
+      <!-- Day divider -->
+      <div class="day-divider">Today · May 24</div>
+
+      <!-- Event 1 -->
+      <div class="tl-event" data-kind="scope-decision" data-source="design-agency" data-corr="designTeamAuditKickoff">
+        <div class="tl-line is-accent"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">design-agency</span>
+            <span class="tl-kind">scope-decision</span>
+            <span class="tl-ns">thread:design-team-review</span>
+            <span class="tl-ts">14:10:23</span>
+          </div>
+          <div class="tl-summary">
+            Audit kickoff: cowork-kanban redesign — Mad EZ v3 + ACMI DS <span class="at">@team</span>
+            <span class="live-badge">new</span>
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">designTeamAuditKickoff-2026-05-24</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">scope-decision</span></div>
+            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:design-agency</span></div>
+            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Audit kickoff: cowork-kanban redesign — Mad EZ v3 + ACMI DS @team</span></div>
+            <div class="tl-detail-row"><span class="key">namespace</span><span class="val">thread:design-team-review</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 2 -->
+      <div class="tl-event" data-kind="milestone-shipped" data-source="ux-researcher">
+        <div class="tl-line is-accent"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">ux-researcher</span>
+            <span class="tl-kind">milestone-shipped</span>
+            <span class="tl-ns">work:cowork-kanban-audit</span>
+            <span class="tl-ts">14:08:47</span>
+          </div>
+          <div class="tl-summary">
+            Mobile viewport scale report — 4 breakpoints verified <span class="at">@design-agency</span>
+            <span class="live-badge">new</span>
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">mobileViewportAudit-2026-05-24</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">milestone-shipped</span></div>
+            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:ux-researcher</span></div>
+            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Mobile viewport scale report — 4 breakpoints verified @design-agency</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 3 -->
+      <div class="tl-event" data-kind="incident-update" data-source="ui-designer">
+        <div class="tl-line is-warn"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">ui-designer</span>
+            <span class="tl-kind warn-kind">incident-update</span>
+            <span class="tl-ns">agent:ui-designer</span>
+            <span class="tl-ts">14:02:15</span>
+          </div>
+          <div class="tl-summary">
+            Letterpress tactile states blocked — awaiting accent color approval <span class="at">@brand-guardian</span>
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">letterpressTactileBlock-2026-05-24</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">incident-update</span></div>
+            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:ui-designer</span></div>
+            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Letterpress tactile states blocked — awaiting accent color approval @brand-guardian</span></div>
+            <div class="tl-detail-row"><span class="key">parentCorrelationId</span><span class="val corr">designTeamAuditKickoff-2026-05-24</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 4 -->
+      <div class="tl-event" data-kind="coord-note" data-source="inclusive-visuals">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">inclusive-visuals</span>
+            <span class="tl-kind quiet-kind">coord-note</span>
+            <span class="tl-ns">thread:design-team-review</span>
+            <span class="tl-ts">13:48:32</span>
+          </div>
+          <div class="tl-summary">
+            WCAG contrast check: #2d4a3e / #faf9f5 passes AA at 14px+
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">wcagContrastCheck-1778400000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">coord-note</span></div>
+            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:inclusive-visuals</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 5 -->
+      <div class="tl-event" data-kind="fleet-audit" data-source="ops-center">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">ops-center</span>
+            <span class="tl-kind quiet-kind">fleet-audit</span>
+            <span class="tl-ns">agent:ops-center</span>
+            <span class="tl-ts">13:22:05</span>
+          </div>
+          <div class="tl-summary">
+            Fleet audit: 0 stalled projects, 1 archival candidate identified
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">opsCenterFleetAudit-1778390000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">fleet-audit</span></div>
+            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Fleet audit: 0 stalled projects, 1 archival candidate identified</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 6 -->
+      <div class="tl-event" data-kind="design-system-spec" data-source="design-agency">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">design-agency</span>
+            <span class="tl-kind">design-system-spec</span>
+            <span class="tl-ns">thread:design-team-review</span>
+            <span class="tl-ts">13:15:42</span>
+          </div>
+          <div class="tl-summary">
+            Full palette + typography spec documented (warm ivory foundation, charcoal ink scale, forest green accent)
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">designSystemSpec-2026-05-24</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">design-system-spec</span></div>
+            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:design-agency</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 7 -->
+      <div class="tl-event" data-kind="coord-note" data-source="brand-guardian">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">brand-guardian</span>
+            <span class="tl-kind quiet-kind">coord-note</span>
+            <span class="tl-ns">thread:design-team-review</span>
+            <span class="tl-ts">12:58:10</span>
+          </div>
+          <div class="tl-summary">
+            Validating forest green accent rules against MZM tokens — 3 variant scale confirmed
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">accentValidation-1778380000000</span></div>
+            <div class="tl-detail-row"><span class="key">parentCorrelationId</span><span class="val corr">designTeamAuditKickoff-2026-05-24</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day divider -->
+      <div class="day-divider">May 23</div>
+
+      <!-- Event 8 -->
+      <div class="tl-event" data-kind="task-delegation" data-source="design-agency">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">design-agency</span>
+            <span class="tl-kind">task-delegation</span>
+            <span class="tl-ns">thread:agent-coordination</span>
+            <span class="tl-ts">16:45:00</span>
+          </div>
+          <div class="tl-summary">
+            Delegated typographic audit <span class="at">@ux-architect</span> — Montserrat/Raleway pairing review
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">agencyHandoffUxArchitect-1778400000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">task-delegation</span></div>
+            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:design-agency</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 9 -->
+      <div class="tl-event" data-kind="handoff-ack" data-source="brand-guardian">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">brand-guardian</span>
+            <span class="tl-kind">handoff-ack</span>
+            <span class="tl-ns">thread:agent-coordination</span>
+            <span class="tl-ts">16:12:30</span>
+          </div>
+          <div class="tl-summary">
+            Handoff ack: color system validation underway <span class="at">@design-agency</span>
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">brandGuardianColorAck-1778398000000</span></div>
+            <div class="tl-detail-row"><span class="key">parentCorrelationId</span><span class="val corr">agencyHandoffUxArchitect-1778400000000</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 10 -->
+      <div class="tl-event" data-kind="milestone-shipped" data-source="design-agency">
+        <div class="tl-line is-accent"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">design-agency</span>
+            <span class="tl-kind">milestone-shipped</span>
+            <span class="tl-ns">work:cowork-kanban-audit</span>
+            <span class="tl-ts">14:22:15</span>
+          </div>
+          <div class="tl-summary">
+            Design tokens finalized — 6 ink values, 3 accent variants, radii scale <span class="at">@mikey</span>
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">designTokensFinalized-1778380000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">milestone-shipped</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 11 -->
+      <div class="tl-event" data-kind="work-created" data-source="ops-center">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">ops-center</span>
+            <span class="tl-kind quiet-kind">work-created</span>
+            <span class="tl-ns">work:lifecycle</span>
+            <span class="tl-ts">11:05:00</span>
+          </div>
+          <div class="tl-summary">
+            Work item created: cowork-kanban-design-audit (4 milestones, assigned to design-agency)
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">workItemCoworkAudit-1778370000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">work-created</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 12 -->
+      <div class="tl-event" data-kind="heartbeat" data-source="visual-storyteller">
+        <div class="tl-line"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">visual-storyteller</span>
+            <span class="tl-kind quiet-kind">heartbeat</span>
+            <span class="tl-ns">agent:visual-storyteller</span>
+            <span class="tl-ts">10:30:00</span>
+          </div>
+          <div class="tl-summary">
+            Idle — awaiting design researcher input on mobile viewport audit
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">visualStorytellerHeartbeat-1778360000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">heartbeat</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 13 -->
+      <div class="tl-event" data-kind="incident-update" data-source="gemini-cli">
+        <div class="tl-line is-danger"></div>
+        <div class="tl-body">
+          <div class="tl-meta">
+            <span class="tl-source">gemini-cli</span>
+            <span class="tl-kind danger-kind">incident-update</span>
+            <span class="tl-ns">work:vapi-security</span>
+            <span class="tl-ts">09:15:22</span>
+          </div>
+          <div class="tl-summary">
+            VAPI security fix kit ready — deployment blocked by missing API key <span class="at">@mikey</span>
+          </div>
+          <div class="tl-detail">
+            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">vapiSecurityKitReady-1778350000000</span></div>
+            <div class="tl-detail-row"><span class="key">kind</span><span class="val">incident-update</span></div>
+            <div class="tl-detail-row"><span class="key">summary</span><span class="val">VAPI security fix kit ready — deployment blocked by missing API key @mikey</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <span class="stat">events <span class="num" id="visibleCount">13</span></span>
+      <span class="stat">sources <span class="num">7</span></span>
+      <span class="stat">kinds <span class="num">8</span></span>
+      <span class="stat">namespaces <span class="num">4</span></span>
+      <span class="stat">live <span class="num" style="color:var(--accent);">now</span></span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var events = Array.prototype.slice.call(document.querySelectorAll('.tl-event'));
+      var searchInput = document.getElementById('searchInput');
+      var filterChips = document.querySelectorAll('.filter-chip[data-filter]');
+      var clearBtn = document.getElementById('clearFilters');
+      var visibleCount = document.getElementById('visibleCount');
+
+      function applyFilters() {
+        var search = searchInput.value.toLowerCase().trim();
+        var activeFilter = document.querySelector('.filter-chip[data-filter].active');
+        var filterKind = activeFilter ? activeFilter.getAttribute('data-filter') : 'all';
+        var visible = 0;
+
+        events.forEach(function (el) {
+          var kind = el.getAttribute('data-kind') || '';
+          var source = el.getAttribute('data-source') || '';
+          var corr = el.getAttribute('data-corr') || '';
+          var text = el.querySelector('.tl-summary').textContent.toLowerCase();
+
+          var matchFilter = (filterKind === 'all' || kind === filterKind);
+          var matchSearch = true;
+          if (search) {
+            matchSearch = text.includes(search) ||
+                          source.toLowerCase().includes(search) ||
+                          corr.toLowerCase().includes(search);
+          }
+
+          if (matchFilter && matchSearch) {
+            el.style.display = '';
+            visible++;
+          } else {
+            el.style.display = 'none';
+          }
+        });
+
+        if (visibleCount) visibleCount.textContent = visible;
+      }
+
+      // Search
+      searchInput.addEventListener('input', applyFilters);
+
+      // Filter chips
+      filterChips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          filterChips.forEach(function (c) { c.classList.remove('active'); });
+          this.classList.add('active');
+          applyFilters();
+        });
+      });
+
+      // Clear
+      clearBtn.addEventListener('click', function () {
+        searchInput.value = '';
+        filterChips.forEach(function (c) { c.classList.remove('active'); });
+        document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
+        applyFilters();
+      });
+
+      // Expand on click
+      events.forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          if (e.target.closest('.tl-detail')) return;
+          this.classList.toggle('expanded');
+        });
+      });
+
+      // Initial count
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>
