@@ -1870,6 +1870,248 @@
     .approval-card .btn-reject:hover {
       background: var(--forest-glow);
     }
+
+    /* ================================================================
+       RESPONSIVE: TABLET (max-width: 768px)
+       ================================================================ */
+    @media (max-width: 768px) {
+      /* ── Page layout tweaks ───────────────────────────────────── */
+      .page { padding: 14px 12px; }
+      .page-hdr {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .page-hdr-title { font-size: 19px; }
+      .page-hdr-sub { font-size: 11px; }
+      .page-hdr-actions {
+        width: 100%;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .page-hdr-actions .btn,
+      .page-hdr-actions .btn-sm {
+        min-height: 36px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      /* ── KPI strip ────────────────────────────────────────────── */
+      .kpi-strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .kpi-stat { padding: 10px 10px; }
+      .kpi-stat .value { font-size: 18px; }
+      .kpi-stat .label { font-size: 10px; }
+      .kpi-stat .trend { font-size: 8px; }
+
+      /* ── Fleet activity charts ────────────────────────────────── */
+      .fleet-activity {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      /* ── Agent grid ───────────────────────────────────────────── */
+      .agent-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .agent-card { padding: 8px 10px; }
+      .agent-card .name { font-size: 11px; }
+
+      /* ── Urgent items ─────────────────────────────────────────── */
+      .urgent-item { padding: 10px 12px; }
+      .urgent-item .content .title { font-size: 12px; }
+
+      /* ── Timeline ─────────────────────────────────────────────── */
+      .tl-event { padding: 8px 12px; gap: 8px; }
+      .tl-event .time { width: 42px; font-size: 9px; }
+      .tl-event .body .text { font-size: 11px; }
+
+      /* ── Quick actions ────────────────────────────────────────── */
+      .quick-actions { gap: 6px; }
+      .quick-actions .btn {
+        flex: 1;
+        min-width: 0;
+        min-height: 36px;
+        justify-content: center;
+      }
+
+      /* ── Approvals deck ───────────────────────────────────────── */
+      .approvals-deck {
+        grid-template-columns: 1fr;
+      }
+
+      /* ── Header meta on tablet ────────────────────────────────── */
+      .header-acmi-status { font-size: 8px; }
+      .header-clock { font-size: 10px; }
+
+      /* ── Widget body padding ──────────────────────────────────── */
+      .widget-body { padding: 12px; }
+    }
+
+    /* ================================================================
+       RESPONSIVE: PHONE (max-width: 480px)
+       ================================================================ */
+    @media (max-width: 480px) {
+      /* ── Page layout ──────────────────────────────────────────── */
+      .page { padding: 10px 8px; }
+      .page-hdr-title { font-size: 17px; }
+      .page-hdr-sub { font-size: 10px; }
+      .page-hdr-actions .btn,
+      .page-hdr-actions .btn-sm {
+        flex: 1;
+        min-height: 44px;
+        justify-content: center;
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+
+      /* ── KPI strip: 2-col on phones ───────────────────────────── */
+      .kpi-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .kpi-stat { padding: 8px 10px; }
+      .kpi-stat .value { font-size: 17px; }
+      .kpi-stat .label { font-size: 9px; letter-spacing: 0.08em; }
+
+      /* ── Agent grid: single column ────────────────────────────── */
+      .agent-grid {
+        grid-template-columns: 1fr;
+      }
+      .agent-card {
+        padding: 10px 12px;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .agent-card .top { margin-bottom: 3px; }
+      .agent-card .name { font-size: 12px; }
+      .agent-card .role { font-size: 9px; }
+      .agent-card .task { font-size: 11px; }
+      .agent-card .ts { font-size: 10px; }
+
+      /* ── Touch-friendly tap targets ───────────────────────────── */
+      .nav-item,
+      .mob-item,
+      .btn,
+      .btn-sm,
+      .btn-primary {
+        min-height: 44px;
+      }
+      .btn {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+      .btn-sm {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      .btn-icon {
+        width: 44px;
+        height: 44px;
+      }
+
+      /* ── Urgent items: full-width touch targets ───────────────── */
+      .urgent-item {
+        padding: 12px 10px;
+        min-height: 52px;
+      }
+      .urgent-item .content .title { font-size: 12px; }
+      .urgent-item .content .meta { font-size: 10px; }
+      .urgent-item .time { font-size: 9px; }
+      .urgent-item .prio {
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+
+      /* ── Timeline: stack time above body on small screens ─────── */
+      .tl-event {
+        flex-direction: column;
+        gap: 3px;
+        padding: 10px 10px;
+        min-height: 52px;
+      }
+      .tl-event .time {
+        width: auto;
+        font-size: 9px;
+        color: var(--ink-4);
+        margin-top: 0;
+      }
+      .tl-event .body .src { font-size: 11px; }
+      .tl-event .body .text { font-size: 11px; }
+      .tl-event .body .kind { font-size: 9px; }
+
+      /* ── Quick actions: stack buttons ─────────────────────────── */
+      .quick-actions {
+        flex-direction: column;
+        gap: 6px;
+      }
+      .quick-actions .btn {
+        min-height: 44px;
+        width: 100%;
+        justify-content: center;
+        font-size: 13px;
+      }
+
+      /* ── Mobile bottom nav touch targets ──────────────────────── */
+      .mobile-nav .mob-item {
+        min-height: 48px;
+        font-size: 10px;
+        padding: 6px 4px;
+      }
+      .mobile-nav .mob-item svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* ── Header: tighten spacing ──────────────────────────────── */
+      .app-header { padding: 0 8px; }
+      .brand-name { font-size: 13px; }
+      .header-clock { font-size: 9px; }
+      .header-acmi-status { font-size: 8px; gap: 3px; }
+
+      /* ── Widget adjustments ───────────────────────────────────── */
+      .widget-hdr { padding: 8px 10px; }
+      .widget-hdr-title { font-size: 12px; }
+      .widget-hdr-action { font-size: 10px; }
+      .widget-body { padding: 10px; }
+
+      /* ── Approvals ────────────────────────────────────────────── */
+      .approval-card { padding: 10px; }
+      .approval-card .btn-approve,
+      .approval-card .btn-reject {
+        min-height: 44px;
+        font-size: 12px;
+      }
+      .approval-card .actions {
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      /* ── Search bar (if visible) ──────────────────────────────── */
+      .search-bar { width: auto; }
+
+      /* ── Chart cards ──────────────────────────────────────────── */
+      .chart-card { padding: 10px; }
+      .chart-card .chart-title { font-size: 10px; }
+      .chart-card .chart-value { font-size: 16px; }
+
+      /* ── Fleet activity ───────────────────────────────────────── */
+      .fleet-activity { gap: 6px; }
+
+      /* ── Approvals HUD panel ──────────────────────────────────── */
+      .approvals-hud { padding: 12px; }
+    }
+
+    /* ─── Print ──────────────────────────────────────────────────── */
+    @media print {
+      .app-nav, .mobile-nav, .app-header { display: none; }
+      .app-shell { display: block; height: auto; }
+      .page { position: static; opacity: 1; pointer-events: auto; overflow: visible; padding: 0; }
+      .pages-container { overflow: visible; }
+    }
   </style>
   <!-- ACMI Client Wrapper (Phase 1: Wire Agent Console) -->
   <script src="acmi-client.js"></script>
@@ -3388,9 +3630,9 @@ The three-slot model replaces the traditional "single document" approach — age
   function _statusClass(status) {
     if (!status) return 'offline';
     var s = status.toLowerCase();
-    if (s === 'active' || s === 'online') return 'active';
-    if (s === 'idle') return 'idle';
-    if (s === 'sleeping' || s === 'sleep') return 'sleep';
+    if (s === 'active' || s === 'online' || s.startsWith('active')) return 'active';
+    if (s === 'idle' || s.startsWith('idle')) return 'idle';
+    if (s === 'sleeping' || s === 'sleep' || s.startsWith('sleep')) return 'sleep';
     return 'offline';
   }
 

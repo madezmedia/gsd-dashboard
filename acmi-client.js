@@ -537,7 +537,13 @@
 
       // Normalize: dashboard code expects full context objects, not {id, profile, signals}
       function toContext(item) {
-        return item ? { profile: item.profile || {}, signals: item.signals || {} } : null;
+        if (!item) return null;
+        var p = item.profile || {};
+        var s = item.signals || {};
+        // Fleet agent profiles often use actor_type instead of name — normalize
+        if (!p.name && p.actor_type) p.name = p.actor_type;
+        if (!p.name) p.name = item.id || 'agent';
+        return { id: item.id, profile: p, signals: s };
       }
 
       var result = {
