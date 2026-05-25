@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACMI Client — Basic Usage Example</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2rem; background: #f5f7fa; color: #1a1a2e; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.5rem; color: #16213e; }
+    h2 { font-size: 1.2rem; margin: 1.5rem 0 0.5rem; color: #0f3460; }
+    p, li { line-height: 1.6; color: #333; }
+    code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; margin: 0.5rem 0; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 12px; padding: 1.5rem; margin: 1rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card.error { border-left: 4px solid #e53e3e; }
+    .card.success { border-left: 4px solid #38a169; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+    .status-online { background: #c6f6d5; color: #22543d; }
+    .status-offline { background: #fed7d7; color: #9b2c2c; }
+    button { background: #0f3460; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; margin: 0.25rem; transition: background 0.2s; }
+    button:hover { background: #16213e; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .output { margin-top: 0.5rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin: 0.5rem 0; }
+    .stat { background: #f8fafc; padding: 0.75rem; border-radius: 8px; text-align: center; }
+    .stat-value { font-size: 1.75rem; font-weight: 700; color: #0f3460; }
+    .stat-label { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+    ul { padding-left: 1.5rem; }
+    .timestamp { font-size: 0.75rem; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧩 @mad-ez/acmi-client</h1>
+    <p>Basic usage example — works in any browser with <code>fetch</code> support.</p>
+    <p class="timestamp">Loaded: <span id="loaded-time"></span></p>
+
+    <!-- Status -->
+    <div class="card" id="status-card">
+      <h2>Status Check</h2>
+      <p>Verifies the ACMI backend is reachable.</p>
+      <pre id="status-output" style="max-height: 120px;">Click "Check Status" to test...</pre>
+      <button id="btn-status">Check Status</button>
+    </div>
+
+    <!-- Dashboard Bootstrap -->
+    <div class="card" id="dash-card">
+      <h2>Dashboard Bootstrap</h2>
+      <p>Loads all dashboard data in parallel (agents, work items, tasks, notes, events, docs, timeline).</p>
+      <pre id="dash-output" style="max-height: 250px;">Click "Load Dashboard" to fetch all data...</pre>
+      <button id="btn-dash">Load Dashboard</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="card" id="kpi-card">
+      <h2>KPI Summary</h2>
+      <div class="stats" id="kpi-stats">
+        <div class="stat"><div class="stat-value" id="kpi-urgent">—</div><div class="stat-label">Urgent</div></div>
+        <div class="stat"><div class="stat-value" id="kpi-agents">—</div><div class="stat-label">Active Agents</div></div>
+        <div class="stat"><div class="stat-value" id="kpi-events">—</div><div class="stat-label">Events Today</div></div>
+        <div class="stat"><div class="stat-value" id="kpi-pipeline">—</div><div class="stat-label">Pipeline Value</div></div>
+        <div class="stat"><div class="stat-value" id="kpi-unread">—</div><div class="stat-label">Unread Docs</div></div>
+      </div>
+      <p>KPIs are computed automatically by <code>dashboardBootstrap()</code>.</p>
+      <button id="btn-kpi">Compute KPIs</button>
+    </div>
+
+    <!-- Namespace List -->
+    <div class="card">
+      <h2>List Namespace</h2>
+      <p>List all entity IDs in a namespace (e.g., <code>agent</code>, <code>work</code>, <code>note</code>).</p>
+      <div>
+        <label for="ns-input">Namespace:</label>
+        <input type="text" id="ns-input" value="agent" placeholder="agent" style="padding:8px;border-radius:6px;border:1px solid #ccc;font-size:0.95rem;" />
+        <button id="btn-list">List</button>
+      </div>
+      <pre id="list-output" style="max-height: 200px;">Results appear here...</pre>
+    </div>
+
+    <!-- Get Entity -->
+    <div class="card">
+      <h2>Get Entity</h2>
+      <p>Fetch complete context for an entity: profile + signals + timeline.</p>
+      <div>
+        <label for="get-ns">Namespace:</label>
+        <input type="text" id="get-ns" value="agent" style="padding:8px;border-radius:6px;border:1px solid #ccc;font-size:0.95rem;" />
+        <label for="get-id">ID:</label>
+        <input type="text" id="get-id" value="claude-engineer" style="padding:8px;border-radius:6px;border:1px solid #ccc;font-size:0.95rem;" />
+        <button id="btn-get">Get</button>
+      </div>
+      <pre id="get-output" style="max-height: 250px;">Results appear here...</pre>
+    </div>
+
+    <!-- Timeline Cat -->
+    <div class="card">
+      <h2>Merged Timeline (cat)</h2>
+      <p>Merge events from multiple streams, sorted by timestamp.</p>
+      <pre id="cat-output" style="max-height: 200px;">Click "View Timeline" to merge streams...</pre>
+      <button id="btn-cat">View Timeline (24h)</button>
+    </div>
+
+    <!-- Work Operations -->
+    <div class="card">
+      <h2>Work Item Operations</h2>
+      <p>List, get, create, and signal work items.</p>
+      <pre id="work-output" style="max-height: 200px;">Click "List Work Items" to start...</pre>
+      <button id="btn-work-list">List Work Items</button>
+      <button id="btn-work-create">Create Sample Item</button>
+    </div>
+
+    <!-- Event System Demo -->
+    <div class="card">
+      <h2>Event System Demo</h2>
+      <p>Register listeners and log a test event.</p>
+      <pre id="event-output" style="max-height: 150px;">Click buttons below to test the event system...</pre>
+      <button id="btn-event-listen">Register Listeners</button>
+      <button id="btn-event-log">Log Test Event</button>
+    </div>
+
+    <hr style="margin: 2rem 0;" />
+    <p style="font-size: 0.85rem; color: #666;">
+      ACMI Client v1.0.0 — <a href="https://github.com/mad-ez/acmi-client" target="_blank">@mad-ez/acmi-client</a>
+    </p>
+  </div>
+
+  <!-- Load the ACMI client -->
+  <script src="../index.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // ── Display helpers ──────────────────────────────────────────
+
+      function formatJSON(data) {
+        try {
+          return JSON.stringify(data, null, 2);
+        } catch (e) {
+          return String(data);
+        }
+      }
+
+      function show(id, data, isError) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = isError ? '⚠ Error: ' + (data.message || String(data)) + '\n' + (data.stack ? data.stack.split('\n').slice(0, 3).join('\n') : '') : formatJSON(data);
+        el.closest('.card').className = 'card' + (isError ? ' error' : ' success');
+      }
+
+      document.getElementById('loaded-time').textContent = new Date().toLocaleString();
+
+      // ── Create client ────────────────────────────────────────────
+
+      // Use the globally-exposed ACMIClient
+      var client = new ACMIClient({
+        endpoint: '/api/acmi',
+        cacheTTL: 15000,
+        timeout: 10000
+      });
+
+      // ── Status ───────────────────────────────────────────────────
+
+      document.getElementById('btn-status').addEventListener('click', function () {
+        show('status-output', 'Checking status...');
+        client.status().then(function (result) {
+          show('status-output', result);
+          var badge = result.online
+            ? '<span class="status-badge status-online">● Online</span>'
+            : '<span class="status-badge status-offline">● Offline</span>';
+          document.getElementById('status-output').innerHTML =
+            '<span class="status-badge ' + (result.online ? 'status-online' : 'status-offline') + '">' +
+            (result.online ? '● Online' : '● Offline') +
+            '</span> — ' + result.agents + ' agent(s) found\n\n' +
+            formatJSON(result);
+        }).catch(function (err) {
+          show('status-output', err, true);
+        });
+      });
+
+      // ── Dashboard Bootstrap ──────────────────────────────────────
+
+      document.getElementById('btn-dash').addEventListener('click', function () {
+        show('dash-output', 'Loading dashboard data...');
+        client.dashboardBootstrap({ timelineSince: '24h' }).then(function (data) {
+          var summary = {
+            agents: data.agents.length + ' agents',
+            workItems: data.workItems.length + ' work items',
+            tasks: data.tasks.length + ' tasks',
+            notes: data.notes.length + ' notes',
+            events: data.events.length + ' events',
+            docs: data.docs.length + ' docs',
+            timelineEvents: data.timeline.length + ' timeline events',
+            summary: data.summary
+          };
+          show('dash-output', summary);
+        }).catch(function (err) {
+          show('dash-output', err, true);
+        });
+      });
+
+      // ── KPIs ─────────────────────────────────────────────────────
+
+      document.getElementById('btn-kpi').addEventListener('click', function () {
+        client.dashboardBootstrap({ timelineSince: '24h' }).then(function (data) {
+          var s = data.summary;
+          document.getElementById('kpi-urgent').textContent = s.urgentCount;
+          document.getElementById('kpi-agents').textContent = s.activeAgentCount;
+          document.getElementById('kpi-events').textContent = s.eventsToday;
+          document.getElementById('kpi-pipeline').textContent = '$' + (s.pipelineValue || 0).toLocaleString();
+          document.getElementById('kpi-unread').textContent = s.unreadDocs;
+          document.getElementById('kpi-stats').closest('.card').className = 'card success';
+        }).catch(function (err) {
+          document.getElementById('kpi-stats').closest('.card').className = 'card error';
+        });
+      });
+
+      // ── List Namespace ───────────────────────────────────────────
+
+      document.getElementById('btn-list').addEventListener('click', function () {
+        var ns = document.getElementById('ns-input').value.trim() || 'agent';
+        show('list-output', 'Listing "' + ns + '" namespace...');
+        client.list(ns).then(function (ids) {
+          show('list-output', { namespace: ns, count: ids.length, ids: ids });
+        }).catch(function (err) {
+          show('list-output', err, true);
+        });
+      });
+
+      // ── Get Entity ───────────────────────────────────────────────
+
+      document.getElementById('btn-get').addEventListener('click', function () {
+        var ns = document.getElementById('get-ns').value.trim() || 'agent';
+        var id = document.getElementById('get-id').value.trim() || 'claude-engineer';
+        show('get-output', 'Fetching "' + ns + ':' + id + '"...');
+        client.get(ns, id).then(function (entity) {
+          show('get-output', {
+            id: entity.id || id,
+            profileKeys: entity.profile ? Object.keys(entity.profile) : [],
+            signalKeys: entity.signals ? Object.keys(entity.signals) : [],
+            timelineCount: entity.timeline ? entity.timeline.length : 0,
+            data: entity
+          });
+        }).catch(function (err) {
+          show('get-output', err, true);
+        });
+      });
+
+      // ── Cat Timeline ─────────────────────────────────────────────
+
+      document.getElementById('btn-cat').addEventListener('click', function () {
+        show('cat-output', 'Merging timelines...');
+        client.cat(['agent:*', 'work:*', 'thread:*'], { since: '24h', limit: 30 }).then(function (events) {
+          show('cat-output', { totalEvents: events.length, events: events });
+        }).catch(function (err) {
+          show('cat-output', err, true);
+        });
+      });
+
+      // ── Work Operations ──────────────────────────────────────────
+
+      document.getElementById('btn-work-list').addEventListener('click', function () {
+        show('work-output', 'Listing work items...');
+        client.workList().then(function (ids) {
+          show('work-output', { workItemCount: ids.length, ids: ids });
+        }).catch(function (err) {
+          show('work-output', err, true);
+        });
+      });
+
+      document.getElementById('btn-work-create').addEventListener('click', function () {
+        var sampleId = 'sample-' + Date.now();
+        show('work-output', 'Creating work item "' + sampleId + '"...');
+        client.workCreate(sampleId, {
+          title: 'Sample Work Item',
+          owner: 'demo',
+          status: 'planning',
+          priority: 'P2',
+          description: 'Created from basic-usage.html example'
+        }).then(function () {
+          return client.workEvent(sampleId, 'demo', 'Work item created via example');
+        }).then(function () {
+          return client.workSignal(sampleId, { progress: 0.05, status: 'planning' });
+        }).then(function () {
+          show('work-output', '✓ Work item "' + sampleId + '" created, event logged, signals set.');
+        }).catch(function (err) {
+          show('work-output', err, true);
+        });
+      });
+
+      // ── Event System Demo ────────────────────────────────────────
+
+      var listenersRegistered = false;
+
+      document.getElementById('btn-event-listen').addEventListener('click', function () {
+        if (listenersRegistered) {
+          show('event-output', 'Listeners already registered.');
+          return;
+        }
+
+        client.on('change', function (data) {
+          appendEvent('change event fired: ' + JSON.stringify(data));
+        });
+
+        client.on('event-logged', function (data) {
+          appendEvent('event-logged: ' + data.summary);
+        });
+
+        client.on('work-created', function (data) {
+          appendEvent('work-created: ' + data.id);
+        });
+
+        listenersRegistered = true;
+        show('event-output', '✓ Listeners registered for: change, event-logged, work-created');
+      });
+
+      function appendEvent(msg) {
+        var el = document.getElementById('event-output');
+        if (!el) return;
+        var text = el.textContent || '';
+        var lines = text.split('\n').filter(Boolean);
+        lines.push('[' + new Date().toLocaleTimeString() + '] ' + msg);
+        if (lines.length > 20) lines = lines.slice(lines.length - 20);
+        el.textContent = lines.join('\n');
+      }
+
+      document.getElementById('btn-event-log').addEventListener('click', function () {
+        show('event-output', 'Logging test event...');
+        client.event('thread', 'demo-thread', 'example-html', 'Test event from basic-usage.html', 'test')
+          .then(function () {
+            appendEvent('✓ Test event logged successfully');
+          })
+          .catch(function (err) {
+            appendEvent('✗ ' + err.message);
+          });
+      });
+
+    })();
+  </script>
+</body>
+</html>

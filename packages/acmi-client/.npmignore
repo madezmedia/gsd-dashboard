@@ -1,0 +1,21 @@
+# Examples are not included in the npm package
+examples/
+
+# Source control
+.git/
+.gitignore
+.gitattributes
+
+# Editor artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Build artifacts (not needed for this package)
+node_modules/

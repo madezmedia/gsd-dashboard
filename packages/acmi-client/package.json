@@ -1,0 +1,37 @@
+{
+  "name": "@mad-ez/acmi-client",
+  "version": "1.0.0",
+  "description": "Browser-compatible ACMI MCP wrapper — wraps all ACMI tools (get, list, profile, signal, event, delete, cat, bootstrap, spawn, activeThreads, rollupSet, workList, workGet, workCreate, workEvent, workSignal, dashboardBootstrap) into a single client with caching, polling, event system, and WebSocket support.",
+  "main": "index.js",
+  "module": "index.mjs",
+  "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "types/",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mad-ez/acmi-client.git"
+  },
+  "keywords": [
+    "acmi",
+    "mcp",
+    "ai-context",
+    "dashboard",
+    "redis",
+    "upstash"
+  ],
+  "author": "Mad EZ Media Partners",
+  "license": "MIT",
+  "peerDependencies": {}
+}
