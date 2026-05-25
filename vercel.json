@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "gsd-dashboard",
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "functions": {
+    "api/acmi.mjs": {
+      "maxDuration": 30,
+      "memory": 256
+    }
+  },
+  "rewrites": [
+    { "source": "/api/acmi", "destination": "/api/acmi.mjs" },
+    { "source": "/(.*)", "destination": "/$1" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    }
+  ],
+  "env": {
+    "UPSTASH_REDIS_REST_URL": "@upstash-redis-rest-url",
+    "UPSTASH_REDIS_REST_TOKEN": "@upstash-redis-rest-token"
+  }
+}
