@@ -5,13 +5,38 @@
 import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
 import { extname, join, dirname } from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import { env } from 'node:process';
+import { homedir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const PORT = process.env.PORT || 4999;
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// ─── Auto-source env from known locations ──────────────────────
+const ENV_PATHS = [
+  join(homedir(), 'clawd', '.env'),
+  join(homedir(), '.hermes', '.env'),
+];
+
+for (const p of ENV_PATHS) {
+  if (existsSync(p)) {
+    const lines = readFileSync(p, 'utf-8').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const m = trimmed.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+      if (m) {
+        let val = m[2].replace(/^["']|["']$/g, '');
+        // Strip trailing quote if unbalanced
+        if (val.endsWith('"') && val.startsWith('"')) val = val.slice(1, -1);
+        if (!env[m[1]]) env[m[1]] = val;
+      }
+    }
+  }
+}
+
+const PORT = env.PORT || 4999;
+const UPSTASH_URL = env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = env.UPSTASH_REDIS_REST_TOKEN;
 
 if (!UPSTASH_URL || !UPSTASH_TOKEN) {
   console.error('ERROR: Source ~/clawd/.env first — need UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN');
