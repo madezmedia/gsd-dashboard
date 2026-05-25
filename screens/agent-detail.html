@@ -6,6 +6,7 @@
 <title>ACMI Launchpad · Agent Detail</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="../acmi-client.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Inter,system-ui,sans-serif;background:#faf9f5;color:#1c1c1c;line-height:1.6;padding:24px}
@@ -114,14 +115,14 @@ h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bott
 
 <div class="card">
 <div class="header-ag">
-<div class="avatar-lg">LL</div>
+<div class="avatar-lg" id="agent-avatar">LL</div>
 <div style="flex:1">
 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-<h1 style="margin:0">Agent LL-7</h1>
-<span class="badge badge-role">Fleet Monitor</span>
-<span><span class="status-dot online"></span><span style="font-size:13px;color:#888">Online</span></span>
+<h1 style="margin:0" id="agent-name">Agent LL-7</h1>
+<span class="badge badge-role" id="agent-role">Fleet Monitor</span>
+<span id="agent-status-wrapper"><span class="status-dot online" id="status-dot"></span><span style="font-size:13px;color:#888" id="status-text">Online</span></span>
 </div>
-<p style="font-size:14px;color:#555;margin-top:4px">Autonomous fleet monitoring agent. Tracks vessel edge-node health, ACMI sync status, and OTA pipeline integrity across all 12 ships.</p>
+<p style="font-size:14px;color:#555;margin-top:4px" id="agent-desc">Autonomous fleet monitoring agent. Tracks vessel edge-node health, ACMI sync status, and OTA pipeline integrity across all 12 ships.</p>
 </div>
 </div>
 </div>
@@ -129,27 +130,28 @@ h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bott
 <div class="card">
 <h2>KPIs</h2>
 <div class="kpi-strip">
-<div class="kpi-box"><div class="kpi-val">142</div><div class="kpi-label">Sessions Today</div></div>
-<div class="kpi-box"><div class="kpi-val">89</div><div class="kpi-label">Tasks Completed</div></div>
-<div class="kpi-box"><div class="kpi-val">1.2s</div><div class="kpi-label">Avg Response</div></div>
-<div class="kpi-box"><div class="kpi-val">99.7%</div><div class="kpi-label">Uptime (30d)</div></div>
+<div class="kpi-box"><div class="kpi-val" id="kpi-sessions">142</div><div class="kpi-label">Sessions Today</div></div>
+<div class="kpi-box"><div class="kpi-val" id="kpi-tasks">89</div><div class="kpi-label">Tasks Completed</div></div>
+<div class="kpi-box"><div class="kpi-val" id="kpi-response">1.2s</div><div class="kpi-label">Avg Response</div></div>
+<div class="kpi-box"><div class="kpi-val" id="kpi-uptime">99.7%</div><div class="kpi-label">Uptime (30d)</div></div>
 </div>
 </div>
 
 <div class="card">
 <h2>Agent Profile</h2>
 <table class="kv-table">
-<tr><td>Agent ID</td><td><span class="mono" style="font-family:'JetBrains Mono',monospace">acmi:agent:ll-7</span></td></tr>
-<tr><td>Model</td><td>claude-opus-4-20260501</td></tr>
-<tr><td>Project</td><td>ACMI Fleet Ops — Edge Computing</td></tr>
-<tr><td>Last Heartbeat</td><td>2026-05-24 14:28:19Z (2m ago)</td></tr>
-<tr><td>Signal Strength</td><td><span style="color:#3a6b4e">● Strong</span> (RSSI: -42 dBm)</td></tr>
-<tr><td>Edge Node</td><td>vessel-7-edge-01.acmi.internal</td></tr>
+<tr><td>Agent ID</td><td><span class="mono" style="font-family:'JetBrains Mono',monospace" id="agent-id">acmi:agent:ll-7</span></td></tr>
+<tr><td>Model</td><td id="agent-model">claude-opus-4-20260501</td></tr>
+<tr><td>Project</td><td id="agent-project">ACMI Fleet Ops — Edge Computing</td></tr>
+<tr><td>Last Heartbeat</td><td id="agent-heartbeat">2026-05-24 14:28:19Z (2m ago)</td></tr>
+<tr><td>Signal Strength</td><td id="agent-signal"><span style="color:#3a6b4e">● Strong</span> (RSSI: -42 dBm)</td></tr>
+<tr><td>Edge Node</td><td id="agent-edge-node">vessel-7-edge-01.acmi.internal</td></tr>
 </table>
 </div>
 
 <div class="card">
 <h2>Event Timeline</h2>
+<div id="timeline-container">
 <div class="timeline-event"><div class="te-dot"></div><span class="te-time">14:28Z</span><span>Heartbeat received — all systems nominal <span class="kind-tag">heartbeat</span></span></div>
 <div class="timeline-event"><div class="te-dot"></div><span class="te-time">13:15Z</span><span>Detected sync anomaly on vessel 7, created task #ota-12 <span class="kind-tag">alert</span></span></div>
 <div class="timeline-event"><div class="te-dot"></div><span class="te-time">12:00Z</span><span>Completed fleet-wide sync audit — 12/12 vessels OK <span class="kind-tag">audit</span></span></div>
@@ -163,9 +165,11 @@ h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bott
 
 <div class="card">
 <h2>Active Threads</h2>
+<div id="threads-container">
 <div class="thread-item"><div><span class="thread-name">#ota-edge-12</span><br><span class="thread-role">Role: lead</span></div><span class="kind-tag" style="background:rgba(211,47,47,.1);color:#d32f2f">active</span></div>
 <div class="thread-item"><div><span class="thread-name">#fleet-health-monitor</span><br><span class="thread-role">Role: participant</span></div><span class="kind-tag">active</span></div>
 <div class="thread-item"><div><span class="thread-name">#vessel-7-edge-diagnostics</span><br><span class="thread-role">Role: lead</span></div><span class="kind-tag">active</span></div>
+</div>
 </div>
 
 <div class="card">
@@ -370,6 +374,148 @@ document.querySelectorAll('.composer').forEach(function(comp) {
     });
   }
 });
+
+// ══════════════════════════════════════════════════════════
+//  ACMI LIVE DATA WIRING
+// ══════════════════════════════════════════════════════════
+(function() {
+  // ─── Parse URL params ──
+  var params = new URLSearchParams(window.location.search);
+  var agentId = params.get('id');
+
+  if (!agentId) {
+    console.warn('[ACMI] No ?id= param — showing hardcoded content');
+    return;
+  }
+
+  var acmi = window.acmi;
+  if (!acmi) {
+    console.warn('[ACMI] acmi-client not loaded');
+    return;
+  }
+
+  // ─── Bootstrap agent data ──
+  acmi.bootstrap(agentId).then(function(raw) {
+    // Unwrap possible MCP proxy wrapper
+    var data = raw && raw.result ? raw.result : raw;
+    if (!data) data = {};
+
+    var profile = data.profile || {};
+    var signals = data.signals || {};
+    var timeline = data.recentTimeline || data.timeline || [];
+    var threads = data.activeThreads || [];
+
+    function setText(id, val) {
+      var el = document.getElementById(id);
+      if (el && val != null && val !== '') el.textContent = val;
+    }
+
+    function setHtml(id, val) {
+      var el = document.getElementById(id);
+      if (el && val != null && val !== '') el.innerHTML = val;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      var d = document.createElement('div');
+      d.appendChild(document.createTextNode(str));
+      return d.innerHTML;
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '--';
+      try {
+        var d = new Date(ts);
+        if (isNaN(d.getTime())) return ts;
+        return d.toISOString().slice(11, 16) + 'Z';
+      } catch (e) { return ts; }
+    }
+
+    // ─── Header ──
+    var name = profile.name || signals.name || agentId;
+    setText('agent-name', name);
+
+    // Avatar initials
+    var avatar = document.getElementById('agent-avatar');
+    if (avatar) {
+      var parts = name.split(' ');
+      var initials = parts.length > 1
+        ? (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+        : name.substring(0, 2).toUpperCase();
+      avatar.textContent = initials;
+    }
+
+    setText('agent-role', profile.role || signals.role || 'Agent');
+
+    // Status dot + label
+    var status = (signals.status || 'online').toLowerCase();
+    var dot = document.getElementById('status-dot');
+    var st = document.getElementById('status-text');
+    if (dot) {
+      dot.className = 'status-dot ' + status;
+    }
+    if (st) {
+      st.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    }
+
+    setText('agent-desc', profile.description || signals.description || '');
+
+    // ─── KPIs ──
+    function setKPI(id, val) {
+      if (val != null && val !== '') setText(id, val);
+    }
+    setKPI('kpi-sessions', signals.sessionsToday);
+    setKPI('kpi-tasks', signals.tasksCompleted);
+    setKPI('kpi-response', signals.avgResponse);
+    setKPI('kpi-uptime', signals.uptime);
+
+    // ─── Profile Table ──
+    setText('agent-id', profile.id || 'acmi:agent:' + agentId);
+    setText('agent-model', profile.model || signals.model || '—');
+    setText('agent-project', profile.project || signals.project || '—');
+    setText('agent-heartbeat', signals.heartbeat || profile.lastHeartbeat || '—');
+    setHtml('agent-signal', signals.signalStrength || profile.signalStrength || '<span style="color:#999">—</span>');
+    setText('agent-edge-node', profile.edgeNode || signals.edgeNode || '—');
+
+    // ─── Event Timeline ──
+    var timelineContainer = document.getElementById('timeline-container');
+    if (timelineContainer && timeline.length > 0) {
+      timelineContainer.innerHTML = '';
+      timeline.slice(0, 12).forEach(function(evt) {
+        var div = document.createElement('div');
+        div.className = 'timeline-event';
+        var ts = evt.ts || evt.timestamp || '';
+        var timeStr = ts ? formatTime(ts) : '--';
+        div.innerHTML = '<div class="te-dot"></div><span class="te-time">' + timeStr + '</span><span>' + escapeHtml(evt.summary || '') + ' <span class="kind-tag">' + escapeHtml(evt.kind || 'event') + '</span></span>';
+        timelineContainer.appendChild(div);
+      });
+    }
+
+    // ─── Active Threads ──
+    var threadsContainer = document.getElementById('threads-container');
+    if (threadsContainer) {
+      if (threads.length > 0) {
+        threadsContainer.innerHTML = '';
+        threads.forEach(function(t) {
+          var div = document.createElement('div');
+          div.className = 'thread-item';
+          var threadName = t.threadKey || t.name || t.id || 'unknown';
+          var role = t.role || 'participant';
+          var tagColor = role === 'lead'
+            ? 'style="background:rgba(211,47,47,.1);color:#d32f2f"'
+            : '';
+          div.innerHTML = '<div><span class="thread-name">' + escapeHtml(threadName) + '</span><br><span class="thread-role">Role: ' + escapeHtml(role) + '</span></div><span class="kind-tag" ' + tagColor + '>active</span>';
+          threadsContainer.appendChild(div);
+        });
+      }
+    }
+
+    console.log('[ACMI] Bootstrap loaded for', agentId, '—', name);
+  }).catch(function(err) {
+    console.error('[ACMI] Bootstrap failed for', agentId, err);
+    setText('agent-name', 'Error loading: ' + agentId);
+  });
+})();
 </script>
 
 </body>
