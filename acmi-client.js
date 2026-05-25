@@ -11,7 +11,7 @@
   'use strict';
 
   var DEFAULTS = {
-    endpoint: '/acmi-proxy',        // ACMI-over-HTTP endpoint (Upstash REST proxy)
+    endpoint: '/api/acmi',              // ACMI-over-HTTP endpoint (Vercel /api/acmi)
     token: null,                    // Auth Bearer token
     cacheTTL: 15000,                // Default cache TTL (15s)
     timeout: 10000,                 // Request timeout (10s)
