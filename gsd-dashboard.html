@@ -1,0 +1,4731 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GSD Dashboard — ACMI Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Montserrat:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ================================================================
+       GSD DASHBOARD — Design System
+       "Bloomberg Terminal meets The New Yorker"
+       Warm paper + forest green · Source Serif 4 + Inter + JetBrains Mono
+       ================================================================ */
+
+    /* ─── Tokens ──────────────────────────────────────────────────── */
+    :root {
+      --paper:         #faf9f5;
+      --paper-elev:    #f4f2eb;
+      --paper-deep:    #efece2;
+      --paper-shade:   #e8e4d8;
+      --paper-inverse: #ffffff;
+      --divider:       #ebe8de;
+
+      --ink-1: #1a1a1a;
+      --ink-2: #2c2c2a;
+      --ink-3: #4a4a48;
+      --ink-4: #7a7a76;
+      --ink-5: #9a9a96;
+      --border: #d4d2cc;
+
+      --forest:        #2d4a3e;
+      --forest-2:      #5a7d6f;
+      --forest-3:      #7fa090;
+      --forest-deep:   #1c3027;
+      --forest-glow:   rgba(45,74,62,0.1);
+
+      --danger:        #c75050;
+      --danger-bg:     #fdf2f2;
+      --warning:       #c4903a;
+      --warning-bg:    #fdf8f0;
+      --success:       var(--forest-2);
+
+      --archive:       #b8b0a0;
+      --archive-deep:  #5c5648;
+
+      --sleep:         #6b6bb0;
+      --sleep-bg:      #ededf8;
+      --overlay:       rgba(0,0,0,0.3);
+
+      --font-serif: 'Source Serif 4', Georgia, Palatino, serif;
+      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono:  'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
+
+      --radius-sm: 3px;
+      --radius-md: 4px;
+      --radius-lg: 6px;
+      --radius-xl: 10px;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+
+      --ease:    cubic-bezier(0.16,1,0.3,1);
+      --d-fast:  150ms;
+      --d-norm:  280ms;
+
+      --header-h: 52px;
+      --nav-w: 200px;
+    }
+
+    /* ─── Dark mode ───────────────────────────────────────────────── */
+    .theme-deep {
+      --paper:        #121418;
+      --paper-elev:   #1c1e24;
+      --paper-deep:   #262830;
+      --paper-shade:  #2e3038;
+      --divider:      #2a2c34;
+
+      --ink-1: #e8e6e0;
+      --ink-2: #c8c6c0;
+      --ink-3: #989690;
+      --ink-4: #686660;
+      --ink-5: #484640;
+      --border: #3a3c42;
+
+      --forest:        #7fa090;
+      --forest-2:      #5a7d6f;
+      --forest-3:      #4a6d5f;
+      --forest-deep:   #9cc0b0;
+      --forest-glow:   rgba(127,160,144,0.12);
+
+      --danger:        #e07070;
+      --danger-bg:     #2a1a1a;
+      --warning:       #d4a050;
+      --warning-bg:    #2a2210;
+
+      --archive:       #686660;
+      --archive-deep:  #989690;
+
+      --sleep:         #8b8be0;
+      --sleep-bg:      #1c1c30;
+      --overlay:       rgba(0,0,0,0.5);
+    }
+
+    /* ─── Focus-visible ──────────────────────────────────────────── */
+    :focus-visible {
+      outline: 2px solid var(--forest);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+    .page:focus-visible {
+      outline: none;
+    }
+    .search-modal:focus-visible {
+      outline: none;
+    }
+
+    /* ─── Reduced Motion ─────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ─── Base Reset ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 14px; -webkit-font-smoothing: antialiased; }
+    body {
+      background: var(--paper);
+      color: var(--ink-1);
+      font-family: var(--font-sans);
+      font-weight: 400;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow: hidden;
+      transition: background var(--d-norm) var(--ease), color var(--d-norm) var(--ease);
+    }
+    ::selection { background: var(--ink-1); color: var(--paper); }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--ink-4); }
+
+    /* ─── App Shell Layout ────────────────────────────────────────── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--nav-w) 1fr;
+      grid-template-rows: var(--header-h) 1fr;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ─── Header ──────────────────────────────────────────────────── */
+    .app-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px 0 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--paper);
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      background: var(--forest);
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-sm);
+    }
+    .brand-mark svg { width: 16px; height: 16px; fill: var(--paper); }
+    .brand-name {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+      color: var(--ink-1);
+    }
+    .brand-name span {
+      font-weight: 400;
+      color: var(--ink-4);
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px 10px;
+      width: 320px;
+      font-size: 12px;
+      color: var(--ink-4);
+      cursor: text;
+      transition: border-color var(--d-fast) var(--ease);
+    }
+    .search-bar:focus-within { border-color: var(--forest); }
+    .search-bar .kbd {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-5);
+      margin-left: auto;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 0 4px;
+      line-height: 1.6;
+    }
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--ink-1);
+      flex: 1;
+    }
+    .search-bar input::placeholder { color: var(--ink-5); }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-clock {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+      letter-spacing: 0.02em;
+    }
+    .header-acmi-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .status-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .status-dot.online { background: var(--forest); }
+    .status-dot.warn { background: var(--warning); }
+    .status-dot.offline { background: var(--ink-4); }
+
+    /* ─── Sidebar Nav ─────────────────────────────────────────────── */
+    .app-nav {
+      grid-row: 2;
+      border-right: 1px solid var(--border);
+      padding: 12px 0;
+      background: var(--paper);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-group {
+      padding: 0 10px;
+      margin-bottom: 4px;
+    }
+    .nav-group-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-4);
+      padding: 8px 6px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-3);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--d-fast) var(--ease);
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover {
+      color: var(--ink-1);
+      background: var(--paper-elev);
+    }
+    .nav-item:active {
+      background: var(--paper-shade);
+    }
+    .nav-item.active {
+      color: var(--ink-1);
+      background: var(--paper-deep);
+      border-left-color: var(--forest);
+    }
+    .nav-item .nav-icon {
+      width: 16px;
+      height: 16px;
+      display: grid;
+      place-items: center;
+      opacity: 0.65;
+      flex-shrink: 0;
+    }
+    .nav-item .nav-icon svg { width: 14px; height: 14px; fill: currentColor; }
+    .nav-item .badge {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+    }
+    .nav-item .badge-accent {
+      color: var(--forest);
+    }
+
+    .nav-spacer { flex: 1; }
+    .nav-footer {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .nav-footer .nav-item { font-size: 11px; }
+
+    /* ─── Pages Container ─────────────────────────────────────────── */
+    .pages-container {
+      grid-row: 2;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page {
+      position: absolute;
+      left: 0; right: 0;
+      top: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px calc(50% - 640px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--d-norm) var(--ease);
+    }
+    .page.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ─── Page Headers ────────────────────────────────────────────── */
+    .page-hdr {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .page-hdr-left { }
+    .page-hdr-title {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: var(--ink-1);
+      line-height: 1.2;
+    }
+    .page-hdr-sub {
+      font-size: 12px;
+      color: var(--ink-4);
+      margin-top: 1px;
+    }
+    .page-hdr-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ─── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-3);
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--d-fast) var(--ease);
+      text-decoration: none;
+      line-height: 1.4;
+    }
+    .btn:hover { color: var(--ink-1); border-color: var(--ink-4); }
+    .btn:active { transform: scale(0.97); background: var(--paper-shade); }
+    .btn-primary {
+      background: var(--forest);
+      color: var(--paper-inverse);
+      border-color: var(--forest);
+    }
+    .btn-primary:hover { background: var(--forest-2); border-color: var(--forest-2); }
+    .btn-ghost {
+      background: transparent;
+      border-color: transparent;
+    }
+    .btn-ghost:hover { background: var(--paper-elev); }
+    .btn-sm { padding: 3px 8px; font-size: 11px; }
+    .btn-icon { width: 30px; height: 30px; padding: 0; display: grid; place-items: center; }
+
+    /* ─── Widget Cards ────────────────────────────────────────────── */
+    .widget {
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .widget-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .widget-hdr-title {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink-1);
+    }
+    .widget-hdr-action {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: color var(--d-fast) var(--ease);
+    }
+    .widget-hdr-action:hover { color: var(--forest); }
+    .widget-body {
+      padding: 16px;
+    }
+    .widget-body.p-0 { padding: 0; }
+    .widget:not(:last-child) { margin-bottom: 16px; }
+
+    /* ─── State Placeholders ──────────────────────────────────────── */
+    .state-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 32px 16px;
+      text-align: center;
+    }
+    .state-placeholder .icon {
+      width: 32px; height: 32px;
+      opacity: 0.3;
+    }
+    .state-placeholder .icon svg { width: 100%; height: 100%; fill: var(--ink-4); }
+    .state-placeholder .msg {
+      font-size: 13px;
+      color: var(--ink-4);
+      max-width: 260px;
+    }
+    .state-placeholder .msg strong { color: var(--ink-3); }
+    .state-placeholder .action {
+      margin-top: 4px;
+    }
+    .state-placeholder.loading .pulse {
+      width: 60%;
+      height: 8px;
+      background: var(--border);
+      border-radius: 2px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .state-placeholder.loading .pulse:nth-child(2) { width: 80%; animation-delay: 0.2s; }
+    .state-placeholder.loading .pulse:nth-child(3) { width: 45%; animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    /* ─── Spinner ─────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--forest);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    .spinner.sm { width: 14px; height: 14px; border-width: 1.5px; }
+    .spinner.lg { width: 28px; height: 28px; border-width: 3px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── State variant: error ────────────────────────────────────── */
+    .state-placeholder.error .icon svg { stroke: var(--danger); fill: none; }
+    .state-placeholder.error .msg { color: var(--danger); }
+    .state-placeholder.error .msg strong { color: var(--danger); }
+    .state-placeholder .icon.error-icon svg { stroke: var(--danger); fill: none; }
+
+    /* ─── State variant: empty icon ───────────────────────────────── */
+    .state-placeholder .empty-icon {
+      width: 40px; height: 40px; opacity: 0.25;
+    }
+    .state-placeholder .empty-icon svg { width: 100%; height: 100%; fill: var(--ink-5); }
+
+    /* ─── Skeleton placeholder lines ──────────────────────────────── */
+    .skeleton {
+      background: var(--paper-shade);
+      border-radius: var(--radius-sm);
+      animation: pulse 1.5s ease-in-out infinite;
+      display: inline-block;
+    }
+    .skeleton.h4 { width: 40px; height: 18px; }
+    .skeleton.h2 { width: 60px; height: 22px; }
+    .skeleton.h1 { width: 80px; height: 26px; }
+    .skeleton.text { width: 100%; height: 12px; margin: 4px 0; display: block; }
+    .skeleton.text.w60 { width: 60%; }
+    .skeleton.text.w40 { width: 40%; }
+
+    /* ─── KPI skeleton — replaces value + trend during loading ────── */
+    .kpi-stat.loading .value { visibility: hidden; }
+    .kpi-stat.loading .trend { visibility: hidden; }
+    .kpi-stat.loading .kpi-skeleton {
+      display: block;
+      width: 60%;
+      height: 22px;
+      background: var(--paper-shade);
+      border-radius: var(--radius-sm);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* ─── Kanban empty column placeholder ─────────────────────────── */
+    .kanban-empty-placeholder { padding: 24px 12px; }
+    .kanban-empty-placeholder .msg {
+      font-size: 11px; color: var(--ink-5);
+      font-family: var(--font-mono);
+      text-align: center;
+    }
+
+    /* ─── Agent card skeleton (command center compact grid) ────────── */
+    .agent-card.skeleton { pointer-events: none; }
+    .agent-card.skeleton .skeleton { margin: 2px 0; }
+
+    /* ─── Timeline event skeleton ──────────────────────────────────── */
+    .tl-event.skeleton { pointer-events: none; }
+    .tl-event.skeleton .skeleton { margin: 2px 0; }
+
+    /* ─── Urgent item skeleton ─────────────────────────────────────── */
+    .urgent-item.skeleton { pointer-events: none; cursor: default; }
+    .urgent-item.skeleton .skeleton { margin: 2px 0; }
+
+    /* ─── KPI Strip ───────────────────────────────────────────────── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .kpi-stat {
+      background: var(--paper-elev);
+      padding: 12px 14px;
+    }
+    .kpi-stat .value {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      color: var(--ink-1);
+      line-height: 1;
+    }
+    .kpi-stat .value.green { color: var(--forest); }
+    .kpi-stat .value.amber { color: var(--warning); }
+    .kpi-stat .value.red { color: var(--danger); }
+    .kpi-stat .label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-4);
+      margin-top: 3px;
+    }
+    .kpi-stat .trend {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      margin-top: 2px;
+    }
+    .kpi-stat .trend.up { color: var(--forest); }
+    .kpi-stat .trend.down { color: var(--danger); }
+
+    /* ─── Urgent List ─────────────────────────────────────────────── */
+    .urgent-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--d-fast) var(--ease);
+      cursor: pointer;
+    }
+    .urgent-item:last-child { border-bottom: none; }
+    .urgent-item:hover { background: var(--paper); }
+    .urgent-item:active { background: var(--paper-shade); }
+    .urgent-item .prio {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 2px;
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+    .prio {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 2px;
+      line-height: 1.5;
+    }
+    .prio.p0 { background: var(--danger-bg); color: var(--danger); }
+    .prio.p1 { background: var(--warning-bg); color: var(--warning); }
+    .prio.p2 { background: var(--paper-shade); color: var(--ink-4); }
+    .urgent-item .content { flex: 1; min-width: 0; }
+    .urgent-item .content .title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-1);
+    }
+    .urgent-item .content .meta {
+      font-size: 10px;
+      color: var(--ink-4);
+      margin-top: 1px;
+    }
+    .urgent-item .content .meta .tag {
+      font-family: var(--font-mono);
+      color: var(--forest);
+    }
+    .urgent-item .time {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-5);
+      white-space: nowrap;
+    }
+    .urgent-item.completed {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    /* ─── Agent Grid ──────────────────────────────────────────────── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .agent-card {
+      background: var(--paper-elev);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background var(--d-fast) var(--ease);
+    }
+    .agent-card:hover { background: var(--paper); }
+    .agent-card:active { background: var(--paper-shade); }
+    .agent-card .top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .agent-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .agent-dot.active { background: var(--forest); }
+    .agent-dot.idle { background: var(--warning); }
+    .agent-dot.sleep { background: var(--sleep); }
+    .agent-dot.offline { background: var(--ink-4); }
+
+    .agent-card .name {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 11px;
+      color: var(--ink-1);
+    }
+    .agent-card .role {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-5);
+      margin-left: auto;
+    }
+    .agent-card .task {
+      font-size: 10px;
+      color: var(--ink-3);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .agent-card .ts {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-5);
+      margin-top: 3px;
+    }
+
+    /* ─── Timeline Feed ───────────────────────────────────────────── */
+    .tl-feed { }
+    .tl-event {
+      display: flex;
+      gap: 10px;
+      padding: 7px 14px;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--d-fast) var(--ease);
+      cursor: pointer;
+    }
+    .tl-event:last-child { border-bottom: none; }
+    .tl-event:hover { background: var(--paper); }
+    .tl-event .time {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-5);
+      white-space: nowrap;
+      width: 50px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .tl-event .body { flex: 1; min-width: 0; }
+    .tl-event .body .src {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--forest);
+      font-weight: 500;
+    }
+    .tl-event .body .text {
+      font-size: 11px;
+      color: var(--ink-2);
+    }
+    .tl-event .body .kind {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-5);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Quick Actions ───────────────────────────────────────────── */
+    .quick-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* ─── 2-Column Grid ───────────────────────────────────────────── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .grid-2-wide {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* ─── Section spacer ──────────────────────────────────────────── */
+    .section-block {
+      margin-bottom: 16px;
+    }
+    .section-block:last-child { margin-bottom: 0; }
+
+    /* ================================================================
+       PAGE-SPECIFIC STYLES
+       ================================================================ */
+
+    /* ─── TODO PAGE ───────────────────────────────────────────────── */
+    .todo-input-wrap {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .todo-input-wrap input {
+      flex: 1;
+      padding: 8px 12px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--ink-1);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: border-color var(--d-fast) var(--ease);
+    }
+    .todo-input-wrap input:focus { border-color: var(--forest); }
+    .todo-input-wrap input::placeholder { color: var(--ink-5); }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .kanban-col { }
+    .kanban-col-hdr {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-4);
+      padding: 6px 0 8px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .kanban-col-hdr .count {
+      font-weight: 400;
+      color: var(--ink-5);
+    }
+    .kanban-item {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      cursor: grab;
+      transition: all var(--d-fast) var(--ease);
+      font-size: 11px;
+    }
+    .kanban-item:hover { border-color: var(--ink-4); box-shadow: var(--shadow-sm); }
+    .kanban-item:active { cursor: grabbing; }
+    .kanban-item .top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .kanban-item .title {
+      font-weight: 500;
+      color: var(--ink-1);
+    }
+    .kanban-item .meta {
+      font-size: 9px;
+      color: var(--ink-5);
+    }
+    .kanban-item .meta .tag { color: var(--forest); }
+
+    .progress-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 2px;
+      transition: width var(--d-norm) var(--ease);
+    }
+    .progress-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+      white-space: nowrap;
+    }
+
+    .view-toggle {
+      display: flex;
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .view-toggle .opt {
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+      cursor: pointer;
+      transition: all var(--d-fast) var(--ease);
+    }
+    .view-toggle .opt.active {
+      background: var(--forest);
+      color: var(--paper-inverse);
+    }
+    .view-toggle .opt:not(.active):hover { color: var(--ink-1); }
+
+    /* ─── NOTES ───────────────────────────────────────────────────── */
+    .notes-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      height: calc(100vh - var(--header-h) - 100px);
+    }
+    .notes-list {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow-y: auto;
+      background: var(--paper-elev);
+    }
+    .note-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background var(--d-fast) var(--ease);
+    }
+    .note-item:last-child { border-bottom: none; }
+    .note-item:hover { background: var(--paper); }
+    .note-item.active { background: var(--paper-shade); border-left: 2px solid var(--forest); }
+    .note-item .title {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--ink-1);
+    }
+    .note-item .preview {
+      font-size: 10px;
+      color: var(--ink-4);
+      margin-top: 2px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .note-item .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .note-item .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 2px;
+      background: var(--forest-glow);
+      color: var(--forest);
+    }
+    .note-item .ts {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-5);
+      margin-top: 4px;
+    }
+
+    .note-editor {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--paper-elev);
+      display: flex;
+      flex-direction: column;
+    }
+    .note-editor .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .note-editor .toolbar .icn {
+      width: 26px; height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--ink-4);
+      font-size: 12px;
+      transition: all var(--d-fast) var(--ease);
+    }
+    .note-editor .toolbar .icn:hover { background: var(--paper-shade); color: var(--ink-1); }
+    .note-editor textarea {
+      flex: 1;
+      padding: 12px 14px;
+      font-family: var(--font-serif);
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--ink-1);
+      background: var(--paper);
+      border: none;
+      outline: none;
+      resize: none;
+    }
+    .note-editor textarea::placeholder { color: var(--ink-5); }
+
+    /* ─── PROJECT TRACKER ─────────────────────────────────────────── */
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .project-card {
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      cursor: pointer;
+      transition: all var(--d-fast) var(--ease);
+    }
+    .project-card:hover { border-color: var(--forest-2); box-shadow: var(--shadow-sm); }
+    .project-card .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .project-card .name {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--ink-1);
+    }
+    .project-card .status {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 6px;
+      border-radius: 2px;
+    }
+    .status.live { background: var(--forest-glow); color: var(--forest); }
+    .status.stalled { background: var(--warning-bg); color: var(--warning); }
+    .status.draft { background: var(--paper-shade); color: var(--ink-4); }
+
+    .project-card .progress {
+      margin: 6px 0;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .project-card .progress .fill {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 2px;
+    }
+    .project-card .meta {
+      font-size: 10px;
+      color: var(--ink-4);
+    }
+    .project-card .meta .agent { color: var(--forest); font-family: var(--font-mono); }
+
+    .pipeline-funnel {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 8px;
+    }
+    .funnel-stage {
+      flex: 1;
+      text-align: center;
+      padding: 6px 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-4);
+      border-right: 1px solid var(--border);
+    }
+    .funnel-stage:last-child { border-right: none; }
+    .funnel-stage .count {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink-1);
+      display: block;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1px;
+      background: var(--border);
+    }
+    .health-stat {
+      background: var(--paper-elev);
+      padding: 10px 12px;
+    }
+    .health-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-5);
+    }
+    .health-value {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-1);
+      margin-top: 2px;
+    }
+    .health-value.danger { color: var(--danger); }
+    .health-value.serif {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* ─── Deadline Legend ─────────────────────────────────────────── */
+    .deadline-legend {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .deadline-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+    .deadline-legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ─── Data Source Health ──────────────────────────────────────── */
+    .ds-grid {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .ds-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--paper-elev);
+    }
+    .ds-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .ds-name {
+      font-size: 11px;
+      flex: 1;
+    }
+    .ds-latency {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-4);
+    }
+    .ds-status {
+      font-size: 10px;
+    }
+
+    /* ─── Small Search Input ──────────────────────────────────────── */
+    .search-input-sm {
+      width: 100%;
+      padding: 5px 8px;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--paper);
+      color: var(--ink-1);
+      outline: none;
+      font-family: var(--font-sans);
+      transition: border-color var(--d-fast) var(--ease);
+    }
+    .search-input-sm:focus { border-color: var(--forest); }
+    .search-input-sm::placeholder { color: var(--ink-5); }
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .cal-nav .month {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink-1);
+      flex: 1;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .cal-day {
+      background: var(--paper-elev);
+      min-height: 80px;
+      padding: 6px 8px;
+      cursor: pointer;
+      transition: background var(--d-fast) var(--ease);
+    }
+    .cal-day:hover { background: var(--paper); }
+    .cal-day:active { background: var(--paper-shade); }
+    .cal-day .num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+      margin-bottom: 4px;
+    }
+    .cal-day.today .num { color: var(--forest); font-weight: 600; }
+    .cal-day.other-month .num { opacity: 0.3; }
+    .cal-day .event {
+      font-size: 10px;
+      padding: 1px 4px;
+      border-radius: 2px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-day .event.deadline { background: var(--danger-bg); color: var(--danger); }
+    .cal-day .event.milestone { background: var(--forest-glow); color: var(--forest); }
+    .cal-day .event.task { background: var(--paper-shade); color: var(--ink-3); }
+
+    .cal-day-headers {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      margin-bottom: 1px;
+    }
+    .cal-day-header {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-5);
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    /* ─── DOCS ────────────────────────────────────────────────────── */
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 16px;
+      height: calc(100vh - var(--header-h) - 100px);
+    }
+    .docs-tree {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow-y: auto;
+      background: var(--paper-elev);
+      padding: 8px;
+    }
+    .doc-tree-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      font-size: 11px;
+      color: var(--ink-3);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--d-fast) var(--ease);
+    }
+    .doc-tree-item:hover { background: var(--paper); color: var(--ink-1); }
+    .doc-tree-item.active { background: var(--paper-shade); color: var(--ink-1); }
+    .doc-tree-item .icon { opacity: 0.4; width: 14px; }
+    .doc-tree-item .doc-type {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink-5);
+      margin-left: auto;
+    }
+    .docs-viewer {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow-y: auto;
+      background: var(--paper-elev);
+      padding: 20px 24px;
+    }
+    .docs-viewer .doc-title {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--ink-1);
+      margin-bottom: 8px;
+    }
+    .docs-viewer .doc-meta {
+      font-size: 10px;
+      color: var(--ink-5);
+      margin-bottom: 16px;
+      font-family: var(--font-mono);
+    }
+    .docs-viewer .doc-body {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--ink-2);
+    }
+    .docs-viewer .doc-body h2 {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--ink-1);
+      margin: 20px 0 8px;
+    }
+    .docs-viewer .doc-body p { margin-bottom: 8px; }
+    .docs-viewer .doc-body code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--paper-shade);
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    /* ─── AGENT CONSOLE ────────────────────────────────────────────── */
+    .agent-console-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+    }
+    .agent-status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .agent-detail-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--paper-elev);
+      overflow-y: auto;
+    }
+    .agent-detail-panel .panel-hdr {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .agent-detail-panel .panel-hdr .name {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--ink-1);
+    }
+    .agent-detail-panel .panel-hdr .role {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .agent-detail-panel .panel-body { padding: 12px 14px; }
+    .agent-detail-panel .kv-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+    .agent-detail-panel .kv-row .k { color: var(--ink-4); }
+    .agent-detail-panel .kv-row .v { color: var(--ink-1); font-family: var(--font-mono); font-size: 10px; }
+    .agent-detail-panel .comm-input {
+      margin-top: 12px;
+      display: flex;
+      gap: 6px;
+    }
+    .agent-detail-panel .comm-input textarea {
+      flex: 1;
+      padding: 6px 8px;
+      font-family: var(--font-sans);
+      font-size: 11px;
+      color: var(--ink-1);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      resize: none;
+      height: 50px;
+    }
+    .agent-detail-panel .comm-input textarea:focus { border-color: var(--forest); }
+
+    /* ─── SETTINGS ────────────────────────────────────────────────── */
+    .settings-sections {
+      max-width: 640px;
+    }
+    .settings-group {
+      margin-bottom: 20px;
+    }
+    .settings-group-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-4);
+      margin-bottom: 8px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 6px;
+    }
+    .settings-row .label {
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+    .settings-row .label .desc {
+      font-size: 10px;
+      color: var(--ink-5);
+      display: block;
+    }
+    .settings-row .ctrl {
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+    .settings-row .ctrl .key-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .settings-row .ctrl .key-status .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .settings-row .ctrl .key-status .dot.green { background: var(--forest); }
+    .settings-row .ctrl .key-status .dot.red { background: var(--danger); }
+    .settings-row .ctrl .key-status .dot.amber { background: var(--warning); }
+
+    .toggle-switch {
+      width: 32px; height: 18px;
+      background: var(--border);
+      border-radius: 9px;
+      position: relative;
+      cursor: pointer;
+      transition: background var(--d-fast) var(--ease);
+    }
+    .toggle-switch.active { background: var(--forest); }
+    .toggle-switch .knob {
+      width: 14px; height: 14px;
+      background: var(--paper-inverse);
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: transform var(--d-fast) var(--ease);
+    }
+    .toggle-switch.active .knob { transform: translateX(14px); }
+
+    /* ─── Quick Search Modal ──────────────────────────────────────── */
+    .search-modal {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      display: none;
+      place-items: center;
+      z-index: 100;
+    }
+    .search-modal.open { display: grid; }
+    .search-modal .sheet {
+      width: 520px;
+      max-height: 400px;
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .search-modal .sheet .field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-modal .sheet .field input {
+      flex: 1;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--ink-1);
+      background: none;
+      border: none;
+      outline: none;
+    }
+    .search-modal .sheet .results {
+      padding: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .search-modal .sheet .result-item {
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--ink-2);
+      transition: background var(--d-fast) var(--ease);
+    }
+    .search-modal .sheet .result-item:hover { background: var(--paper-shade); }
+    .search-modal .sheet .result-item .src {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-5);
+      margin-left: 6px;
+    }
+
+    .search-modal .sheet .result-item.active {
+      background: var(--forest-glow);
+      border-left: 2px solid var(--forest);
+    }
+    .search-modal .sheet .result-item .page-indicator {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-5);
+      background: var(--paper-shade);
+      padding: 0 5px;
+      border-radius: 2px;
+      margin-left: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .search-modal .sheet .search-hint {
+      display: flex;
+      gap: 12px;
+      padding: 8px 14px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-5);
+    }
+    .search-modal .sheet .search-hint span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .search-modal .sheet .search-hint kbd {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      padding: 1px 4px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--ink-4);
+    }
+
+    /* ─── Fleet Activity Charts (Page 1) ─────────────────────────── */
+    .fleet-activity {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .fleet-activity .chart-card {
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+    }
+    .fleet-activity .chart-card .chart-title {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-4);
+      margin-bottom: 8px;
+    }
+    .fleet-activity .chart-card .chart-value {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink-1);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .fleet-activity .chart-card .chart-value .unit {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--ink-4);
+    }
+    .mini-bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 48px;
+      padding-top: 4px;
+    }
+    .mini-bar-chart .bar {
+      flex: 1;
+      background: var(--forest-3);
+      border-radius: 2px 2px 0 0;
+      min-height: 2px;
+      transition: height var(--d-norm) var(--ease);
+      position: relative;
+    }
+    .mini-bar-chart .bar:last-child { background: var(--forest); }
+    .mini-bar-chart .bar-label {
+      font-family: var(--font-mono);
+      font-size: 7px;
+      color: var(--ink-5);
+      text-align: center;
+      padding-top: 2px;
+      white-space: nowrap;
+    }
+    .mini-bar-chart-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+    .theme-deep .mini-bar-chart .bar { background: var(--forest-3); opacity: 0.7; }
+    .theme-deep .mini-bar-chart .bar:last-child { background: var(--forest); opacity: 1; }
+
+    /* ─── Pipeline Funnel (Page 4) ───────────────────────────────── */
+    .pipeline-funnel-new {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .pipeline-funnel-new .funnel-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 48px;
+      align-items: center;
+      gap: 12px;
+    }
+    .pipeline-funnel-new .funnel-row .stage-label {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-2);
+    }
+    .pipeline-funnel-new .funnel-row .stage-bar {
+      height: 16px;
+      background: var(--paper-shade);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .pipeline-funnel-new .funnel-row .stage-bar .fill {
+      height: 100%;
+      background: var(--forest);
+      border-radius: 8px;
+      transition: width var(--d-norm) var(--ease);
+    }
+    .pipeline-funnel-new .funnel-row .stage-count {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-1);
+      text-align: right;
+    }
+    .theme-deep .pipeline-funnel-new .funnel-row .stage-bar { background: var(--paper-deep); }
+    .theme-deep .pipeline-funnel-new .funnel-row .stage-bar .fill { background: var(--forest-2); }
+
+    /* ─── Responsive */
+
+ ──────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .app-nav { display: none; }
+      .page { padding: 20px; }
+      .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+      .kanban-board { grid-template-columns: 1fr 1fr; }
+      .notes-layout { grid-template-columns: 1fr; }
+      .docs-layout { grid-template-columns: 1fr; }
+      .agent-console-layout { grid-template-columns: 1fr; }
+      .grid-2, .grid-2-wide, .grid-3 { grid-template-columns: 1fr; }
+      .search-bar { width: 180px; }
+      .header-center { display: none; }
+    }
+
+    /* ─── Mobile Nav Bar ──────────────────────────────────────────── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: var(--paper-elev);
+      border-top: 1px solid var(--border);
+      z-index: 30;
+      overflow-x: auto;
+    }
+    .mobile-nav .items {
+      display: flex;
+      gap: 0;
+      height: 100%;
+    }
+    .mobile-nav .mob-item {
+      flex: 1;
+      min-width: 48px;
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 10px;
+      color: var(--ink-4);
+      cursor: pointer;
+      transition: color var(--d-fast) var(--ease);
+      border: none;
+      background: none;
+      padding: 4px;
+    }
+    .mobile-nav .mob-item.active { color: var(--forest); }
+    .mobile-nav .mob-item svg { width: 16px; height: 16px; fill: currentColor; }
+
+    @media (max-width: 900px) {
+      .app-shell { grid-template-rows: var(--header-h) 1fr 48px; }
+      .pages-container { grid-row: 2; }
+      .mobile-nav { display: block; }
+      body { padding-bottom: 48px; }
+    }
+
+    /* ─── Pending Approvals HUD Panel ───────────────────────────── */
+    .approvals-hud {
+      background: var(--paper-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .approvals-deck {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .approval-card {
+      background: #faf9f5; /* Warm paper Ivory */
+      border: 1px solid var(--forest); /* Forest Green */
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
+    }
+    .approval-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--forest-2);
+    }
+    .approval-card .hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin: 3px;
+    }
+    .approval-card .project-title {
+      font-family: 'Montserrat', var(--font-serif);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--forest-deep);
+      line-height: 1.3;
+    }
+    .approval-card .prio-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      background: var(--forest-glow);
+      color: var(--forest);
+      border: 1px solid var(--forest-3);
+      border-radius: var(--radius-sm);
+    }
+    .approval-card .body-text {
+      font-family: 'Raleway', var(--font-sans);
+      font-size: 12px;
+      color: var(--ink-2);
+      line-height: 1.5;
+      margin: 3px;
+    }
+    .approval-card .telemetry {
+      font-family: 'JetBrains Mono', var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-4);
+      background: var(--paper-elev);
+      padding: 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--divider);
+      margin: 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .approval-card .telemetry div {
+      display: flex;
+      justify-content: space-between;
+    }
+    .approval-card .actions {
+      display: flex;
+      gap: 8px;
+      margin: 3px;
+    }
+    .approval-card .btn-approve {
+      flex: 1;
+      background: var(--forest);
+      color: #faf9f5;
+      border: 1px solid var(--forest);
+      font-family: 'Montserrat', var(--font-sans);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
+      text-align: center;
+    }
+    .approval-card .btn-approve:hover {
+      background: var(--forest-2);
+      border-color: var(--forest-2);
+    }
+    .approval-card .btn-reject {
+      background: #faf9f5;
+      color: var(--forest);
+      border: 1px solid var(--forest);
+      font-family: 'Montserrat', var(--font-sans);
+      font-weight: 500;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease);
+      text-align: center;
+    }
+    .approval-card .btn-reject:hover {
+      background: var(--forest-glow);
+    }
+  </style>
+  <!-- ACMI Client Wrapper (Phase 1: Wire Agent Console) -->
+  <script src="acmi-client.js"></script>
+</head>
+<body>
+
+<div class="app-shell" id="app">
+
+  <!-- ═══ HEADER ════════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" rx="2"/><path d="M5 8h6M8 5v6" stroke="#faf9f5" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <span class="brand-name">GSD <span>Dashboard</span></span>
+    </div>
+
+    <div class="header-center">
+      <div class="search-bar" id="searchBar" data-action="open-search">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M9.5 9.5l3.5 3.5"/></svg>
+        <input type="text" placeholder="Search everything…" readonly />
+        <span class="kbd">⌘K</span>
+      </div>
+    </div>
+
+    <div class="header-meta">
+      <div class="header-clock" id="headerClock"></div>
+      <div class="header-acmi-status">
+        <span class="status-dot online" id="acmiDot"></span>
+        <span id="acmiLabel">ACMI · Online</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ SIDEBAR NAV ═══════════════════════════════════════════════ -->
+  <nav class="app-nav" id="appNav" aria-label="Main Navigation">
+    <div class="nav-group">
+      <div class="nav-group-title">Overview</div>
+      <a class="nav-item active" data-page="page-command" data-nav="page-command" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 5h12M5 1v12" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Command Center
+        <span class="badge badge-accent" id="navBadgeUrgent">3</span>
+      </a>
+      <a class="nav-item" data-page="page-todo" data-nav="page-todo" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><path d="M2 7l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+        Todo List
+        <span class="badge" id="navBadgeTodo">12</span>
+      </a>
+      <a class="nav-item" data-page="page-notes" data-nav="page-notes" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><path d="M3 1h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 4h6M4 7h4M4 10h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>
+        Notes
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Work</div>
+      <a class="nav-item" data-page="page-projects" data-nav="page-projects" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 4v6M7 4v6M10 4v6" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Project Tracker
+        <span class="badge">6</span>
+      </a>
+      <a class="nav-item" data-page="page-calendar" data-nav="page-calendar" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><rect x="1" y="2" width="12" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 6h12M4 1v3M10 1v3" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Calendar
+      </a>
+      <a class="nav-item" data-page="page-docs" data-nav="page-docs" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><path d="M3 1h5l4 4v8a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v4h4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Docs
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">System</div>
+      <a class="nav-item" data-page="page-agents" data-nav="page-agents" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><circle cx="7" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Agent Console
+        <span class="badge badge-accent">7</span>
+      </a>
+      <a class="nav-item" data-page="page-settings" data-nav="page-settings" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 1v2M7 11v2M1 7h2M11 7h2M2.5 2.5l1.5 1.5M10 10l1.5 1.5M2.5 11.5l1.5-1.5M10 4l1.5-1.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Settings
+      </a>
+    </div>
+
+    <div class="nav-spacer"></div>
+    <div class="nav-footer">
+      <div class="nav-item" data-action="toggle-dark" tabindex="0" role="button">
+        <span class="nav-icon"><svg viewBox="0 0 14 14"><path d="M7 1a6 6 0 100 12 4.5 4.5 0 010-9 4.5 4.5 0 010-3z" fill="currentColor"/></svg></span>
+        Dark Mode
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ PAGES ═════════════════════════════════════════════════════ -->
+  <div class="pages-container">
+
+<!-- ─── PAGE 1: COMMAND CENTER ─────────────────────────────────── -->
+<section class="page active" id="page-command" role="region" aria-label="Command Center">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Command Center</div>
+      <div class="page-hdr-sub">Everything that needs you right now</div>
+    </div>
+    <div class="page-hdr-actions">
+      <button class="btn btn-sm" data-action="refresh">↻ Refresh</button>
+      <button class="btn btn-primary btn-sm" data-action="open-search">⌕ Quick Search</button>
+      <a href="screens/agent-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip" aria-live="polite" aria-atomic="false">
+    <div class="kpi-stat">
+      <div class="value amber">3</div>
+      <div class="label">P0 Tasks</div>
+      <div class="trend down">+1 today</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value green">7</div>
+      <div class="label">Active Agents</div>
+      <div class="trend up">all online</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value">24</div>
+      <div class="label">Events Today</div>
+      <div class="trend up">+12% vs avg</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value green">$8.7k</div>
+      <div class="label">Pipeline Value</div>
+      <div class="trend up">+2 deals</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value">9</div>
+      <div class="label">Unread Docs</div>
+      <div class="trend">—</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value amber">4h</div>
+      <div class="label">Next Calendar</div>
+      <div class="trend">Design Review</div>
+    </div>
+  </div>
+
+  <!-- Fleet Activity Charts -->
+  <div class="fleet-activity">
+    <div class="chart-card">
+      <div class="chart-title">Agent Activity</div>
+      <div class="chart-value">87 <span class="unit">events</span></div>
+      <div class="mini-bar-chart">
+        <div class="bar" style="height:32px"></div>
+        <div class="bar" style="height:28px"></div>
+        <div class="bar" style="height:36px"></div>
+        <div class="bar" style="height:24px"></div>
+        <div class="bar" style="height:40px"></div>
+        <div class="bar" style="height:38px"></div>
+        <div class="bar" style="height:44px"></div>
+      </div>
+      <div style="display:flex;gap:3px;font-family:var(--font-mono);font-size:7px;color:var(--ink-5);margin-top:4px;">
+        <span style="flex:1;text-align:center">M</span>
+        <span style="flex:1;text-align:center">T</span>
+        <span style="flex:1;text-align:center">W</span>
+        <span style="flex:1;text-align:center">T</span>
+        <span style="flex:1;text-align:center">F</span>
+        <span style="flex:1;text-align:center">S</span>
+        <span style="flex:1;text-align:center">S</span>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Task Completion</div>
+      <div class="chart-value">64 <span class="unit">completed</span></div>
+      <div class="mini-bar-chart">
+        <div class="bar" style="height:22px"></div>
+        <div class="bar" style="height:18px"></div>
+        <div class="bar" style="height:28px"></div>
+        <div class="bar" style="height:30px"></div>
+        <div class="bar" style="height:26px"></div>
+        <div class="bar" style="height:34px"></div>
+        <div class="bar" style="height:38px"></div>
+      </div>
+      <div style="display:flex;gap:3px;font-family:var(--font-mono);font-size:7px;color:var(--ink-5);margin-top:4px;">
+        <span style="flex:1;text-align:center">M</span>
+        <span style="flex:1;text-align:center">T</span>
+        <span style="flex:1;text-align:center">W</span>
+        <span style="flex:1;text-align:center">T</span>
+        <span style="flex:1;text-align:center">F</span>
+        <span style="flex:1;text-align:center">S</span>
+        <span style="flex:1;text-align:center">S</span>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Event Volume</div>
+      <div class="chart-value">142 <span class="unit">events</span></div>
+      <div class="mini-bar-chart">
+        <div class="bar" style="height:38px"></div>
+        <div class="bar" style="height:42px"></div>
+        <div class="bar" style="height:46px"></div>
+        <div class="bar" style="height:34px"></div>
+        <div class="bar" style="height:50px"></div>
+        <div class="bar" style="height:44px"></div>
+        <div class="bar" style="height:48px"></div>
+      </div>
+      <div style="display:flex;gap:3px;font-family:var(--font-mono);font-size:7px;color:var(--ink-5);margin-top:4px;">
+        <span style="flex:1;text-align:center">M</span>
+        <span style="flex:1;text-align:center">T</span>
+        <span style="flex:1;text-align:center">W</span>
+        <span style="flex:1;text-align:center">T</span>
+        <span style="flex:1;text-align:center">F</span>
+        <span style="flex:1;text-align:center">S</span>
+        <span style="flex:1;text-align:center">S</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Pending Approvals HUD Panel (Page 0) -->
+  <div class="approvals-hud" id="approvalsHudPanel" style="display: none;">
+    <div style="font-family: 'Montserrat', var(--font-serif); font-size: 15px; font-weight: 700; color: var(--forest); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+      <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="7" cy="7" r="5.5"/>
+        <path d="M7 4.5v3h3"/>
+      </svg>
+      Pending Approvals Requiring Human Sign-Off
+    </div>
+    <div style="font-family: 'Raleway', var(--font-sans); font-size: 11px; color: var(--ink-4); margin-bottom: 12px;">
+      AUTONOMOUS AGENTS INTERCEPTED GATE: SECURE DESIGN SYSTEM CHECKS IN PLAY
+    </div>
+    <div class="approvals-deck" id="approvalsDeckContainer">
+      <!-- Approvals cards will be rendered dynamically here -->
+    </div>
+  </div>
+
+  <div class="grid-2-wide">
+    <!-- Urgent Action List -->
+    <div class="widget">
+      <div class="widget-hdr">
+        <span class="widget-hdr-title">Urgent Actions</span>
+        <span class="widget-hdr-action">View all →</span>
+      </div>
+      <div class="widget-body p-0">
+        <div class="urgent-item" data-prio="p0">
+          <span class="prio p0">P0</span>
+          <div class="content">
+            <div class="title">Deploy OwnerScout pipeline to production</div>
+            <div class="meta">Blocking $8,752/mo · <span class="tag">@ownerscout</span></div>
+          </div>
+          <span class="time">Overdue</span>
+        </div>
+        <div class="urgent-item" data-prio="p0">
+          <span class="prio p0">P0</span>
+          <div class="content">
+            <div class="title">VAPI API key rotation — missing credentials</div>
+            <div class="meta">Blocks voice agent deployment · <span class="tag">@vapi</span></div>
+          </div>
+          <span class="time">42m ago</span>
+        </div>
+        <div class="urgent-item" data-prio="p1">
+          <span class="prio p1">P1</span>
+          <div class="content">
+            <div class="title">Review cowor-kanban design audit feedback</div>
+            <div class="meta">Awaiting sign-off · <span class="tag">@design-team</span></div>
+          </div>
+          <span class="time">2h ago</span>
+        </div>
+        <div class="urgent-item" data-prio="p1">
+          <span class="prio p1">P1</span>
+          <div class="content">
+            <div class="title">Draft Q2 revenue report for partners</div>
+            <div class="meta">Due Friday · <span class="tag">@mikey</span></div>
+          </div>
+          <span class="time">1d left</span>
+        </div>
+        <div class="urgent-item" data-prio="p2">
+          <span class="prio p2">P2</span>
+          <div class="content">
+            <div class="title">Update ACMI agent profiles for new fleet members</div>
+            <div class="meta">3 remaining · <span class="tag">@fleet-ops</span></div>
+          </div>
+          <span class="time">3d ago</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Agents + Timeline -->
+    <div>
+      <div class="widget section-block">
+        <div class="widget-hdr">
+          <span class="widget-hdr-title">Active Agents</span>
+          <span class="widget-hdr-action">All agents →</span>
+        </div>
+        <div class="widget-body p-0">
+          <div class="agent-grid">
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot active"></span>
+                <span class="name">Claude-Engineer</span>
+                <span class="role">Dev</span>
+              </div>
+              <div class="task">Deploying OwnerScout pipeline</div>
+              <div class="ts">Active 4m ago</div>
+            </div>
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot idle"></span>
+                <span class="name">Claude-Cowork</span>
+                <span class="role">Orch</span>
+              </div>
+              <div class="task">Awaiting design audit response</div>
+              <div class="ts">Idle 22m</div>
+            </div>
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot active"></span>
+                <span class="name">Gemini-CLI</span>
+                <span class="role">Sec</span>
+              </div>
+              <div class="task">Secret management rollout</div>
+              <div class="ts">Active 8m ago</div>
+            </div>
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot sleep"></span>
+                <span class="name">Design-Agency</span>
+                <span class="role">Creative</span>
+              </div>
+              <div class="task">cowork-kanban audit</div>
+              <div class="ts">Sleeping 3h</div>
+            </div>
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot active"></span>
+                <span class="name">Growth-Hacker</span>
+                <span class="role">Mktg</span>
+              </div>
+              <div class="task">Whop launch checklist</div>
+              <div class="ts">Active 1m ago</div>
+            </div>
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot active"></span>
+                <span class="name">Fleet-Orch</span>
+                <span class="role">Ops</span>
+              </div>
+              <div class="task">Monitoring ACMI health</div>
+              <div class="ts">Active just now</div>
+            </div>
+            <div class="agent-card">
+              <div class="top">
+                <span class="agent-dot offline"></span>
+                <span class="name">Content-Writer</span>
+                <span class="role">Copy</span>
+              </div>
+              <div class="task">—</div>
+              <div class="ts">Offline 6h</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Timeline -->
+      <div class="widget">
+        <div class="widget-hdr">
+          <span class="widget-hdr-title">Today's Timeline</span>
+          <span class="widget-hdr-action">All events →</span>
+        </div>
+        <div class="widget-body p-0">
+          <div class="tl-feed" aria-live="polite">
+            <div class="tl-event">
+              <span class="time">09:14</span>
+              <div class="body"><span class="src">[fleet-orch]</span> <span class="text">ACMI connection restored after token rotation</span><br/><span class="kind">coord-note · #fleet-health</span></div>
+            </div>
+            <div class="tl-event">
+              <span class="time">08:52</span>
+              <div class="body"><span class="src">[gemini-cli]</span> <span class="text">Secret manager rollout — 6/12 .env files migrated</span><br/><span class="kind">milestone · #security</span></div>
+            </div>
+            <div class="tl-event">
+              <span class="time">07:30</span>
+              <div class="body"><span class="src">[claude-engineer]</span> <span class="text">OwnerScout deploy — VAPI key still missing, blocked</span><br/><span class="kind">blocker · #ownerscout</span></div>
+            </div>
+            <div class="tl-event">
+              <span class="time">06:15</span>
+              <div class="body"><span class="src">[design-agency]</span> <span class="text">cowork-kanban audit delivered — 7 findings</span><br/><span class="kind">handoff · #design-system</span></div>
+            </div>
+            <div class="tl-event">
+              <span class="time">05:00</span>
+              <div class="body"><span class="src">[growth-hacker]</span> <span class="text">Whop launch checklist — phase 1 complete</span><br/><span class="kind">milestone · #whop</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="widget" style="margin-top: 16px;">
+    <div class="widget-hdr">
+      <span class="widget-hdr-title">Quick Actions</span>
+    </div>
+    <div class="widget-body">
+      <div class="quick-actions">
+        <button class="btn" data-nav="page-notes">📝 New Note</button>
+        <button class="btn" data-nav="page-todo">✅ New Task</button>
+        <button class="btn" data-nav="page-docs">📄 New Doc</button>
+        <button class="btn" data-nav="page-calendar">📅 Open Calendar</button>
+        <button class="btn btn-primary" data-nav="page-agents">🤖 Fleet Brief</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PAGE 2: TODO LIST ─────────────────────────────────────── -->
+<section class="page" id="page-todo" role="region" aria-label="Todo List">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Todo List</div>
+      <div class="page-hdr-sub">12 tasks · 3 P0 · 5 P1 · 4 P2</div>
+    </div>
+    <div class="page-hdr-actions">
+      <div class="view-toggle" role="tablist" aria-label="View mode">
+        <span class="opt active" data-view="kanban" tabindex="0" role="tab" aria-selected="true">Kanban</span>
+        <span class="opt" data-view="gantt" tabindex="0" role="tab" aria-selected="false">Gantt</span>
+      </div>
+      <a href="screens/task-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);margin-left:6px;">Detail →</a>
+    </div>
+  </div>
+
+  <!-- Progress Strip -->
+  <div class="progress-strip">
+    <span class="progress-label">Today</span>
+    <div class="progress-bar"><div class="fill" style="width: 35%"></div></div>
+    <span class="progress-label">3/8</span>
+    <span class="progress-label">This Week</span>
+    <div class="progress-bar"><div class="fill" style="width: 52%"></div></div>
+    <span class="progress-label">12/23</span>
+    <span class="progress-label">This Month</span>
+    <div class="progress-bar"><div class="fill" style="width: 40%"></div></div>
+    <span class="progress-label">18/45</span>
+  </div>
+
+  <!-- Task Input -->
+  <div class="todo-input-wrap">
+    <input type="text" id="taskInput" placeholder='Add a task… e.g. "deploy ownerscout by Friday @growth-hacker"' />
+    <button class="btn btn-primary" id="addTaskBtn">+ Add</button>
+  </div>
+
+  <!-- Kanban View -->
+  <div id="todoKanbanView">
+    <div class="kanban-board">
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">Today <span class="count">· 3</span></div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p0">P0</span><span class="title">Deploy OwnerScout pipeline</span></div>
+          <div class="meta">@growth-hacker · <span class="tag">blocked</span></div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p0">P0</span><span class="title">VAPI key rotation</span></div>
+          <div class="meta">@ops · due yesterday</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p1">P1</span><span class="title">Review design audit feedback</span></div>
+          <div class="meta">@design-team · 2h ago</div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">This Week <span class="count">· 4</span></div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p1">P1</span><span class="title">Q2 revenue report draft</span></div>
+          <div class="meta">@mikey · due Fri</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p1">P1</span><span class="title">Secret manager fleet rollout</span></div>
+          <div class="meta">@gemini-cli · 6/12 done</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p2">P2</span><span class="title">ACMIAgent profile updates</span></div>
+          <div class="meta">@fleet-ops · 3 remaining</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p2">P2</span><span class="title">Whop launch checklist phase 2</span></div>
+          <div class="meta">@growth-hacker</div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">This Month <span class="count">· 3</span></div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p1">P1</span><span class="title">cowork-kanban mobile pass</span></div>
+          <div class="meta">@design-ui-designer</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p2">P2</span><span class="title">Postiz content calendar Q3</span></div>
+          <div class="meta">@content-writer</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p2">P2</span><span class="title">ACMI v1.4 protocol update</span></div>
+          <div class="meta">@fleet-orch</div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">Backlog <span class="count">· 2</span></div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p2">P2</span><span class="title">Dashboard settings export feature</span></div>
+          <div class="meta">@ops · icebox</div>
+        </div>
+        <div class="kanban-item" draggable="true">
+          <div class="top"><span class="prio p2">P2</span><span class="title">Fleet performance benchmarks</span></div>
+          <div class="meta">@fleet-orch · Q3 goal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gantt View (hidden by default) -->
+  <div id="todoGanttView" style="display:none;">
+    <div class="widget">
+      <div class="widget-hdr">
+        <span class="widget-hdr-title">Timeline View</span>
+        <span class="widget-hdr-action">Zoom: W / M / M</span>
+      </div>
+      <div class="widget-body" style="padding:20px 24px;">
+        <div style="position:relative;height:200px;border-bottom:1px solid var(--border);margin-bottom:16px;">
+          <div style="position:absolute;top:0;left:10%;width:25%;height:28px;background:var(--forest-glow);border-radius:var(--radius-sm);border-left:2px solid var(--forest);padding:4px 8px;font-size:10px;color:var(--forest);font-weight:500;font-family:var(--font-mono)">OwnerScout Deploy</div>
+          <div style="position:absolute;top:36px;left:5%;width:35%;height:28px;background:var(--warning-bg);border-radius:var(--radius-sm);border-left:2px solid var(--warning);padding:4px 8px;font-size:10px;color:var(--warning);font-weight:500;font-family:var(--font-mono)">Secret Manager Rollout</div>
+          <div style="position:absolute;top:72px;left:20%;width:20%;height:28px;background:#f0eee8;border-radius:var(--radius-sm);border-left:2px solid var(--ink-4);padding:4px 8px;font-size:10px;color:var(--ink-3);font-weight:500;font-family:var(--font-mono)">cowork-kanban Mobile</div>
+          <div style="position:absolute;top:108px;left:30%;width:30%;height:28px;background:var(--forest-glow);border-radius:var(--radius-sm);border-left:2px solid var(--forest);padding:4px 8px;font-size:10px;color:var(--forest);font-weight:500;font-family:var(--font-mono)">Whop Launch Phase 2</div>
+          <div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border)"></div>
+        </div>
+        <div style="display:flex;gap:4px;font-family:var(--font-mono);font-size:8px;color:var(--ink-5);">
+          <span style="flex:1">May 18</span>
+          <span style="flex:1">May 21</span>
+          <span style="flex:1">May 24</span>
+          <span style="flex:1">May 27</span>
+          <span style="flex:1">May 30</span>
+          <span style="flex:1">Jun 2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Detail Side Panel (hidden by default) -->
+  <div id="taskDetailPanel" style="display:none;"></div>
+</section>
+
+<!-- ─── PAGE 3: NOTES ─────────────────────────────────────────── -->
+<section class="page" id="page-notes" role="region" aria-label="Notes">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Notes</div>
+      <div class="page-hdr-sub">9 notes · 3 tags · last edited 12m ago</div>
+    </div>
+    <div class="page-hdr-actions">
+      <button class="btn btn-primary btn-sm" data-action="add-note">+ New Note</button>
+      <a href="screens/note-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+    </div>
+  </div>
+
+  <div class="notes-layout">
+    <!-- Notes List -->
+    <div class="notes-list" id="notesList">
+      <div style="padding:8px;border-bottom:1px solid var(--border)">
+        <input type="text" placeholder="Search notes…" data-action="filter-notes" class="search-input-sm" />
+      </div>
+      <div class="note-item active" data-note-index="0">
+        <div class="title">ACMI Fleet Architecture v1.3</div>
+        <div class="preview">The ACMI protocol defines three storage slots per entity: profile (permanent), signals (mutable), and timeline (append-only)...</div>
+        <div class="tags"><span class="tag">acmi</span><span class="tag">architecture</span></div>
+        <div class="ts">Modified 12m ago</div>
+      </div>
+      <div class="note-item" data-note-index="1">
+        <div class="title">cowork-kanban Audit Findings</div>
+        <div class="preview">7 issues identified across typographic alignment, letterpress tactile states, and mobile viewport scaling...</div>
+        <div class="tags"><span class="tag">design</span><span class="tag">audit</span></div>
+        <div class="ts">Modified 2h ago</div>
+      </div>
+      <div class="note-item" data-note-index="2">
+        <div class="title">OwnerScout Deployment Plan</div>
+        <div class="preview">Pipeline stages: VAPI integration → webhook setup → testing → production deploy. Blocked on API key...</div>
+        <div class="tags"><span class="tag">ownerscout</span><span class="tag">deploy</span></div>
+        <div class="ts">Modified yesterday</div>
+      </div>
+      <div class="note-item" data-note-index="3">
+        <div class="title">Secret Manager Design Decisions</div>
+        <div class="preview">AES-256-GCM with per-file salt. Keys stored in macOS Keychain. Implementation in ~/clawd/secret-manager/...</div>
+        <div class="tags"><span class="tag">security</span><span class="tag">infra</span></div>
+        <div class="ts">Modified 3d ago</div>
+      </div>
+      <div class="note-item" data-note-index="4">
+        <div class="title">Whop Launch Checklist</div>
+        <div class="preview">Phase 1: API integration complete. Phase 2: testing and documentation. Phase 3: production rollout...</div>
+        <div class="tags"><span class="tag">whop</span><span class="tag">launch</span></div>
+        <div class="ts">Modified 4d ago</div>
+      </div>
+    </div>
+
+    <!-- Note Editor -->
+    <div class="note-editor">
+      <div class="toolbar">
+        <span class="icn" title="Bold"><b>B</b></span>
+        <span class="icn" title="Italic"><i>I</i></span>
+        <span class="icn" title="Heading"><b style="font-family:var(--font-serif);font-weight:600;font-size:13px">H</b></span>
+        <span class="icn" title="Code"><span style="font-family:var(--font-mono);font-size:11px">{ }</span></span>
+        <span class="icn" title="List">≡</span>
+        <span class="icn" title="Checklist">☑</span>
+        <span style="flex:1"></span>
+        <span class="icn" title="Tag">#</span>
+        <span class="icn" title="Markdown toggle">MD</span>
+      </div>
+      <textarea placeholder="Write your note… Supports **markdown**, `code`, @agent mentions, #tags">## ACMI Fleet Architecture v1.3
+
+The ACMI protocol defines three storage slots per entity:
+
+### Profile (permanent)
+Stores identity: agent name, role, model tier, team assignments. Set once, rarely changed.
+
+### Signals (mutable)
+Current state: status (online/idle/offline), current task, focus area, last heartbeat. Changes frequently.
+
+### Timeline (append-only)
+Every event logged chronologically. Supports kind tagging (coord-note, milestone, decision, handoff, incident, heartbeat) for filtering across threads.
+
+### Key Insight
+The three-slot model replaces the traditional "single document" approach — agents don't share state via one shared file, they each maintain their own three slots and the fleet orchestrator merges timelines on demand.</textarea>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PAGE 4: PROJECT TRACKER ───────────────────────────────── -->
+<section class="page" id="page-projects" role="region" aria-label="Project Tracker">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Project Tracker</div>
+      <div class="page-hdr-sub">6 active projects · $12.4k pipeline value</div>
+    </div>
+    <div class="page-hdr-actions">
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" placeholder="Search projects…" class="search-input-sm" style="width:180px" />
+        <button class="btn btn-sm">Filter</button>
+        <a href="screens/project-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline Funnel -->
+  <div class="widget section-block">
+    <div class="widget-hdr">
+      <span class="widget-hdr-title">Completions Pipeline</span>
+    </div>
+    <div class="widget-body">
+      <div class="pipeline-funnel-new">
+        <div class="funnel-row">
+          <span class="stage-label">Ideas</span>
+          <div class="stage-bar"><div class="fill" style="width:100%"></div></div>
+          <span class="stage-count">8</span>
+        </div>
+        <div class="funnel-row">
+          <span class="stage-label">In Progress</span>
+          <div class="stage-bar"><div class="fill" style="width:62%"></div></div>
+          <span class="stage-count">5</span>
+        </div>
+        <div class="funnel-row">
+          <span class="stage-label">Review</span>
+          <div class="stage-bar"><div class="fill" style="width:50%"></div></div>
+          <span class="stage-count">4</span>
+        </div>
+        <div class="funnel-row">
+          <span class="stage-label">Deployed</span>
+          <div class="stage-bar"><div class="fill" style="width:25%"></div></div>
+          <span class="stage-count">2</span>
+        </div>
+        <div class="funnel-row">
+          <span class="stage-label">Revenue</span>
+          <div class="stage-bar"><div class="fill" style="width:12%"></div></div>
+          <span class="stage-count">$8.7k</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Cards (clickable, linking to detail page) -->
+  <div class="project-grid">
+    <a class="project-card" href="screens/project-detail.html#project=acmi-fleet-ops" style="text-decoration:none;color:inherit;display:block">
+      <div class="top">
+        <span class="name">ACMI Fleet Ops <span style="font-size:10px;color:var(--ink-4)">→</span></span>
+        <span class="status live">Live</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:70%"></div></div>
+      <div class="meta">Pipeline 70% · Edge compute rollout<br/>Lead: <span class="agent">@fleet-orch</span> · 4 members</div>
+    </a>
+    <a class="project-card" href="screens/project-detail.html#project=ownerscout" style="text-decoration:none;color:inherit;display:block">
+      <div class="top">
+        <span class="name">OwnerScout <span style="font-size:10px;color:var(--ink-4)">→</span></span>
+        <span class="status stalled">Stalled</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:65%"></div></div>
+      <div class="meta">Pipeline 65% · Blocked: VAPI key<br/>Lead: <span class="agent">@claude-engineer</span> · $8,752/mo</div>
+    </a>
+    <a class="project-card" href="screens/project-detail.html#project=cowork-kanban" style="text-decoration:none;color:inherit;display:block">
+      <div class="top">
+        <span class="name">cowork-kanban Redesign <span style="font-size:10px;color:var(--ink-4)">→</span></span>
+        <span class="status live">Live</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:90%"></div></div>
+      <div class="meta">Pipeline 90% · Awaiting audit sign-off<br/>Lead: <span class="agent">@design-agency</span></div>
+    </a>
+    <a class="project-card" href="screens/project-detail.html#project=secret-manager" style="text-decoration:none;color:inherit;display:block">
+      <div class="top">
+        <span class="name">Secret Manager <span style="font-size:10px;color:var(--ink-4)">→</span></span>
+        <span class="status live">Live</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:50%"></div></div>
+      <div class="meta">Pipeline 50% · 6/12 .env files done<br/>Lead: <span class="agent">@gemini-cli</span></div>
+    </a>
+    <a class="project-card" href="screens/project-detail.html#project=whop-launch" style="text-decoration:none;color:inherit;display:block">
+      <div class="top">
+        <span class="name">Whop Launch <span style="font-size:10px;color:var(--ink-4)">→</span></span>
+        <span class="status live">Live</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:40%"></div></div>
+      <div class="meta">Pipeline 40% · Phase 1 complete<br/>Lead: <span class="agent">@growth-hacker</span> · Revenue TBD</div>
+    </a>
+    <a class="project-card" href="screens/project-detail.html#project=postiz-calendar" style="text-decoration:none;color:inherit;display:block">
+      <div class="top">
+        <span class="name">Postiz Content Calendar <span style="font-size:10px;color:var(--ink-4)">→</span></span>
+        <span class="status draft">Draft</span>
+      </div>
+      <div class="progress"><div class="fill" style="width:15%"></div></div>
+      <div class="meta">Pipeline 15% · Q3 planning phase<br/>Lead: <span class="agent">@content-writer</span></div>
+    </a>
+  </div>
+
+  <!-- Project Health Dashboard -->
+  <div class="widget" style="margin-top:16px;">
+    <div class="widget-hdr">
+      <span class="widget-hdr-title">Project Health</span>
+      <span class="widget-hdr-action">Export →</span>
+    </div>
+    <div class="widget-body p-0">
+      <div class="health-grid">
+        <div class="health-stat">
+          <div class="health-label">Stalled Items</div>
+          <div class="health-value danger serif">2</div>
+        </div>
+        <div class="health-stat">
+          <div class="health-label">Last Activity</div>
+          <div class="health-value">4m ago</div>
+        </div>
+        <div class="health-stat">
+          <div class="health-label">Avg Days Idle</div>
+          <div class="health-value">1.2d</div>
+        </div>
+        <div class="health-stat">
+          <div class="health-label">Agents Assigned</div>
+          <div class="health-value">12</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PAGE 5: CALENDAR ──────────────────────────────────────── -->
+<section class="page" id="page-calendar" role="region" aria-label="Calendar">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Calendar & Timeline</div>
+      <div class="page-hdr-sub">May 2026 · 8 events this month</div>
+    </div>
+    <div class="page-hdr-actions">
+      <div class="view-toggle" role="tablist" aria-label="Calendar view">
+        <span class="opt active" tabindex="0" role="tab" aria-selected="true">Month</span>
+        <span class="opt" tabindex="0" role="tab" aria-selected="false">Week</span>
+      </div>
+      <a href="screens/event-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);margin-left:6px;">Detail →</a>
+    </div>
+  </div>
+
+  <!-- Calendar Nav -->
+  <div class="cal-nav">
+    <button class="btn btn-sm btn-ghost">‹</button>
+    <span class="month">May 2026</span>
+    <button class="btn btn-sm btn-ghost">›</button>
+    <button class="btn btn-sm" style="margin-left:auto">Today</button>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="cal-day-headers">
+    <div class="cal-day-header">Sun</div>
+    <div class="cal-day-header">Mon</div>
+    <div class="cal-day-header">Tue</div>
+    <div class="cal-day-header">Wed</div>
+    <div class="cal-day-header">Thu</div>
+    <div class="cal-day-header">Fri</div>
+    <div class="cal-day-header">Sat</div>
+  </div>
+
+  <div class="cal-grid">
+    <div class="cal-day other-month"><div class="num">27</div></div>
+    <div class="cal-day other-month"><div class="num">28</div></div>
+    <div class="cal-day other-month"><div class="num">29</div></div>
+    <div class="cal-day other-month"><div class="num">30</div></div>
+    <div class="cal-day"><div class="num">1</div></div>
+    <div class="cal-day"><div class="num">2</div></div>
+    <div class="cal-day"><div class="num">3</div></div>
+
+    <div class="cal-day"><div class="num">4</div></div>
+    <div class="cal-day"><div class="num">5</div></div>
+    <div class="cal-day"><div class="num">6</div></div>
+    <div class="cal-day"><div class="num">7</div></div>
+    <div class="cal-day"><div class="num">8</div></div>
+    <div class="cal-day"><div class="num">9</div></div>
+    <div class="cal-day"><div class="num">10</div></div>
+
+    <div class="cal-day"><div class="num">11</div></div>
+    <div class="cal-day"><div class="num">12</div></div>
+    <div class="cal-day"><div class="num">13</div>
+      <div class="event milestone">● Design Review</div>
+    </div>
+    <div class="cal-day"><div class="num">14</div>
+      <div class="event deadline">⚠ OwnerScout Deploy</div>
+    </div>
+    <div class="cal-day"><div class="num">15</div></div>
+    <div class="cal-day"><div class="num">16</div></div>
+    <div class="cal-day"><div class="num">17</div>
+      <div class="event task">▹ Secret Mgr Review</div>
+    </div>
+
+    <div class="cal-day"><div class="num">18</div></div>
+    <div class="cal-day"><div class="num">19</div></div>
+    <div class="cal-day today"><div class="num">20</div>
+      <div class="event milestone">● Q2 Report Draft</div>
+    </div>
+    <div class="cal-day"><div class="num">21</div>
+      <div class="event deadline">⚠ Deadline: Audit Reply</div>
+    </div>
+    <div class="cal-day"><div class="num">22</div></div>
+    <div class="cal-day"><div class="num">23</div></div>
+    <div class="cal-day"><div class="num">24</div></div>
+
+    <div class="cal-day"><div class="num">25</div></div>
+    <div class="cal-day"><div class="num">26</div></div>
+    <div class="cal-day"><div class="num">27</div></div>
+    <div class="cal-day"><div class="num">28</div>
+      <div class="event task">▹ Whop Phase 2 Go</div>
+    </div>
+    <div class="cal-day"><div class="num">29</div></div>
+    <div class="cal-day"><div class="num">30</div></div>
+    <div class="cal-day"><div class="num">31</div>
+      <div class="event milestone">● Month-End Close</div>
+    </div>
+
+    <div class="cal-day other-month"><div class="num">1</div></div>
+    <div class="cal-day other-month"><div class="num">2</div></div>
+    <div class="cal-day other-month"><div class="num">3</div></div>
+    <div class="cal-day other-month"><div class="num">4</div></div>
+    <div class="cal-day other-month"><div class="num">5</div></div>
+    <div class="cal-day other-month"><div class="num">6</div></div>
+    <div class="cal-day other-month"><div class="num">7</div></div>
+  </div>
+
+  <!-- ACMI Timeline Integration -->
+  <div class="widget" style="margin-top:16px;">
+    <div class="widget-hdr">
+      <span class="widget-hdr-title">ACMI Timeline — This Month</span>
+      <span class="widget-hdr-action">Sync →</span>
+    </div>
+    <div class="widget-body p-0">
+      <div class="tl-event">
+        <span class="time">May 14</span>
+        <div class="body"><span class="src">[fleet-orch]</span> <span class="text">ACMI connection restored</span><br/><span class="kind">coord-note</span></div>
+      </div>
+      <div class="tl-event">
+        <span class="time">May 17</span>
+        <div class="body"><span class="src">[design-agency]</span> <span class="text">cowork-kanban design audit delivered</span><br/><span class="kind">handoff</span></div>
+      </div>
+      <div class="tl-event">
+        <span class="time">May 19</span>
+        <div class="body"><span class="src">[gemini-cli]</span> <span class="text">Secret manager — milestone: 6 .env files secured</span><br/><span class="kind">milestone</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deadline Warning -->
+  <div class="deadline-legend">
+    <span class="deadline-legend-item" style="color:var(--danger)"><span class="deadline-legend-dot" style="background:var(--danger)"></span> 48h warning</span>
+    <span class="deadline-legend-item" style="color:var(--warning)"><span class="deadline-legend-dot" style="background:var(--warning)"></span> 24h warning</span>
+    <span class="deadline-legend-item" style="color:var(--archive-deep)"><span class="deadline-legend-dot" style="background:var(--border)"></span> Overdue</span>
+  </div>
+</section>
+
+<!-- ─── PAGE 6: DOCS ──────────────────────────────────────────── -->
+<section class="page" id="page-docs" role="region" aria-label="Docs">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Docs</div>
+      <div class="page-hdr-sub">14 documents · 3 types · last edited 12m ago</div>
+    </div>
+    <div class="page-hdr-actions">
+      <button class="btn btn-primary btn-sm">+ New Doc</button>
+      <button class="btn btn-sm">Templates</button>
+      <a href="screens/doc-viewer.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+    </div>
+  </div>
+
+  <div class="docs-layout">
+    <div class="docs-tree">
+      <div style="padding:4px 0 8px;">
+        <input type="text" placeholder="Search docs…" class="search-input-sm" />
+      </div>
+      <div class="doc-tree-item active">
+        <span class="icon">📄</span> ACMI Fleet Architecture
+        <span class="doc-type">Spec</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> OwnerScout Technical Brief
+        <span class="doc-type">Brief</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> cowork-kanban Design Spec
+        <span class="doc-type">Spec</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> Secret Manager Implementation Plan
+        <span class="doc-type">Plan</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> Whop Integration Guide
+        <span class="doc-type">Guide</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> Q1 Revenue Report
+        <span class="doc-type">Report</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> VAPI Voice Agent Setup
+        <span class="doc-type">Guide</span>
+      </div>
+      <div class="doc-tree-item">
+        <span class="icon">📄</span> ACMI Timeline API Reference
+        <span class="doc-type">Spec</span>
+      </div>
+
+      <div style="padding:8px 8px 0;margin-top:8px;border-top:1px solid var(--border)">
+        <div class="doc-tree-item" style="font-size:10px;color:var(--ink-5)">
+          <span class="icon">📁</span> Templates
+        </div>
+        <div class="doc-tree-item" style="padding-left:20px;font-size:10px">
+          <span class="icon">📄</span> Design Brief Template
+        </div>
+        <div class="doc-tree-item" style="padding-left:20px;font-size:10px">
+          <span class="icon">📄</span> Project Plan Template
+        </div>
+        <div class="doc-tree-item" style="padding-left:20px;font-size:10px">
+          <span class="icon">📄</span> Agent Handoff Template
+        </div>
+      </div>
+    </div>
+
+    <div class="docs-viewer">
+      <div class="doc-title">ACMI Fleet Architecture v1.3</div>
+      <div class="doc-meta">Spec · Updated May 20, 2026 · 1,240 words · v1.3</div>
+      <div class="doc-body">
+        <h2>Overview</h2>
+        <p>The ACMI (Agentic Coordination & Memory Infrastructure) protocol defines how autonomous agents communicate, share state, and coordinate across sessions. It is built on three primitives: <strong>Profile</strong> (permanent identity), <strong>Signals</strong> (mutable current state), and <strong>Timeline</strong> (append-only event history).</p>
+
+        <h2>Architecture</h2>
+        <p>Each agent in the fleet maintains its own three-slot storage indexed by entity ID. The fleet orchestrator reads the global timeline stream and merges events across agents to produce a unified view. This pattern ensures no single agent can corrupt another's state.</p>
+
+        <h2>Storage Backend</h2>
+        <p>All ACMI data lives in <strong>Upstash Redis</strong> (loved-platypus-102968 instance). Keys follow the pattern <code>acmi:{namespace}:{id}:{slot}</code>. The MCP server wraps REST API calls to provide a consistent interface across agents.</p>
+
+        <h2>Communication Standard v1.1</h2>
+        <p>Every timeline event carries: <code>source</code> (agent name), <code>kind</code> (event type), <code>correlationId</code> (trace across agents), and <code>summary</code> (human-readable description). Events are logged via the <code>acmi_event</code> MCP tool.</p>
+
+        <h2>Fleet Health</h2>
+        <p>The fleet orchestrator monitors agent engagement via heartbeats, tracks stalled projects (>72h silence), and escalates blockers to the human operator. All telemetry is surfaced in the Command Center dashboard.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PAGE 7: AGENT CONSOLE ────────────────────────────────── -->
+<section class="page" id="page-agents" role="region" aria-label="Agent Console">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Agent Console</div>
+      <div class="page-hdr-sub">7 agents · 5 online · 1 idle · 1 sleeping · 0 offline</div>
+    </div>
+    <div class="page-hdr-actions">
+      <button class="btn btn-sm" data-action="refresh">↻ Refresh</button>
+      <a href="screens/agent-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+    </div>
+  </div>
+
+  <!-- Fleet Health Summary -->
+  <div class="kpi-strip" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+    <div class="kpi-stat">
+      <div class="value green">98%</div>
+      <div class="label">Avg Response Rate</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value">47/3</div>
+      <div class="label">Success / Fail Ratio</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value">24</div>
+      <div class="label">Tasks Completed Today</div>
+    </div>
+    <div class="kpi-stat">
+      <div class="value">$0.42</div>
+      <div class="label">Avg Cost Per Task</div>
+    </div>
+  </div>
+
+  <div class="agent-console-layout">
+    <!-- Agent Grid -->
+    <div>
+      <div class="widget">
+        <div class="widget-hdr">
+          <span class="widget-hdr-title">Agent Status</span>
+          <span class="widget-hdr-action">Search…</span>
+        </div>
+        <div class="widget-body p-0">
+          <div class="agent-status-grid" id="agentGrid" aria-live="polite">
+            <!-- Dynamically populated from ACMI via acmiClientInit() -->
+            <div class="state-placeholder loading" id="agentGridLoading">
+              <div class="pulse"></div>
+              <div class="pulse"></div>
+              <div class="pulse"></div>
+              <div class="msg">Loading agent fleet data from ACMI…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Detail Panel -->
+    <div class="agent-detail-panel" id="agentDetailPanel">
+      <div class="panel-hdr" id="agentPanelHdr">
+        <div class="name" id="agentPanelName">Select an agent</div>
+        <div class="role" id="agentPanelRole">Click an agent card to view details from ACMI</div>
+      </div>
+      <div class="panel-body" id="agentPanelBody">
+        <!-- Placeholder shown when no agent is selected; replaced dynamically by selectAgent() -->
+        <div class="state-placeholder" id="agentPanelPlaceholder">
+          <div class="icon">
+            <svg viewBox="0 0 14 14"><circle cx="7" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          </div>
+          <div class="msg"><strong>Agent Console</strong><br/>Select an agent from the grid to view detailed ACMI profile, signals, event timeline, and send commands.</div>
+        </div>
+        <!-- Loading indicator for agent detail (hidden by default) -->
+        <div class="state-placeholder loading" id="agentPanelLoading" style="display:none">
+          <div class="pulse"></div>
+          <div class="pulse"></div>
+          <div class="pulse"></div>
+          <div class="msg">Fetching ACMI data for <strong id="agentPanelLoadingName">agent</strong>…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PAGE 8: SETTINGS ─────────────────────────────────────── -->
+<section class="page" id="page-settings" role="region" aria-label="Settings">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <div class="page-hdr-title">Settings</div>
+      <div class="page-hdr-sub">Configure your dashboard, API keys, and data sources</div>
+    </div>
+  </div>
+
+  <div class="settings-sections">
+    <!-- API Keys -->
+    <div class="settings-group">
+      <div class="settings-group-title">API Keys & Integrations</div>
+      <div class="settings-row">
+        <div class="label">Upstash Redis<span class="desc">ACMI primary data store</span></div>
+        <div class="ctrl"><div class="key-status"><span class="dot green"></span> Connected</div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">VAPI<span class="desc">Voice agent deployment</span></div>
+        <div class="ctrl"><div class="key-status"><span class="dot red"></span> Missing key</div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">OpenAI<span class="desc">Model inference</span></div>
+        <div class="ctrl"><div class="key-status"><span class="dot green"></span> Connected</div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">GitHub<span class="desc">Repository access</span></div>
+        <div class="ctrl"><div class="key-status"><span class="dot green"></span> Connected</div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Calendar Sync<span class="desc">Google Calendar integration</span></div>
+        <div class="ctrl"><div class="key-status"><span class="dot amber"></span> Re-auth needed</div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Postiz<span class="desc">Social media scheduling</span></div>
+        <div class="ctrl"><div class="key-status"><span class="dot amber"></span> Expiring (7d)</div></div>
+      </div>
+    </div>
+
+    <!-- Display -->
+    <div class="settings-group">
+      <div class="settings-group-title">Display</div>
+      <div class="settings-row">
+        <div class="label">Dark Mode<span class="desc">Switch between paper (light) and deep (dark) themes</span></div>
+        <div class="ctrl"><div class="toggle-switch" data-action="toggle-dark" role="switch" aria-checked="false" tabindex="0"><div class="knob"></div></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Compact Mode<span class="desc">Tighter spacing for higher data density</span></div>
+        <div class="ctrl"><div class="toggle-switch" role="switch" aria-checked="false" tabindex="0"><div class="knob"></div></div></div>
+      </div>
+    </div>
+
+    <!-- Widget Manager -->
+    <div class="settings-group">
+      <div class="settings-group-title">Widget Manager</div>
+      <div class="settings-row">
+        <div class="label">Command Center<span class="desc">Home dashboard with KPI strip and timeline</span></div>
+        <div class="ctrl"><div class="toggle-switch active" id="widgetToggleCommand" role="switch" aria-checked="true" tabindex="0"><div class="knob"></div></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Todo List<span class="desc">Task management with kanban and Gantt</span></div>
+        <div class="ctrl"><div class="toggle-switch active" id="widgetToggleTodo" role="switch" aria-checked="true" tabindex="0"><div class="knob"></div></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Notes<span class="desc">Rich text editor with tags and search</span></div>
+        <div class="ctrl"><div class="toggle-switch active" id="widgetToggleNotes" role="switch" aria-checked="true" tabindex="0"><div class="knob"></div></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Project Tracker<span class="desc">Project cards with pipeline funnel and health</span></div>
+        <div class="ctrl"><div class="toggle-switch active" id="widgetToggleProjects" role="switch" aria-checked="true" tabindex="0"><div class="knob"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div> <!-- .pages-container -->
+</div> <!-- .app-shell -->
+
+<!-- Search Modal -->
+<div class="search-modal" id="searchModal">
+  <div class="sheet">
+    <div class="field">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M9.5 9.5l3.5 3.5"/></svg>
+      <input type="text" placeholder="Search agents, work, tasks, notes, docs..." id="searchInput" autocomplete="off" />
+    </div>
+    <div class="results">
+      <div style="font-size:11px;color:var(--ink-5);text-align:center;padding:24px;">Type something to search across agents, work, tasks, notes, and docs...</div>
+    </div>
+    <div class="search-hint">
+      <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+      <span><kbd>↵</kbd> Open</span>
+      <span><kbd>Esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ================================================================
+     GSD DASHBOARD — Dynamic Application Logic
+     ================================================================
+     ACMI Live Upstash Redis Coordination Architecture
+     ================================================================ */
+
+  // ─── Global State ───────────────────────────────────────────────
+  var _lastBootstrapData = null;
+  var _activeNoteId = null;
+  var _activeDocId = null;
+  var _selectedAgentId = null;
+  var _lastLatency = 0;
+  var _noteSaveTimer = null;
+  var _draggedTaskId = null;
+
+  // ─── Navigation ─────────────────────────────────────────────────
+  function goPage(pageId, navEl) {
+    // Deactivate all pages — make them non-tabbable and hidden from a11y tree
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('active');
+      p.inert = true;
+      p.setAttribute('tabindex', '-1');
+      p.setAttribute('aria-hidden', 'true');
+    });
+    
+    // Activate target page
+    var target = document.getElementById(pageId);
+    if (target) {
+      target.classList.add('active');
+      target.inert = false;
+      target.removeAttribute('tabindex');
+      target.setAttribute('aria-hidden', 'false');
+    }
+
+    // Update nav items
+    document.querySelectorAll('.nav-item, .mob-item').forEach(function(el) {
+      el.classList.remove('active');
+    });
+    if (navEl) navEl.classList.add('active');
+
+    // Persist
+    try { localStorage.setItem('gsd:currentPage', pageId); } catch(e) {}
+  }
+
+  function getNavItem(pageId) {
+    return document.querySelector('.nav-item[data-page="' + pageId.replace(/["\\]/g, '') + '"]') ||
+           document.querySelector('.mob-item');
+  }
+
+  // ─── Clock ──────────────────────────────────────────────────────
+  function updateClock() {
+    var el = document.getElementById('headerClock');
+    if (!el) return;
+    var d = new Date();
+    var h = d.getHours().toString().padStart(2,'0');
+    var m = d.getMinutes().toString().padStart(2,'0');
+    el.textContent = h + ':' + m + ' ' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  // ─── Keyboard Shortcuts ─────────────────────────────────────────
+  document.addEventListener('keydown', function(e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+
+    // Cmd+K / Ctrl+K → search
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      openSearch();
+      return;
+    }
+
+    // "/" → open search (like Slack/Linear)
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      openSearch();
+      return;
+    }
+
+    // Escape → close search
+    if (e.key === 'Escape') closeSearch();
+  });
+
+  // ─── Quick Search ───────────────────────────────────────────────
+  function openSearch() {
+    var m = document.getElementById('searchModal');
+    if (m) {
+      m.classList.add('open');
+      setTimeout(function() {
+        var inp = document.getElementById('searchInput');
+        if (inp) inp.focus();
+      }, 100);
+    }
+  }
+
+  function closeSearch() {
+    var m = document.getElementById('searchModal');
+    if (m) m.classList.remove('open');
+  }
+
+  // Keyboard navigation for search results
+  var _searchResultIndex = -1;
+
+  function buildLocalSearchIndex(query) {
+    var q = query.toLowerCase().trim();
+    var index = [];
+    var seen = {};
+
+    // Page names
+    var pages = [
+      { label: 'Command Center', page: 'page-command', desc: 'Home dashboard with KPI strip and timeline' },
+      { label: 'Todo List', page: 'page-todo', desc: 'Task management with kanban and Gantt' },
+      { label: 'Notes', page: 'page-notes', desc: 'Rich text editor with tags and search' },
+      { label: 'Project Tracker', page: 'page-projects', desc: 'Project cards with pipeline funnel and health' },
+      { label: 'Calendar', page: 'page-calendar', desc: 'Calendar and timeline view' },
+      { label: 'Docs', page: 'page-docs', desc: 'Document management' },
+      { label: 'Agent Console', page: 'page-agents', desc: 'Agent fleet management' },
+      { label: 'Settings', page: 'page-settings', desc: 'Configure dashboard and API keys' }
+    ];
+
+    pages.forEach(function(p) {
+      if (p.label.toLowerCase().indexOf(q) > -1 || p.desc.toLowerCase().indexOf(q) > -1) {
+        var key = 'page:' + p.page;
+        if (!seen[key]) {
+          seen[key] = true;
+          index.push({ title: p.label, desc: p.desc, page: p.page, indicator: 'Page', icon: '📄' });
+        }
+      }
+    });
+
+    // Agent names (7 agents)
+    var agents = [
+      { name: 'Claude-Engineer', role: 'Dev', desc: 'Engineering agent - Deploying OwnerScout pipeline' },
+      { name: 'Claude-Cowork', role: 'Orch', desc: 'Orchestration agent - Awaiting design audit response' },
+      { name: 'Gemini-CLI', role: 'Sec', desc: 'Security agent - Secret management rollout' },
+      { name: 'Design-Agency', role: 'Creative', desc: 'Creative agent - cowork-kanban audit' },
+      { name: 'Growth-Hacker', role: 'Mktg', desc: 'Marketing agent - Whop launch checklist' },
+      { name: 'Fleet-Orch', role: 'Ops', desc: 'Ops agent - Monitoring ACMI health' },
+      { name: 'Content-Writer', role: 'Copy', desc: 'Content agent' }
+    ];
+
+    agents.forEach(function(a) {
+      if (a.name.toLowerCase().indexOf(q) > -1 || a.role.toLowerCase().indexOf(q) > -1 || a.desc.toLowerCase().indexOf(q) > -1) {
+        var key = 'agent:' + a.name;
+        if (!seen[key]) {
+          seen[key] = true;
+          index.push({ title: a.name, desc: a.desc + ' (' + a.role + ')', page: 'page-agents', indicator: 'Agent', icon: '🤖' });
+        }
+      }
+    });
+
+    // Section headers / feature names
+    var sections = [
+      'KPI Strip', 'Fleet Activity', 'Agent Activity', 'Task Completion', 'Event Volume',
+      'Urgent Actions', 'Active Agents', 'Timeline', 'Quick Actions',
+      'Completions Pipeline', 'Project Grid', 'Project Health',
+      'Kanban Board', 'Gantt View', 'Progress Strip',
+      'Notes List', 'Note Editor',
+      'Calendar Grid', 'ACMI Timeline',
+      'Docs Tree', 'Doc Viewer',
+      'Agent Console', 'Agent Detail',
+      'Settings', 'Widget Manager',
+      'Approvals HUD', 'Fleet Health'
+    ];
+
+    var sectionPages = {
+      'KPI Strip': 'page-command',
+      'Fleet Activity': 'page-command',
+      'Urgent Actions': 'page-command',
+      'Active Agents': 'page-command',
+      'Timeline': 'page-command',
+      'Quick Actions': 'page-command',
+      'Completions Pipeline': 'page-projects',
+      'Project Grid': 'page-projects',
+      'Project Health': 'page-projects',
+      'Kanban Board': 'page-todo',
+      'Gantt View': 'page-todo',
+      'Progress Strip': 'page-todo',
+      'Notes List': 'page-notes',
+      'Note Editor': 'page-notes',
+      'Calendar Grid': 'page-calendar',
+      'ACMI Timeline': 'page-calendar',
+      'Docs Tree': 'page-docs',
+      'Doc Viewer': 'page-docs',
+      'Agent Console': 'page-agents',
+      'Agent Detail': 'page-agents',
+      'Settings': 'page-settings',
+      'Widget Manager': 'page-settings'
+    };
+
+    sections.forEach(function(s) {
+      if (s.toLowerCase().indexOf(q) > -1) {
+        var key = 'section:' + s;
+        if (!seen[key]) {
+          seen[key] = true;
+          index.push({ title: s, desc: 'Section on ' + (sectionPages[s] || 'unknown'), page: sectionPages[s] || 'page-command', indicator: 'Section', icon: '📋' });
+        }
+      }
+    });
+
+    // Project names and task descriptions from the static HTML
+    var projectNames = [
+      'ACMI Fleet Ops', 'OwnerScout', 'cowork-kanban Redesign',
+      'Secret Manager', 'Whop Launch', 'Postiz Content Calendar'
+    ];
+    projectNames.forEach(function(p) {
+      if (p.toLowerCase().indexOf(q) > -1) {
+        var key = 'project:' + p;
+        if (!seen[key]) {
+          seen[key] = true;
+          index.push({ title: p, desc: 'Project on Project Tracker', page: 'page-projects', indicator: 'Project', icon: '📊' });
+        }
+      }
+    });
+
+    var taskDescriptions = [
+      'Deploy OwnerScout pipeline to production',
+      'VAPI API key rotation',
+      'Review cowork-kanban design audit feedback',
+      'Draft Q2 revenue report for partners',
+      'Update ACMI agent profiles',
+      'Secret manager fleet rollout',
+      'Whop launch checklist phase 2',
+      'ACMI v1.4 protocol update',
+      'Dashboard settings export feature',
+      'Fleet performance benchmarks'
+    ];
+    taskDescriptions.forEach(function(t) {
+      if (t.toLowerCase().indexOf(q) > -1) {
+        var key = 'task:' + t;
+        if (!seen[key]) {
+          seen[key] = true;
+          index.push({ title: t, desc: 'Task on Todo List', page: 'page-todo', indicator: 'Task', icon: '✅' });
+        }
+      }
+    });
+
+    // Note titles
+    var noteTitles = [
+      'ACMI Fleet Architecture v1.3',
+      'cowork-kanban Audit Findings',
+      'OwnerScout Deployment Plan',
+      'Secret Manager Design Decisions',
+      'Whop Launch Checklist'
+    ];
+    noteTitles.forEach(function(n) {
+      if (n.toLowerCase().indexOf(q) > -1) {
+        var key = 'note:' + n;
+        if (!seen[key]) {
+          seen[key] = true;
+          index.push({ title: n, desc: 'Note on Notes page', page: 'page-notes', indicator: 'Note', icon: '📝' });
+        }
+      }
+    });
+
+    // Limit results
+    return index.slice(0, 20);
+  }
+
+  function renderSearchResults(resultsDiv, items) {
+    if (!items || items.length === 0) {
+      resultsDiv.innerHTML = '<div style="font-size:11px;color:var(--ink-4);text-align:center;padding:24px;">No results found</div>';
+      return;
+    }
+
+    var html = '<div class="search-results-list" style="display:flex;flex-direction:column;gap:2px;">';
+    items.forEach(function(item, i) {
+      html += '<div class="result-item" data-index="' + i + '" data-page="' + _esc(item.page) + '" tabindex="0">' +
+        '<span>' + item.icon + ' ' + _esc(item.title) + '</span>' +
+        ' <span class="page-indicator">' + _esc(item.indicator) + '</span>' +
+        '<div style="font-size:10px;color:var(--ink-4);margin-top:1px;">' + _esc(item.desc) + '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+
+    // Add click handlers for result items
+    resultsDiv.querySelectorAll('.result-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var page = this.getAttribute('data-page');
+        if (page) {
+          handleSearchResultClick(page, null);
+        }
+      });
+      el.addEventListener('mouseenter', function() {
+        resultsDiv.querySelectorAll('.result-item').forEach(function(r) { r.classList.remove('active'); });
+        this.classList.add('active');
+        _searchResultIndex = parseInt(this.getAttribute('data-index'), 10);
+      });
+    });
+    _searchResultIndex = -1;
+  }
+
+  // Wire search input to performSearch on input
+  document.getElementById('searchInput')?.addEventListener('input', function() {
+    performSearch(this.value);
+  });
+
+  // Keyboard navigation for search results
+  document.getElementById('searchInput')?.addEventListener('keydown', function(e) {
+    var results = document.querySelectorAll('#searchModal .result-item');
+    if (results.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _searchResultIndex = Math.min(_searchResultIndex + 1, results.length - 1);
+      results.forEach(function(r) { r.classList.remove('active'); });
+      results[_searchResultIndex].classList.add('active');
+      results[_searchResultIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _searchResultIndex = Math.max(_searchResultIndex - 1, 0);
+      results.forEach(function(r) { r.classList.remove('active'); });
+      results[_searchResultIndex].classList.add('active');
+      results[_searchResultIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (_searchResultIndex >= 0 && _searchResultIndex < results.length) {
+        var active = results[_searchResultIndex];
+        var page = active.getAttribute('data-page');
+        if (page) {
+          handleSearchResultClick(page, null);
+        }
+      }
+    }
+  });
+
+  document.getElementById('searchModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSearch();
+  });
+
+  // ─── Todo View Toggle ───────────────────────────────────────────
+  function toggleTodoView(view, el) {
+    el.parentNode.querySelectorAll('.opt').forEach(function(o) {
+      o.classList.remove('active');
+      o.setAttribute('aria-selected', 'false');
+    });
+    el.classList.add('active');
+    el.setAttribute('aria-selected', 'true');
+
+    document.getElementById('todoKanbanView').style.display = view === 'kanban' ? 'block' : 'none';
+    document.getElementById('todoGanttView').style.display = view === 'gantt' ? 'block' : 'none';
+  }
+
+  // ─── Utilities ──────────────────────────────────────────────────
+  function _timeAgo(ts) {
+    if (!ts) return '—';
+    var then = new Date(ts);
+    if (isNaN(then.getTime())) return ts;
+    var diff = Date.now() - then.getTime();
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  function _statusClass(status) {
+    if (!status) return 'offline';
+    var s = status.toLowerCase();
+    if (s === 'active' || s === 'online') return 'active';
+    if (s === 'idle') return 'idle';
+    if (s === 'sleeping' || s === 'sleep') return 'sleep';
+    return 'offline';
+  }
+
+  function _esc(str) {
+    if (str == null) return '';
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  function _extractTags(text) {
+    var tags = [];
+    var matches = text.match(/#(\w+)/g);
+    if (matches) {
+      matches.forEach(function(m) {
+        var t = m.slice(1).toLowerCase();
+        if (tags.indexOf(t) === -1) tags.push(t);
+      });
+    }
+    return tags;
+  }
+
+  function renderMarkdown(md) {
+    if (!md) return '';
+    var html = _esc(md);
+    // Replace markdown tags securely post-escaping
+    html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+    html = html.replace(/^\s*[-*]\s+(.*?)$/gm, '<li>$1</li>');
+    html = html.replace(/\n/g, '<br/>');
+    return html;
+  }
+
+  // ─── Live Dynamic Helper Functions ──────────────────────────────
+  
+  function selectNote(noteId) {
+    _activeNoteId = noteId;
+    if (!_lastBootstrapData || !_lastBootstrapData.notes) return;
+    var note = _lastBootstrapData.notes.find(function(n) { return n.id === noteId; });
+    if (!note) return;
+
+    var p = note.profile || {};
+    var content = p.content || '';
+
+    // Update active class in list
+    var listContainer = document.getElementById('notesList');
+    if (listContainer) {
+      listContainer.querySelectorAll('.note-item').forEach(function(el) {
+        if (el.getAttribute('data-note-id') === noteId) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+    }
+
+    // Set textarea value
+    var textarea = document.querySelector('.note-editor textarea');
+    if (textarea) {
+      textarea.value = content;
+    }
+  }
+
+  function createNewNote() {
+    if (!window.acmi) return;
+    var uuid = 'note-' + Math.random().toString(36).substring(2, 11);
+    var defaultTitle = 'Untitled Note';
+    var defaultText = '# Untitled Note\n\nWrite your note content here...';
+    var defaultPreview = 'Write your note content here...';
+    var defaultTags = [];
+
+    var hdr = document.querySelector('#page-notes .page-hdr-sub');
+    if (hdr) hdr.textContent = 'Creating note in Redis...';
+
+    window.acmi.profile('note', uuid, {
+      title: defaultTitle,
+      content: defaultText,
+      preview: defaultPreview,
+      tags: defaultTags,
+      modified: new Date().toISOString()
+    }).then(function() {
+      return window.acmi.signal('note', uuid, {
+        lastModified: new Date().toISOString()
+      });
+    }).then(function() {
+      _activeNoteId = uuid;
+      return refreshDashboard(true);
+    }).then(function() {
+      goPage('page-notes', getNavItem('page-notes'));
+      var ta = document.querySelector('.note-editor textarea');
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+      }
+    }).catch(function(err) {
+      console.error('[ACMI Notes] Add failed:', err);
+      if (hdr) hdr.textContent = 'Failed to create note';
+    });
+  }
+
+  function filterNotes(query) {
+    var q = (query || '').toLowerCase().trim();
+    var items = document.querySelectorAll('#notesList .note-item');
+    items.forEach(function(el) {
+      var text = el.textContent.toLowerCase();
+      if (text.indexOf(q) !== -1) {
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  function selectDoc(docId) {
+    _activeDocId = docId;
+    if (!_lastBootstrapData || !_lastBootstrapData.docs) return;
+    var doc = _lastBootstrapData.docs.find(function(d) { return d.id === docId; });
+    if (!doc) return;
+
+    var p = doc.profile || {};
+    var title = p.title || doc.id;
+    var type = p.type || 'Doc';
+    var content = p.content || doc.content || '';
+    var updated = doc.signals?.lastModified || doc.signals?.lastActive || '';
+
+    // Update active class in list
+    var tree = document.querySelector('.docs-tree');
+    if (tree) {
+      tree.querySelectorAll('.doc-tree-item').forEach(function(el) {
+        if (el.getAttribute('data-doc-id') === docId) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+    }
+
+    // Update viewer
+    var vt = document.querySelector('.docs-viewer .doc-title');
+    var vm = document.querySelector('.docs-viewer .doc-meta');
+    var vb = document.querySelector('.docs-viewer .doc-body');
+    if (vt && vm && vb) {
+      vt.textContent = title;
+      vm.textContent = type + ' · Updated ' + _timeAgo(updated);
+      vb.innerHTML = renderMarkdown(content);
+    }
+  }
+
+  function filterDocs(query) {
+    var q = (query || '').toLowerCase().trim();
+    var items = document.querySelectorAll('.docs-tree .doc-tree-item');
+    items.forEach(function(el) {
+      var isTemplateHeader = el.textContent.indexOf('Templates') !== -1;
+      if (isTemplateHeader && q !== '') {
+        el.style.display = 'none';
+        return;
+      }
+      var text = el.textContent.toLowerCase();
+      if (text.indexOf(q) !== -1) {
+        el.style.display = 'flex';
+      } else {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  function handleApprovalAction(workId, action) {
+    if (!window.acmi) return;
+    
+    // Find the item
+    if (!_lastBootstrapData || !_lastBootstrapData.workItems) return;
+    var item = _lastBootstrapData.workItems.find(function(w) { return w.id === workId; });
+    var title = item ? (item.profile?.title || workId) : workId;
+
+    var newState = action === 'approve' ? 'approved' : 'rejected';
+    var summary = 'Operator ' + (action === 'approve' ? 'approved' : 'rejected') + ' work request: ' + title;
+
+    // Show visual saving feedback on the card itself
+    var card = document.querySelector('.approval-card[data-work-id="' + _esc(workId) + '"]');
+    if (card) {
+      card.style.opacity = '0.5';
+      card.style.pointerEvents = 'none';
+      var actionsDiv = card.querySelector('.actions');
+      if (actionsDiv) {
+        actionsDiv.innerHTML = '<span style="font-size:11px;color:var(--forest);font-family:var(--font-mono);">Recording state to ACMI...</span>';
+      }
+    }
+
+    window.acmi.workSignal(workId, {
+      approvalState: newState,
+      status: action === 'approve' ? 'active' : 'stalled'
+    }).then(function() {
+      return window.acmi.workEvent(workId, 'gsd-dashboard-operator', summary);
+    }).then(function() {
+      return refreshDashboard(true);
+    }).catch(function(err) {
+      alert('Error updating approval state: ' + (err.message || err));
+      refreshDashboard(true);
+    });
+  }
+
+  function performSearch(query) {
+    var resultsDiv = document.querySelector('#searchModal .results');
+    if (!resultsDiv) return;
+
+    if (!query || !query.trim()) {
+      resultsDiv.innerHTML = '<div style="font-size:11px;color:var(--ink-5);text-align:center;padding:24px;">Type something to search across agents, work, tasks, notes, and docs...</div>';
+      return;
+    }
+
+    // Build local search index
+    var localResults = buildLocalSearchIndex(query);
+    if (localResults.length > 0) {
+      renderSearchResults(resultsDiv, localResults);
+      return;
+    }
+
+    // Fall back to ACMI search if no local results
+    if (!window.acmi) {
+      resultsDiv.innerHTML = '<div style="font-size:11px;color:var(--ink-4);text-align:center;padding:24px;">No results found matching "' + _esc(query) + '"</div>';
+      return;
+    }
+
+    window.acmi.search(query).then(function(results) {
+      if (!results || results.length === 0) {
+        resultsDiv.innerHTML = '<div style="font-size:11px;color:var(--ink-4);text-align:center;padding:24px;">No results found matching "' + _esc(query) + '"</div>';
+        return;
+      }
+
+      var html = '<div class="search-results-list" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">';
+      results.forEach(function(item) {
+        var scoreStr = item.searchScore ? (item.searchScore * 100).toFixed(0) : '0';
+        var tagsHtml = (item.tags || []).map(function(t) { return '<span class="tag" style="font-size: 9px; padding: 1px 4px; background: rgba(0,0,0,0.05); border-radius: 2px; margin-right: 3px;">' + _esc(t) + '</span>'; }).join('');
+        
+        html += '<div class="search-result-item" data-page="' + _esc(item.linkPage) + '" data-target-id="' + _esc(item.id) + '" style="display: flex; flex-direction: column; padding: 8px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--border-light);">' +
+          '<div style="display: flex; align-items: center; justify-content: space-between; font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--forest);">' +
+            '<span>' + _esc(item.icon) + ' ' + _esc(item.title) + '</span>' +
+            '<span class="score-tag" style="font-family: var(--font-mono); font-size: 9px; padding: 1px 4px; background: var(--forest-glow); color: var(--forest); border-radius: 3px; font-weight: 400;">Score: ' + scoreStr + '</span>' +
+          '</div>' +
+          '<div style="font-family: var(--font-body); font-size: 11px; color: var(--ink-4); margin-top: 3px;">' + _esc(item.preview) + '</div>' +
+          '<div style="display: flex; align-items: center; margin-top: 6px; font-size: 10px; color: var(--ink-5);">' +
+            '<span style="font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px;">' + _esc(item.ns) + '</span>' +
+            tagsHtml +
+          '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+
+      resultsDiv.innerHTML = html;
+    }).catch(function(err) {
+      console.error('[ACMI Search] Error during search:', err);
+      resultsDiv.innerHTML = '<div style="font-size:11px;color:var(--warning);text-align:center;padding:24px;">Search error: ' + _esc(err.message || err) + '</div>';
+    });
+  }
+
+  function handleSearchResultClick(pageId, targetId) {
+    if (!pageId) return;
+
+    goPage(pageId, getNavItem(pageId));
+    closeSearch();
+
+    setTimeout(function() {
+      if (pageId === 'page-notes') {
+        selectNote(targetId);
+      } else if (pageId === 'page-docs') {
+        selectDoc(targetId);
+      } else if (pageId === 'page-agents') {
+        selectAgent(targetId);
+      } else if (pageId === 'page-todo') {
+        var el = document.querySelector('.kanban-item[data-task-id="' + _esc(targetId) + '"]');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.outline = '2px solid var(--forest)';
+          el.style.transform = 'scale(1.02)';
+          setTimeout(function() {
+            el.style.outline = 'none';
+            el.style.transform = 'none';
+          }, 2000);
+        }
+      } else if (pageId === 'page-projects') {
+        var el = document.querySelector('.project-card[data-project-id="' + _esc(targetId) + '"]');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.outline = '2px solid var(--forest)';
+          setTimeout(function() {
+            el.style.outline = 'none';
+          }, 2000);
+        }
+      }
+    }, 150);
+  }
+
+  function updateSidebarWidgetVisibility(widgets) {
+    if (!widgets) return;
+    var navMap = {
+      command: 'page-command',
+      todo: 'page-todo',
+      notes: 'page-notes',
+      projects: 'page-projects'
+    };
+    for (var key in navMap) {
+      var pageId = navMap[key];
+      var navItem = document.querySelector('.nav-item[data-page="' + pageId + '"]');
+      if (navItem) {
+        var visible = widgets[key] !== false;
+        navItem.style.display = visible ? 'flex' : 'none';
+      }
+    }
+  }
+
+  // ─── Dashboard Core Pipeline ────────────────────────────────────
+  function refreshDashboard(force) {
+    if (!window.acmi) return;
+
+    var startFetch = Date.now();
+    
+    // Trigger header clock tick
+    updateClock();
+
+    return window.acmi.dashboardBootstrap({ force: force }).then(function(data) {
+      _lastLatency = Date.now() - startFetch;
+      _lastBootstrapData = data;
+
+      // Update Header Dot / Label
+      var dot = document.getElementById('acmiDot');
+      var label = document.getElementById('acmiLabel');
+      if (dot && label) {
+        dot.className = 'status-dot online';
+        label.textContent = 'ACMI · ' + data.agents.length + ' agents online';
+      }
+
+      // Render Subcomponents
+      renderApprovalsHUD(data.workItems);
+      renderAgentGrid(data.agents);
+      renderTodoPage(data.tasks);
+      renderNotesPage(data.notes);
+      renderCalendarPage(data.events, data.timeline);
+      renderDocsPage(data.docs);
+      renderSettingsPage(data.config);
+      
+      // Update Main KPI strip
+      var activeCount = data.agents.filter(function(a) {
+        return _statusClass(a.signals?.status) === 'active';
+      }).length;
+      updateKpiStrip(data.agents.length, activeCount, data);
+      
+      // Turn off loading states
+      setKpiLoading(false);
+    }).catch(function(err) {
+      console.error('[ACMI Dashboard] Failed aggregate load:', err);
+      var dot = document.getElementById('acmiDot');
+      var label = document.getElementById('acmiLabel');
+      if (dot) dot.className = 'status-dot offline';
+      if (label) label.textContent = 'ACMI · Error';
+      setKpiLoading(false);
+    });
+  }
+
+  // ─── Render sub-views ───────────────────────────────────────────
+
+  // 1. Pending Approvals HUD
+  function renderApprovalsHUD(workItems) {
+    var panel = document.getElementById('approvalsHudPanel');
+    var deck = document.getElementById('approvalsDeckContainer');
+    if (!panel || !deck) return;
+
+    // Filter work items awaiting approval
+    var pendings = (workItems || []).filter(function(item) {
+      var s = item.signals || {};
+      var p = item.profile || {};
+      return s.approvalState === 'pending' || s.approvalState === 'pending_approval' ||
+             p.approvalState === 'pending' || p.approvalState === 'pending_approval';
+    });
+
+    panel.style.display = 'block'; // Keep panel visible to assert gate state
+
+    if (pendings.length === 0) {
+      deck.innerHTML = '<div style="font-family:\'Raleway\', sans-serif; font-size:12px; color:var(--ink-4); padding:24px; text-align:center; background:#faf9f5; border:1px dashed var(--border); border-radius:var(--radius-md); width:100%; margin:3px;">' +
+        'All clear! No pending approvals requiring human sign-off.' +
+      '</div>';
+      return;
+    }
+
+    var html = '';
+    pendings.forEach(function(item) {
+      var p = item.profile || {};
+      var s = item.signals || {};
+      var title = p.title || item.id;
+      var prio = p.priority || 'P1';
+      var desc = p.description || p.summary || 'Requires operational sign-off and safety audit compliance check.';
+      var corrId = s.correlationId || item.id;
+      var source = p.owner || s.source || 'claude-engineer';
+      var reqTime = s.lastHeartbeat || s.timestamp || 'N/A';
+
+      html += '<div class="approval-card" data-work-id="' + _esc(item.id) + '">' +
+        '<div class="hdr" style="margin: 3px;">' +
+          '<span class="project-title">' + _esc(title) + '</span>' +
+          '<span class="prio-badge">' + _esc(prio) + '</span>' +
+        '</div>' +
+        '<div class="body-text" style="margin: 3px;">' + _esc(desc) + '</div>' +
+        '<div class="telemetry" style="margin: 3px;">' +
+          '<div><span>Correlation ID:</span> <span>' + _esc(corrId) + '</span></div>' +
+          '<div><span>Source Agent:</span> <span>' + _esc(source) + '</span></div>' +
+          '<div><span>Request Time:</span> <span>' + _esc(reqTime) + '</span></div>' +
+        '</div>' +
+        '<div class="actions" style="margin: 3px;">' +
+          '<button class="btn-reject" data-action="reject-approval">Reject</button>' +
+          '<button class="btn-approve" data-action="approve-approval">Approve</button>' +
+        '</div>' +
+      '</div>';
+    });
+
+    deck.innerHTML = html;
+  }
+
+  // 2. Agent Status Grid (Agent Console)
+  function renderAgentGrid(agents) {
+    var grid = document.getElementById('agentGrid');
+    if (!grid) return;
+
+    if (!agents || agents.length === 0) {
+      grid.innerHTML = '<div class="state-placeholder"><div class="msg">No agents online in ACMI fleet.</div></div>';
+      return;
+    }
+
+    var html = '';
+    var onlineCount = 0, idleCount = 0, sleepCount = 0, offlineCount = 0;
+
+    agents.forEach(function(agent) {
+      var id = agent.id;
+      var p = agent.profile || {};
+      var s = agent.signals || {};
+      var name = p.name || id;
+      var role = p.role || 'Autonomous Subagent';
+      var task = s.currentTask || s.task || 'Standby';
+      var status = s.status || 'offline';
+      var lastTs = s.lastHeartbeat || s.lastActive || null;
+
+      var sClass = _statusClass(status);
+      if (sClass === 'active') onlineCount++;
+      else if (sClass === 'idle') idleCount++;
+      else if (sClass === 'sleep') sleepCount++;
+      else offlineCount++;
+
+      html += '<div class="agent-card" data-agent="' + _esc(id) + '">' +
+        '<div class="top">' +
+          '<span class="agent-dot ' + sClass + '"></span>' +
+          '<span class="name">' + _esc(name) + '</span>' +
+          '<span class="role">' + _esc(role) + '</span>' +
+        '</div>' +
+        '<div class="task">' + _esc(task) + '</div>' +
+        '<div class="ts">' + _esc(status.toUpperCase()) + ' · ' + _timeAgo(lastTs) + '</div>' +
+      '</div>';
+    });
+
+    grid.innerHTML = html;
+
+    // Update headers
+    var subEl = document.querySelector('#page-agents .page-hdr-sub');
+    if (subEl) {
+      subEl.textContent = agents.length + ' agents · ' + onlineCount + ' online · ' + idleCount + ' idle · ' + sleepCount + ' sleeping · ' + offlineCount + ' offline';
+    }
+
+    var navBadge = document.querySelector('.nav-item[data-page="page-agents"] .badge');
+    if (navBadge) navBadge.textContent = agents.length;
+
+    // Sync metrics strip on agent console
+    updateAgentConsoleKpis(agents);
+  }
+
+  // 3. Todo / Kanban & Gantt
+  function renderTodoPage(tasks) {
+    var cols = document.querySelectorAll('#todoKanbanView .kanban-col');
+    if (cols.length === 0) return;
+
+    var groups = { today: [], week: [], month: [], backlog: [] };
+    (tasks || []).forEach(function(task) {
+      var st = (task.profile?.status || task.signals?.status || 'today').toLowerCase();
+      if (st === 'this-week') st = 'week';
+      if (st === 'this-month') st = 'month';
+      if (!groups[st]) st = 'today';
+      groups[st].push(task);
+    });
+
+    // Populate columns
+    var colKeys = ['today', 'week', 'month', 'backlog'];
+    colKeys.forEach(function(key, colIdx) {
+      var col = cols[colIdx];
+      if (!col) return;
+
+      // Remove existing items and placeholders
+      col.querySelectorAll('.kanban-item, .kanban-empty-placeholder').forEach(function(el) {
+        el.remove();
+      });
+
+      var list = groups[key];
+      list.forEach(function(task) {
+        var p = task.profile || {};
+        var s = task.signals || {};
+        var prioClass = (p.priority || 'P1').toLowerCase();
+
+        var item = document.createElement('div');
+        item.className = 'kanban-item';
+        item.draggable = true;
+        item.setAttribute('data-task-id', task.id);
+
+        item.innerHTML = '<div class="top">' +
+          '<span class="prio ' + prioClass + '">' + _esc(p.priority || 'P1') + '</span>' +
+          '<span class="title">' + _esc(p.title || task.id) + '</span>' +
+        '</div>' +
+        '<div class="meta">' + _esc(p.owner || '@operator') + ' · <span class="tag">' + _esc(s.status || 'todo') + '</span></div>';
+
+        col.appendChild(item);
+      });
+
+      // Update counters
+      var cntEl = col.querySelector('.count');
+      if (cntEl) cntEl.textContent = '· ' + list.length;
+    });
+
+    updateKanbanEmptyState();
+
+    // Progress Strip Ratios
+    var totalToday = groups.today.length;
+    var doneToday = groups.today.filter(function(t) { return t.signals?.completed === true || t.profile?.status === 'complete'; }).length;
+    var todayPct = totalToday > 0 ? Math.round((doneToday / totalToday) * 100) : 0;
+
+    var totalWeek = groups.week.length;
+    var doneWeek = groups.week.filter(function(t) { return t.signals?.completed === true || t.profile?.status === 'complete'; }).length;
+    var weekPct = totalWeek > 0 ? Math.round((doneWeek / totalWeek) * 100) : 0;
+
+    var totalMonth = groups.month.length;
+    var doneMonth = groups.month.filter(function(t) { return t.signals?.completed === true || t.profile?.status === 'complete'; }).length;
+    var monthPct = totalMonth > 0 ? Math.round((doneMonth / totalMonth) * 100) : 0;
+
+    var strip = document.querySelector('#page-todo .progress-strip');
+    if (strip) {
+      strip.innerHTML = '<span class="progress-label">Today</span>' +
+        '<div class="progress-bar"><div class="fill" style="width: ' + todayPct + '%"></div></div>' +
+        '<span class="progress-label">' + doneToday + '/' + totalToday + '</span>' +
+        '<span class="progress-label">This Week</span>' +
+        '<div class="progress-bar"><div class="fill" style="width: ' + weekPct + '%"></div></div>' +
+        '<span class="progress-label">' + doneWeek + '/' + totalWeek + '</span>' +
+        '<span class="progress-label">This Month</span>' +
+        '<div class="progress-bar"><div class="fill" style="width: ' + monthPct + '%"></div></div>' +
+        '<span class="progress-label">' + doneMonth + '/' + totalMonth + '</span>';
+    }
+
+    // Header sub counters
+    var todoSub = document.querySelector('#page-todo .page-hdr-sub');
+    if (todoSub) {
+      var p0 = tasks.filter(function(t) { return (t.profile?.priority || t.signals?.priority) === 'P0'; }).length;
+      var p1 = tasks.filter(function(t) { return (t.profile?.priority || t.signals?.priority) === 'P1'; }).length;
+      var p2 = tasks.filter(function(t) { return (t.profile?.priority || t.signals?.priority) === 'P2'; }).length;
+      todoSub.textContent = tasks.length + ' tasks · ' + p0 + ' P0 · ' + p1 + ' P1 · ' + p2 + ' P2';
+    }
+
+    // Gantt Chart Rendering
+    var ganttContainer = document.querySelector('#todoGanttView .widget-body > div');
+    if (ganttContainer) {
+      ganttContainer.innerHTML = '';
+      ganttContainer.style.height = Math.max(200, tasks.length * 36) + 'px';
+      tasks.forEach(function(task, idx) {
+        var p = task.profile || {};
+        var prio = p.priority || 'P1';
+        
+        var hash = 0;
+        for (var i = 0; i < task.id.length; i++) {
+          hash = task.id.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var leftPct = Math.abs(hash % 45);
+        var widthPct = 20 + Math.abs((hash >> 2) % 30);
+
+        var barColor = 'var(--forest-glow)', barBorder = '2px solid var(--forest)', barText = 'var(--forest)';
+        if (prio === 'P0') {
+          barColor = 'var(--warning-bg)'; barBorder = '2px solid var(--warning)'; barText = 'var(--warning)';
+        } else if (prio === 'P2') {
+          barColor = '#f0eee8'; barBorder = '2px solid var(--ink-4)'; barText = 'var(--ink-3)';
+        }
+
+        var bar = document.createElement('div');
+        bar.style.position = 'absolute';
+        bar.style.top = (idx * 36) + 'px';
+        bar.style.left = leftPct + '%';
+        bar.style.width = widthPct + '%';
+        bar.style.height = '28px';
+        bar.style.background = barColor;
+        bar.style.borderRadius = 'var(--radius-sm)';
+        bar.style.borderLeft = barBorder;
+        bar.style.padding = '4px 8px';
+        bar.style.fontSize = '10px';
+        bar.style.color = barText;
+        bar.style.fontWeight = '500';
+        bar.style.fontFamily = 'var(--font-mono)';
+        bar.style.whiteSpace = 'nowrap';
+        bar.style.overflow = 'hidden';
+        bar.style.textOverflow = 'ellipsis';
+        bar.textContent = p.title || task.id;
+
+        ganttContainer.appendChild(bar);
+      });
+    }
+  }
+
+  // 4. Notes Section
+  function renderNotesPage(notes) {
+    var listContainer = document.getElementById('notesList');
+    if (!listContainer) return;
+
+    var searchWrap = listContainer.querySelector('div');
+    listContainer.innerHTML = '';
+    if (searchWrap) listContainer.appendChild(searchWrap);
+
+    if (!notes || notes.length === 0) {
+      var p = document.createElement('div');
+      p.className = 'state-placeholder';
+      p.innerHTML = '<div class="msg">No notes logged in ACMI backend.</div>';
+      listContainer.appendChild(p);
+      return;
+    }
+
+    notes.forEach(function(note, idx) {
+      var p = note.profile || {};
+      var s = note.signals || {};
+      var title = p.title || note.id;
+      var content = p.content || '';
+      var preview = p.preview || content.slice(0, 100) + (content.length > 100 ? '...' : '');
+      var tags = p.tags || [];
+      var lastModified = s.lastModified || s.lastActive || '';
+
+      var item = document.createElement('div');
+      item.className = 'note-item';
+      item.setAttribute('data-note-id', note.id);
+      
+      if (_activeNoteId === note.id || (!_activeNoteId && idx === 0)) {
+        item.classList.add('active');
+        _activeNoteId = note.id;
+
+        var textarea = document.querySelector('.note-editor textarea');
+        if (textarea && document.activeElement !== textarea) {
+          textarea.value = content;
+        }
+      }
+
+      item.innerHTML = '<div class="title">' + _esc(title) + '</div>' +
+        '<div class="preview">' + _esc(preview) + '</div>' +
+        '<div class="tags">' + tags.map(function(t) { return '<span class="tag">' + _esc(t) + '</span>'; }).join('') + '</div>' +
+        '<div class="ts">Modified ' + _timeAgo(lastModified) + '</div>';
+
+      listContainer.appendChild(item);
+    });
+
+    // Update note info
+    var notesSub = document.querySelector('#page-notes .page-hdr-sub');
+    if (notesSub) {
+      var allTags = [];
+      notes.forEach(function(n) {
+        (n.profile?.tags || []).forEach(function(t) {
+          if (allTags.indexOf(t) === -1) allTags.push(t);
+        });
+      });
+      notesSub.textContent = notes.length + ' notes · ' + allTags.length + ' tags · synchronized';
+    }
+  }
+
+  // 5. Calendar Page & Merged Timeline
+  function renderCalendarPage(events, timeline) {
+    // Clear old events
+    document.querySelectorAll('.cal-grid .cal-day:not(.other-month)').forEach(function(day) {
+      day.querySelectorAll('.event').forEach(function(el) { el.remove(); });
+    });
+
+    (events || []).forEach(function(evt) {
+      var p = evt.profile || {};
+      var dateStr = p.start || '';
+      var dayNum = null;
+      if (dateStr.indexOf('2026-05-') === 0) {
+        dayNum = parseInt(dateStr.slice(8, 10), 10);
+      } else {
+        var parsed = new Date(dateStr);
+        if (parsed.getFullYear() === 2026 && parsed.getMonth() === 4) {
+          dayNum = parsed.getDate();
+        }
+      }
+
+      if (dayNum) {
+        var cells = document.querySelectorAll('.cal-grid .cal-day:not(.other-month)');
+        for (var i = 0; i < cells.length; i++) {
+          var numEl = cells[i].querySelector('.num');
+          if (numEl && parseInt(numEl.textContent.trim(), 10) === dayNum) {
+            var evtDiv = document.createElement('div');
+            var kind = (p.kind || 'task').toLowerCase();
+            evtDiv.className = 'event ' + kind;
+            var prefix = '▹ ';
+            if (kind === 'milestone') prefix = '● ';
+            else if (kind === 'deadline') prefix = '⚠ ';
+            evtDiv.textContent = prefix + (p.title || evt.id);
+            cells[i].appendChild(evtDiv);
+            break;
+          }
+        }
+      }
+    });
+
+    var sub = document.querySelector('#page-calendar .page-hdr-sub');
+    if (sub) sub.textContent = 'May 2026 · ' + (events || []).length + ' events this month';
+
+    // Timeline Widget at bottom
+    var tlContainer = document.querySelector('#page-calendar .widget-body');
+    if (tlContainer) {
+      tlContainer.innerHTML = '';
+      if (timeline && timeline.length > 0) {
+        timeline.slice(0, 5).forEach(function(evt) {
+          var div = document.createElement('div');
+          div.className = 'tl-event';
+          div.innerHTML = '<span class="time">' + _timeAgo(evt.ts) + '</span>' +
+            '<div class="body"><span class="src">[' + _esc(evt.source || 'system') + ']</span> <span class="text">' + _esc(evt.summary) + '</span><br/><span class="kind">' + _esc(evt.kind || 'event') + '</span></div>';
+          tlContainer.appendChild(div);
+        });
+      } else {
+        tlContainer.innerHTML = '<div style="font-size:11px;color:var(--ink-5);padding:16px;text-align:center;">No recent events in ACMI timeline</div>';
+      }
+    }
+  }
+
+  // 6. Docs / Tree-View Explorer
+  function renderDocsPage(docs) {
+    var tree = document.querySelector('.docs-tree');
+    if (!tree) return;
+
+    var searchVal = tree.querySelector('input')?.value || '';
+    tree.innerHTML = '<div style="padding:4px 0 8px;">' +
+      '<input type="text" placeholder="Search docs…" class="search-input-sm" id="docTreeSearch" value="' + _esc(searchVal) + '" />' +
+    '</div>';
+
+    (docs || []).forEach(function(doc, idx) {
+      var p = doc.profile || {};
+      var title = p.title || doc.id;
+      var type = p.type || 'Doc';
+
+      var item = document.createElement('div');
+      item.className = 'doc-tree-item';
+      item.setAttribute('data-doc-id', doc.id);
+
+      if (_activeDocId === doc.id || (!_activeDocId && idx === 0)) {
+        item.classList.add('active');
+        _activeDocId = doc.id;
+
+        var vt = document.querySelector('.docs-viewer .doc-title');
+        var vm = document.querySelector('.docs-viewer .doc-meta');
+        var vb = document.querySelector('.docs-viewer .doc-body');
+        if (vt && vm && vb) {
+          vt.textContent = title;
+          vm.textContent = type + ' · Updated ' + _timeAgo(doc.signals?.lastModified || doc.signals?.lastActive || '');
+          vb.innerHTML = renderMarkdown(p.content || doc.content || '');
+        }
+      }
+
+      item.innerHTML = '<span class="icon">📄</span> ' + _esc(title) + ' <span class="doc-type">' + _esc(type) + '</span>';
+      tree.appendChild(item);
+    });
+
+    // Re-attach templates
+    var temp = document.createElement('div');
+    temp.style.padding = '8px 8px 0';
+    temp.style.marginTop = '8px';
+    temp.style.borderTop = '1px solid var(--border)';
+    temp.innerHTML = '<div class="doc-tree-item" style="font-size:10px;color:var(--ink-5)"><span class="icon">📁</span> Templates</div>' +
+      '<div class="doc-tree-item" style="padding-left:20px;font-size:10px"><span class="icon">📄</span> Design Brief Template</div>' +
+      '<div class="doc-tree-item" style="padding-left:20px;font-size:10px"><span class="icon">📄</span> Project Plan Template</div>' +
+      '<div class="doc-tree-item" style="padding-left:20px;font-size:10px"><span class="icon">📄</span> Agent Handoff Template</div>';
+    tree.appendChild(temp);
+
+    var docsSub = document.querySelector('#page-docs .page-hdr-sub');
+    if (docsSub) docsSub.textContent = docs.length + ' documents · synchronized';
+  }
+
+  // 7. Settings Page & Telemetry Health
+  function renderSettingsPage(config) {
+    // Render real measured roundtrip latency to ACMI
+    var acmiDsRow = Array.from(document.querySelectorAll('#page-settings .ds-row')).find(function(row) {
+      return row.textContent.indexOf('ACMI (Upstash)') !== -1;
+    });
+    if (acmiDsRow) {
+      var latencyEl = acmiDsRow.querySelector('.ds-latency');
+      if (latencyEl) latencyEl.textContent = _lastLatency + 'ms latency';
+    }
+  }
+
+  // ─── Add Task Live Write-back ───────────────────────────────────
+  function addTask() {
+    var inp = document.getElementById('taskInput');
+    if (!inp || !inp.value.trim() || !window.acmi) return;
+    var val = inp.value.trim();
+
+    inp.disabled = true;
+    var uuid = 'task-' + Math.random().toString(36).substring(2, 11);
+
+    window.acmi.profile('task', uuid, {
+      title: val,
+      status: 'today',
+      priority: 'P1',
+      owner: '@operator'
+    }).then(function() {
+      return window.acmi.signal('task', uuid, {
+        completed: false,
+        blocked: false
+      });
+    }).then(function() {
+      inp.value = '';
+      inp.disabled = false;
+      refreshDashboard(true);
+    }).catch(function(err) {
+      alert('Error creating task in Redis: ' + (err.message || err));
+      inp.disabled = false;
+    });
+  }
+
+  // ─── KPI Strip Dynamic Hydration ────────────────────────────────
+  function _updateKpiAt(index, value, label, valueClass, trendText, trendClass) {
+    var valEl = document.querySelector('.kpi-stat:nth-child(' + index + ') .value');
+    var lblEl = document.querySelector('.kpi-stat:nth-child(' + index + ') .label');
+    var trdEl = document.querySelector('.kpi-stat:nth-child(' + index + ') .trend');
+    if (valEl) {
+      valEl.textContent = value;
+      valEl.className = 'value' + (valueClass ? ' ' + valueClass : '');
+    }
+    if (lblEl) lblEl.textContent = label;
+    if (trdEl) {
+      trdEl.textContent = trendText || '\u2014';
+      trdEl.className = 'trend' + (trendClass ? ' ' + trendClass : '');
+    }
+  }
+
+  function updateKpiStrip(agentCount, onlineCount, data) {
+    var totalTasks = data ? data.tasks.length : 0;
+    var doneTasks = data ? data.tasks.filter(function(t) { return t.signals?.completed === true || t.profile?.status === 'complete'; }).length : 0;
+
+    // KPI #1: Active Tasks
+    _updateKpiAt(1, totalTasks - doneTasks, 'Active Tasks', 'amber', (totalTasks - doneTasks) + ' remaining', '');
+
+    // KPI #2: Active Agents
+    var pct = agentCount > 0 ? Math.round((onlineCount / agentCount) * 100) : 0;
+    _updateKpiAt(2, onlineCount || '0', 'Active Agents', 'green', pct + '% online', pct >= 80 ? 'up' : 'down');
+
+    // KPI #3: Events Today (merged timeline)
+    var eventsToday = 0;
+    var todayStr = new Date().toISOString().slice(0, 10);
+    (data ? data.timeline : []).forEach(function(evt) {
+      if (evt.ts && evt.ts.slice(0, 10) === todayStr) eventsToday++;
+    });
+    _updateKpiAt(3, eventsToday, 'Events Today', '', 'last 24 hours', eventsToday > 0 ? 'up' : '');
+
+    // KPI #4: Pipeline Value
+    var pipelineVal = 0;
+    (data ? data.workItems : []).forEach(function(item) {
+      var val = parseFloat(item.profile?.revenue || item.signals?.revenue || 0);
+      if (!isNaN(val)) pipelineVal += val;
+    });
+    var formattedVal = '$' + (pipelineVal / 1000).toFixed(1) + 'k';
+    _updateKpiAt(4, formattedVal, 'Pipeline Value', 'green', (data ? data.workItems.length : 0) + ' projects', 'up');
+
+    // KPI #5: Unread Docs
+    var unreads = data ? data.docs.filter(function(doc) { return doc.signals?.read === false; }).length : 0;
+    _updateKpiAt(5, unreads, 'Unread Docs', unreads > 0 ? 'amber' : '', 'action required', unreads > 0 ? 'down' : '');
+
+    // KPI #6: System Health derived from agent online ratio
+    var ratio = agentCount > 0 ? (onlineCount / agentCount) : 0;
+    var statusText = 'Online';
+    var statusClass = 'green';
+    if (ratio < 0.5) { statusText = 'Degraded'; statusClass = 'amber'; }
+    if (ratio === 0 && agentCount > 0) { statusText = 'Offline'; statusClass = 'red'; }
+    _updateKpiAt(6, statusText, 'System Status', statusClass, onlineCount + '/' + agentCount + ' agents online', ratio >= 0.8 ? 'up' : 'down');
+  }
+
+  function setKpiLoading(loading) {
+    document.querySelectorAll('.kpi-stat').forEach(function(el) {
+      if (loading) {
+        el.classList.add('loading');
+        if (!el.querySelector('.kpi-skeleton')) {
+          var skel = document.createElement('div');
+          skel.className = 'kpi-skeleton';
+          el.appendChild(skel);
+        }
+      } else {
+        el.classList.remove('loading');
+        var sk = el.querySelector('.kpi-skeleton');
+        if (sk) sk.remove();
+      }
+    });
+  }
+
+  // ─── Agent Selection Detail Panel ───────────────────────────────
+  function selectAgent(agentId) {
+    _selectedAgentId = agentId;
+    var panel = document.getElementById('agentDetailPanel');
+    if (!panel) return;
+
+    var nameEl = document.getElementById('agentPanelName');
+    var roleEl = document.getElementById('agentPanelRole');
+    var bodyEl = document.getElementById('agentPanelBody');
+    var placeholder = document.getElementById('agentPanelPlaceholder');
+    var loadingEl = document.getElementById('agentPanelLoading');
+
+    if (placeholder) placeholder.style.display = 'none';
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (nameEl) nameEl.textContent = agentId;
+    if (roleEl) roleEl.textContent = 'Fetching telemetries…';
+
+    window.acmi.get('agent', agentId).then(function(ctx) {
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      var p = ctx.profile || {};
+      var s = ctx.signals || {};
+      var timeline = ctx.timeline || [];
+
+      var name = p.name || agentId;
+      var role = p.role || 'Autonomous Worker';
+      var model = p.model || s.model || 'N/A';
+      var status = s.status || 'offline';
+      var task = s.currentTask || s.task || '—';
+      var skills = s.skills || p.skills || '—';
+      var hbeat = s.lastHeartbeat || s.lastActive || null;
+      var sessionsToday = s.sessionsToday || 0;
+      var tokensUsed = s.tokensUsed || 0;
+
+      if (nameEl) nameEl.textContent = name;
+      if (roleEl) roleEl.textContent = role + ' · Model: ' + model;
+
+      var statusColor = 'var(--ink-4)';
+      if (status === 'active' || status === 'online') statusColor = 'var(--forest)';
+      else if (status === 'idle') statusColor = 'var(--warning)';
+      else if (status === 'sleeping' || status === 'sleep') statusColor = 'var(--sleep)';
+
+      // Build timeline events HTML
+      var eventsHtml = '';
+      if (timeline && timeline.length > 0) {
+        // Show last 5 timeline events
+        var recent = timeline.slice(0, 5);
+        recent.forEach(function(evt) {
+          var timeStr = evt.ts ? _timeAgo(evt.ts) : '—';
+          var kind = evt.kind ? _esc(evt.kind) : 'event';
+          eventsHtml +=
+            '<div class="tl-event" style="padding:4px 0">' +
+              '<span class="time">' + _esc(timeStr) + '</span>' +
+              '<div class="body"><span class="text">' + _esc(evt.summary || '—') + '</span><br/><span class="kind">' + kind + '</span></div>' +
+            '</div>';
+        });
+      } else {
+        eventsHtml = '<div style="font-size:10px;color:var(--ink-5);padding:4px 0">No recent events in ACMI timeline</div>';
+      }
+
+      bodyEl.innerHTML =
+        '<div class="kv-row"><span class="k">Status</span><span class="v" style="color:' + statusColor + '">● ' + _esc(status) + '</span></div>' +
+        '<div class="kv-row"><span class="k">Current Task</span><span class="v">' + _esc(task) + '</span></div>' +
+        '<div class="kv-row"><span class="k">Skills</span><span class="v">' + _esc(skills) + '</span></div>' +
+        '<div class="kv-row"><span class="k">Sessions Today</span><span class="v">' + _esc(sessionsToday) + '</span></div>' +
+        '<div class="kv-row"><span class="k">Tokens Used</span><span class="v">' + _esc(tokensUsed) + '</span></div>' +
+        '<div class="kv-row"><span class="k">Last Heartbeat</span><span class="v">' + _timeAgo(hbeat) + '</span></div>' +
+
+        '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">' +
+          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-5);margin-bottom:4px">Recent Events</div>' +
+          eventsHtml +
+        '</div>' +
+
+        '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">' +
+          '<div style="font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-5);margin-bottom:4px">Comm Channel</div>' +
+          '<div class="comm-input">' +
+            '<textarea id="commTextarea" placeholder="Send a message to ' + _esc(name) + ' via ACMI…"></textarea>' +
+            '<button class="btn btn-primary btn-sm" style="align-self:flex-end" id="commSendBtn">→</button>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">' +
+          '<button class="btn btn-sm" style="width:100%;justify-content:center">Assign New Task</button>' +
+        '</div>';
+
+      // Wire comm channel send button
+      var sendBtn = document.getElementById('commSendBtn');
+      var commTa = document.getElementById('commTextarea');
+      if (sendBtn && commTa) {
+        function doSend() {
+          var msg = commTa.value.trim();
+          if (!msg) return;
+          commTa.disabled = true;
+          sendBtn.disabled = true;
+          sendBtn.textContent = '…';
+
+          // Log to ACMI timeline on the design-review thread, keyed to this agent
+          window.acmi.event('thread', 'design-review-gsd-dashboard', 'gsd-dashboard',
+            msg, 'comm-message', agentId
+          ).then(function() {
+            commTa.value = '';
+            commTa.placeholder = 'Message sent ✓';
+            setTimeout(function() {
+              commTa.placeholder = 'Send a message to ' + name + ' via ACMI…';
+            }, 2000);
+          }).catch(function(err) {
+            commTa.placeholder = 'Send failed: ' + (err.message || 'error');
+          }).finally(function() {
+            commTa.disabled = false;
+            sendBtn.disabled = false;
+            sendBtn.textContent = '→';
+          });
+        }
+        sendBtn.addEventListener('click', doSend);
+        commTa.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+        });
+      }
+
+    }).catch(function(err) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (nameEl) nameEl.textContent = agentId;
+      if (roleEl) roleEl.textContent = 'Error loading ACMI data';
+
+      bodyEl.innerHTML =
+        '<div class="state-placeholder">' +
+          '<div class="icon"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v4M7 10v0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
+          '<div class="msg"><strong>Failed to load ' + _esc(agentId) + '</strong><br/>' + _esc(err.message || err) + '<br/><button class="btn btn-sm action" id="retryAgentBtn">↻ Retry</button></div>' +
+        '</div>';
+
+      // Wire retry button via event listener instead of inline onclick
+      setTimeout(function() {
+        var retryBtn = document.getElementById('retryAgentBtn');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', function() {
+            selectAgent(_selectedAgentId || agentId);
+          });
+        }
+      }, 0);
+    });
+  }
+
+  function updateACMIStatus() {
+    if (!window.acmi) return;
+    window.acmi.status().then(function(res) {
+      var dot = document.getElementById('acmiDot');
+      var label = document.getElementById('acmiLabel');
+      if (dot && label) {
+        if (res.online) {
+          dot.className = 'status-dot online';
+          label.textContent = 'ACMI · ' + res.agents + ' agents online';
+        } else {
+          dot.className = 'status-dot offline';
+          label.textContent = 'ACMI · Offline';
+        }
+      }
+    }).catch(function() {
+      var dot = document.getElementById('acmiDot');
+      var label = document.getElementById('acmiLabel');
+      if (dot) dot.className = 'status-dot offline';
+      if (label) label.textContent = 'ACMI · Error';
+    });
+  }
+
+  function initACMI() {
+    if (typeof ACMIClient === 'undefined') {
+      _acmiRetries++;
+      if (_acmiRetries >= _acmiMaxRetries) {
+        // Give up — show permanent error in agent grid and header
+        var dot = document.getElementById('acmiDot');
+        var label = document.getElementById('acmiLabel');
+        if (dot) dot.className = 'status-dot offline';
+        if (label) label.textContent = 'ACMI · Failed to load client';
+        var grid = document.getElementById('agentGrid');
+        if (grid) {
+          grid.innerHTML = _errorState(
+            'ACMI client could not be loaded after ' + _acmiMaxRetries + ' attempts. Ensure acmi-client.js is available.',
+            'initACMI',
+            'Retry ACMI Init'
+          );
+        }
+        // Clear KPI loading if active
+        setKpiLoading(false);
+        return;
+      }
+      setTimeout(initACMI, 500);
+      return;
+    }
+
+    // Ensure global acmi instance exists; create one if not
+    if (!window.acmi) {
+      window.acmi = new ACMIClient();
+    }
+
+    // Update header ACMI status
+    updateACMIStatus();
+
+    // Poll ACMI status every 30s
+    setInterval(updateACMIStatus, 30000);
+
+    // Show loading skeleton on KPI strip while we fetch data
+    setKpiLoading(true);
+
+    // Initial Dashboard Bootstrap Load
+    refreshDashboard(true).finally(function() {
+      setKpiLoading(false);
+    });
+
+    // Check and update kanban empty states on first load
+    updateKanbanEmptyState();
+
+    // Connect WebSocket and listen for change notifications for live silent refreshes
+    if (window.acmi.connectWebSocket) {
+      window.acmi.connectWebSocket();
+      window.acmi.on('change', function(msg) {
+        console.log('[ACMI Dashboard] Live change notification received, refreshing dashboard');
+        refreshDashboard(true);
+      });
+    }
+  }
+
+  // ─── Restore last page from localStorage ────────────────────────
+  (function() {
+    try {
+      var saved = localStorage.getItem('gsd:currentPage');
+      if (saved && document.getElementById(saved)) {
+        goPage(saved, getNavItem(saved));
+      }
+    } catch(e) {}
+  })();
+
+  // ─── Drag-to-complete on urgent items ────────────────────────────
+  document.querySelectorAll('.urgent-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      this.classList.toggle('completed');
+      // Update badge
+      var remaining = document.querySelectorAll('.urgent-item:not(.completed)').length;
+      var badge = document.getElementById('navBadgeUrgent');
+      if (badge) badge.textContent = remaining;
+    });
+  });
+
+  // ─── Drag handle styling for kanban ──────────────────────────────
+  document.querySelectorAll('.kanban-item[draggable]').forEach(function(item) {
+    item.addEventListener('dragstart', function(e) {
+      this.style.opacity = '0.5';
+    });
+    item.addEventListener('dragend', function(e) {
+      this.style.opacity = '1';
+      // Re-check empty states after drag reorder
+      updateKanbanEmptyState();
+    });
+  });
+
+  // ─── Task Enter key ──────────────────────────────────────────────
+  document.getElementById('taskInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addTask();
+  });
+
+  // ─── Note editor auto-save indicator ────────────────────────────
+  var noteTimer = null;
+  document.querySelector('.note-editor textarea').addEventListener('input', function() {
+    var hdr = document.querySelector('#page-notes .page-hdr-sub');
+    if (hdr) hdr.textContent = '9 notes · 3 tags · auto-saving…';
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(function() {
+      if (hdr) hdr.textContent = '9 notes · 3 tags · auto-saved';
+      setTimeout(function() {
+        if (hdr) hdr.textContent = '9 notes · 3 tags · last edited just now';
+      }, 2000);
+    }, 500);
+  });
+
+  // ─── Init: wire up all event listeners (replace inline onclick) ─
+  document.addEventListener('DOMContentLoaded', function() {
+    // Navigation via data-nav attribute — supports click and keyboard activation
+    document.querySelectorAll('[data-nav]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        var pageId = this.getAttribute('data-nav');
+        goPage(pageId, this);
+      });
+      // Keyboard activation for role="button" elements
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          var pageId = this.getAttribute('data-nav');
+          goPage(pageId, this);
+        }
+      });
+    });
+
+    // Dark mode toggles (sidebar + settings) — with ARIA state sync
+    document.querySelectorAll('[data-action="toggle-dark"]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        document.body.classList.toggle('theme-deep');
+        if (this.classList) this.classList.toggle('active');
+        // Sync aria-checked on toggle-switch elements
+        if (this.getAttribute('role') === 'switch' || this.classList.contains('toggle-switch')) {
+          var isActive = this.classList.contains('active');
+          this.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        }
+      });
+      // Keyboard activation
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+
+    // General toggle-switch keyboard handling (Widget Manager etc.)
+    document.querySelectorAll('.toggle-switch:not([data-action])').forEach(function(el) {
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.classList.toggle('active');
+          var isActive = this.classList.contains('active');
+          this.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        }
+      });
+    });
+
+    // Refresh buttons — wire both simulated and ACMI refresh
+    document.querySelectorAll('[data-action="refresh"]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        // If we're on the Agent Console page and ACMI is loaded, do a real ACMI refresh
+        var activePage = document.querySelector('.page.active');
+        if (activePage && activePage.id === 'page-agents' && window.acmi) {
+          window.acmi.clearCache();
+          renderAgentGrid();
+          simulateRefresh(this);
+        } else {
+          simulateRefresh(this);
+        }
+      });
+    });
+
+    // Open search triggers (search bar + quick search button)
+    document.querySelectorAll('[data-action="open-search"]').forEach(function(el) {
+      el.addEventListener('click', openSearch);
+    });
+    document.querySelector('.search-bar')?.addEventListener('click', openSearch);
+
+    // Todo view toggles
+    document.querySelectorAll('[data-view]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        toggleTodoView(this.getAttribute('data-view'), this);
+      });
+      // Keyboard activation for role="tab" elements
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleTodoView(this.getAttribute('data-view'), this);
+        }
+      });
+    });
+
+    // Add Task button
+    document.getElementById('addTaskBtn')?.addEventListener('click', addTask);
+    // Enter key on task input already wired above
+
+    // Add Note button
+    document.querySelector('[data-action="add-note"]')?.addEventListener('click', function() {
+      // Navigate to notes page and focus the textarea
+      goPage('page-notes', getNavItem('page-notes'));
+      var ta = document.querySelector('.note-editor textarea');
+      if (ta) { ta.focus(); ta.select(); }
+    });
+
+    // Note items
+    document.querySelectorAll('[data-note-index]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        selectNote(this, parseInt(this.getAttribute('data-note-index'), 10));
+      });
+    });
+
+    // Note search input
+    document.querySelector('[data-action="filter-notes"]')?.addEventListener('input', function() {
+      filterNotes(this.value);
+    });
+
+    // Also handle .mob-item items that may not have data-nav
+    document.querySelectorAll('.mob-item:not([data-nav])').forEach(function(el) {
+      el.addEventListener('click', function() { goPage('page-command', this); });
+    });
+
+    // Initialize inert/tabindex/aria-hidden on all inactive pages at startup
+    document.querySelectorAll('.page:not(.active)').forEach(function(p) {
+      p.inert = true;
+      p.setAttribute('tabindex', '-1');
+      p.setAttribute('aria-hidden', 'true');
+    });
+    // Ensure the active page is not inert
+    var activePage = document.querySelector('.page.active');
+    if (activePage) {
+      activePage.inert = false;
+      activePage.removeAttribute('tabindex');
+      activePage.setAttribute('aria-hidden', 'false');
+    }
+
+    // Enable keyboard scroll on overflow containers
+    var scrollContainers = document.querySelectorAll('.pages-container, .app-nav');
+    scrollContainers.forEach(function(el) {
+      if (!el.hasAttribute('tabindex')) {
+        el.setAttribute('tabindex', '0');
+      }
+    });
+
+    // ─── Event Delegation: Agent card clicks ────────────────────────
+    // Handles clicks on dynamically created agent cards in the grid
+    var agentGrid = document.getElementById('agentGrid');
+    if (agentGrid) {
+      agentGrid.addEventListener('click', function(e) {
+        var card = e.target.closest('[data-agent]');
+        if (card) {
+          selectAgent(card.getAttribute('data-agent'));
+          return;
+        }
+      });
+    }
+
+    // ─── Event Delegation: Error-state retry buttons ────────────────
+    // Handles retry buttons injected via _errorState() and _showACMIError()
+    // without inline onclick handlers
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action="retry-agent-grid"]');
+      if (btn) { renderAgentGrid(); return; }
+      btn = e.target.closest('[data-action="initACMI"]');
+      if (btn) { initACMI(); return; }
+    });
+
+    // Check kanban empty states on initial page load
+    updateKanbanEmptyState();
+
+    // Initialize ACMI client (loads agent grid, updates KPI, sets status)
+    initACMI();
+  });
+</script>
+</body>
+</html>
