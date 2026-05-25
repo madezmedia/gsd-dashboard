@@ -110,6 +110,9 @@ h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bott
 </head>
 <body>
 <div class="wrap">
+<div class="card" style="text-align:center;padding:40px;display:none" id="agent-loading">
+  <div style="font-size:14px;color:var(--ink-4)">Connecting to ACMI…</div>
+</div>
 <a href="../index.html" class="btn" style="margin-bottom:16px">&larr; Back to Dashboard</a>
 <a href="#" class="btn" style="margin-bottom:16px;margin-left:8px">&larr; Back to Agents</a>
 
@@ -383,11 +386,6 @@ document.querySelectorAll('.composer').forEach(function(comp) {
   var params = new URLSearchParams(window.location.search);
   var agentId = params.get('id');
 
-  if (!agentId) {
-    console.warn('[ACMI] No ?id= param — showing hardcoded content');
-    return;
-  }
-
   var acmi = window.acmi;
   if (!acmi) {
     console.warn('[ACMI] acmi-client not loaded');
@@ -395,7 +393,11 @@ document.querySelectorAll('.composer').forEach(function(comp) {
   }
 
   // ─── Bootstrap agent data ──
-  acmi.bootstrap(agentId).then(function(raw) {
+  function loadAgent(id) {
+  document.title = 'Loading ' + id + '… — Agent Detail';
+  var loadingDiv = document.getElementById('agent-loading');
+  if (loadingDiv) loadingDiv.style.display = 'block';
+  acmi.bootstrap(id).then(function(raw) {
     // Unwrap possible MCP proxy wrapper
     var data = raw && raw.result ? raw.result : raw;
     if (!data) data = {};
@@ -432,7 +434,7 @@ document.querySelectorAll('.composer').forEach(function(comp) {
     }
 
     // ─── Header ──
-    var name = profile.name || signals.name || agentId;
+    var name = profile.name || signals.name || id;
     setText('agent-name', name);
 
     // Avatar initials
@@ -470,7 +472,7 @@ document.querySelectorAll('.composer').forEach(function(comp) {
     setKPI('kpi-uptime', signals.uptime);
 
     // ─── Profile Table ──
-    setText('agent-id', profile.id || 'acmi:agent:' + agentId);
+    setText('agent-id', profile.id || 'acmi:agent:' + id);
     setText('agent-model', profile.model || signals.model || '—');
     setText('agent-project', profile.project || signals.project || '—');
     setText('agent-heartbeat', signals.heartbeat || profile.lastHeartbeat || '—');
@@ -510,11 +512,21 @@ document.querySelectorAll('.composer').forEach(function(comp) {
       }
     }
 
-    console.log('[ACMI] Bootstrap loaded for', agentId, '—', name);
+    console.log('[ACMI] Bootstrap loaded for', id, '—', name);
   }).catch(function(err) {
-    console.error('[ACMI] Bootstrap failed for', agentId, err);
-    setText('agent-name', 'Error loading: ' + agentId);
+    console.error('[ACMI] Bootstrap failed for', id, err);
+    setText('agent-name', 'Error loading: ' + id);
   });
+  }
+
+  // ─── Dispatch: load specified agent, or fallback to first ──
+  if (agentId) {
+    loadAgent(agentId);
+  } else {
+    acmi.list('agent').then(function(ids) {
+      if (ids && ids.length > 0) loadAgent(ids[0]);
+    });
+  }
 })();
 </script>
 

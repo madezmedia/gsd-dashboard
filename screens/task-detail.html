@@ -315,10 +315,16 @@ Plan looks solid. Vessel 10 is in dry dock — let's skip it and do vessel 12 fi
 // ─── ACMI Data Loading ─────────────────────────
 (async function() {
   const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
+  let id = params.get('id');
   if (!id) {
-    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No task ID specified. Use ?id=... in the URL.</p></div>';
-    return;
+    try {
+      const ids = await window.acmi.list('task');
+      if (ids && ids.length > 0) id = ids[0];
+    } catch(e) {}
+    if (!id) {
+      document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No tasks found.</p></div>';
+      return;
+    }
   }
   try {
     const data = await window.acmi.workGet(id);

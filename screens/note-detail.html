@@ -161,10 +161,16 @@ while (true) {
 // ─── ACMI Data Loading ─────────────────────────
 (async function() {
   const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
+  let id = params.get('id');
   if (!id) {
-    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No note ID specified. Use ?id=... in the URL.</p></div>';
-    return;
+    try {
+      const ids = await window.acmi.list('note');
+      if (ids && ids.length > 0) id = ids[0];
+    } catch(e) {}
+    if (!id) {
+      document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No notes found.</p></div>';
+      return;
+    }
   }
   try {
     const data = await window.acmi.get('note', id);

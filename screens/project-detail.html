@@ -1110,7 +1110,27 @@ a:hover{text-decoration:underline}
 
   // ─── Read URL Param ────────────────────────────
   var urlParams = new URLSearchParams(window.location.search);
-  var projectId = urlParams.get('id') || 'fleet-ops-edge-rollout';
+  var projectId = urlParams.get('id');
+  if (!projectId) {
+    // Auto-fallback: load first work item
+    window.acmi.workList().then(function(ids) {
+      if (ids && ids.length > 0) {
+        projectId = ids[0];
+        // Update URL without reload
+        var u = new URL(window.location);
+        u.searchParams.set('id', projectId);
+        window.history.replaceState({}, '', u);
+        initACMI();
+      }
+    }).catch(function() {});
+    // Don't proceed yet — wait for fallback
+    var checkInterval = setInterval(function() {
+      if (projectId && projectId !== urlParams.get('id')) {
+        clearInterval(checkInterval);
+      }
+    }, 200);
+  }
+  if (!projectId) projectId = 'fleet-ops-edge-rollout'; // ultimate fallback
 
   // ─── ACMI Init ─────────────────────────────────
   function initACMI() {
