@@ -186,6 +186,74 @@ async function executeAcmiTool(tool, params) {
     case 'acmi_work_list':
       return executeAcmiTool('acmi_list', { namespace: 'work' });
 
+    case 'acmi_dashboard_bootstrap': {
+      const maxAgents = params.maxAgents || 20;
+      const maxWork = params.maxWork || 20;
+      const timelineSince = params.timelineSince || '7d';
+
+      // 1. List all entity types in parallel
+      const [agentIds, workIds, configData, taskIds, noteIds, eventIds, docIds] = await Promise.all([
+        executeAcmiTool('acmi_list', { namespace: 'agent' }),
+        executeAcmiTool('acmi_list', { namespace: 'work' }),
+        executeAcmiTool('acmi_get', { namespace: 'config', id: 'dashboard' }).catch(() => null),
+        executeAcmiTool('acmi_list', { namespace: 'task' }).catch(() => []),
+        executeAcmiTool('acmi_list', { namespace: 'note' }).catch(() => []),
+        executeAcmiTool('acmi_list', { namespace: 'event' }).catch(() => []),
+        executeAcmiTool('acmi_list', { namespace: 'doc' }).catch(() => [])
+      ]);
+
+      // 2. Batch-fetch top N agents (server-side — no HTTP round trips)
+      const agentSlice = (agentIds || []).slice(0, maxAgents);
+      const agentPromises = agentSlice.map(id =>
+        executeAcmiTool('acmi_get', { namespace: 'agent', id }).catch(() => null)
+      );
+      const agentResults = await Promise.all(agentPromises);
+      const agents = agentSlice.map((id, i) => ({
+        id,
+        profile: agentResults[i]?.profile || null,
+        signals: agentResults[i]?.signals || null
+      }));
+
+      // 3. Batch-fetch top N work items
+      const workSlice = (workIds || []).slice(0, maxWork);
+      const workPromises = workSlice.map(id =>
+        executeAcmiTool('acmi_get', { namespace: 'work', id }).catch(() => null)
+      );
+      const workResults = await Promise.all(workPromises);
+      const workItems = workSlice.map((id, i) => ({
+        id,
+        profile: workResults[i]?.profile || null,
+        signals: workResults[i]?.signals || null
+      }));
+
+      // 4. Fetch merged timeline
+      const timeline = await executeAcmiTool('acmi_cat', {
+        keys: ['agent:*', 'thread:*', 'work:*'],
+        since: timelineSince,
+        limit: params.timelineLimit || 100
+      }).catch(() => []);
+
+      return {
+        agents,
+        workItems,
+        config: configData?.profile || configData || {},
+        tasks: taskIds.map(id => ({ id })),
+        notes: noteIds.map(id => ({ id })),
+        events: eventIds.map(id => ({ id })),
+        docs: docIds.map(id => ({ id })),
+        timeline,
+        summary: {
+          totalAgents: (agentIds || []).length,
+          totalWork: (workIds || []).length,
+          totalTasks: (taskIds || []).length,
+          totalNotes: (noteIds || []).length,
+          totalEvents: (eventIds || []).length,
+          totalDocs: (docIds || []).length,
+          timelineEvents: timeline.length
+        }
+      };
+    }
+
     default:
       throw new Error(`ACMI Tool not implemented: ${tool}`);
   }

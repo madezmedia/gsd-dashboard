@@ -526,134 +526,35 @@
   ACMIClient.prototype.dashboardBootstrap = function (opts) {
     opts = opts || {};
     var self = this;
+    // Single server-side bulk call — replaces 100+ individual HTTP requests
+    return self._request('acmi_dashboard_bootstrap', {
+      maxAgents: opts.maxAgents || 20,
+      maxWork: opts.maxWork || 20,
+      timelineSince: opts.timelineSince || '7d',
+      timelineLimit: opts.timelineLimit || 100
+    }).then(function (data) {
+      if (!data) return { agents: [], workItems: [], tasks: [], notes: [], events: [], docs: [], config: {}, timeline: [], summary: {} };
 
-    // Fetch all data sources in parallel
-    var promises = {
-      agents: self.list('agent', opts),
-      workItems: self.workList(opts),
-      config: self.get('config', 'dashboard', opts)
-    };
-
-    // Optional namespaces (may not exist yet — catch errors gracefully)
-    var optionalNS = ['task', 'note', 'event', 'doc'];
-    optionalNS.forEach(function (ns) {
-      promises[ns + 'List'] = self.list(ns, opts).catch(function () { return []; });
-    });
-
-    // Merged timeline
-    promises.timeline = self.cat(
-      ['agent:*', 'thread:*', 'work:*'],
-      { since: opts.timelineSince || '24h', limit: 100, force: opts.force }
-    ).catch(function () { return []; });
-
-    return Promise.all([
-      promises.agents,
-      promises.workItems,
-      promises.config,
-      promises.taskList,
-      promises.noteList,
-      promises.eventList,
-      promises.docList,
-      promises.timeline
-    ]).then(function (results) {
-      var agentIds = results[0] || [];
-      var workIds = results[1] || [];
-      var configData = results[2] || {};
-      var taskIds = results[3] || [];
-      var noteIds = results[4] || [];
-      var eventIds = results[5] || [];
-      var docIds = results[6] || [];
-      var timeline = results[7] || [];
-
-      // Batch-fetch full context for each entity type
-      var batchPromises = [];
-
-      // Agents: get full context for each
-      agentIds.forEach(function (id) {
-        batchPromises.push(
-          self.get('agent', id, opts).then(function (ctx) {
-            return { id: id, data: ctx };
-          }).catch(function () { return { id: id, data: null }; })
-        );
-      });
-
-      // Work items: get full context for each
-      workIds.forEach(function (id) {
-        batchPromises.push(
-          self.workGet(id).then(function (ctx) {
-            return { id: id, data: ctx };
-          }).catch(function () { return { id: id, data: null }; })
-        );
-      });
-
-      // Tasks, notes, events, docs: get context for each
-      function batchFetch(ns, ids) {
-        ids.forEach(function (id) {
-          batchPromises.push(
-            self.get(ns, id, opts).then(function (ctx) {
-              return { ns: ns, id: id, data: ctx };
-            }).catch(function () { return { ns: ns, id: id, data: null }; })
-          );
-        });
+      // Normalize: dashboard code expects full context objects, not {id, profile, signals}
+      function toContext(item) {
+        return item ? { profile: item.profile || {}, signals: item.signals || {} } : null;
       }
-      batchFetch('task', taskIds);
-      batchFetch('note', noteIds);
-      batchFetch('event', eventIds);
-      batchFetch('doc', docIds);
 
-      return Promise.all(batchPromises).then(function (batchResults) {
-        // Organize results
-        var agents = [];
-        var workItems = [];
-        var tasks = [];
-        var notes = [];
-        var events = [];
-        var docs = [];
-
-        batchResults.forEach(function (item) {
-          if (!item || !item.data) return;
-          if (item.ns === 'task') tasks.push(item.data);
-          else if (item.ns === 'note') notes.push(item.data);
-          else if (item.ns === 'event') events.push(item.data);
-          else if (item.ns === 'doc') docs.push(item.data);
-          else if (item.data && item.data.profile && item.data.profile.owner !== undefined) {
-            // Has owner field → work item
-            workItems.push(item.data);
-          } else if (item.data && (item.data.signals || item.data.timeline)) {
-            agents.push(item.data);
-          }
-        });
-
-        // If heuristic classification failed, re-organize by ID length
-        if (agents.length === 0 && workItems.length === 0) {
-          batchResults.forEach(function (item) {
-            if (!item || !item.data) return;
-            if (item.ns) {
-              var map = { task: tasks, note: notes, event: events, doc: docs };
-              if (map[item.ns]) map[item.ns].push(item.data);
-            } else {
-              agents.push(item.data);
-            }
-          });
-        }
-
-        // Compute summary KPIs
-        var summary = self._computeKpis(agents, workItems, tasks, notes, events, docs, timeline);
-
-        var result = {
-          agents: agents,
-          workItems: workItems,
-          tasks: tasks,
-          notes: notes,
-          events: events,
-          docs: docs,
-          config: configData,
-          timeline: timeline,
-          summary: summary
-        };
-        self._lastBootstrapData = result;
-        return result;
-      });
+      var result = {
+        agents: (data.agents || []).map(toContext).filter(Boolean),
+        workItems: (data.workItems || []).map(toContext).filter(Boolean),
+        tasks: (data.tasks || []).map(function (t) { return t.data || t; }),
+        notes: (data.notes || []).map(function (n) { return n.data || n; }),
+        events: (data.events || []).map(function (e) { return e.data || e; }),
+        docs: (data.docs || []).map(function (d) { return d.data || d; }),
+        config: data.config || {},
+        timeline: data.timeline || [],
+        summary: data.summary || {}
+      };
+      // Compute KPIs client-side (same as before)
+      result.summary = self._computeKpis(result.agents, result.workItems, result.tasks, result.notes, result.events, result.docs, result.timeline);
+      self._lastBootstrapData = result;
+      return result;
     });
   };
 
