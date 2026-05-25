@@ -800,6 +800,8 @@
    * Falls back to polling if WebSocket fails.
    */
   ACMIClient.prototype.connectWebSocket = function (wsUrl) {
+    // WebSocket not supported in proxy mode — silently no-op
+    return;
     var self = this;
     if (this._ws) {
       try { this._ws.close(); } catch (e) {}
