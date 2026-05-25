@@ -66,20 +66,36 @@ async function handleTool(tool, params) {
       const prefix = `acmi:${ns2}:${id}`;
       let profile = {}, signals = {}, timeline = [];
 
-      try { profile = await redis('HGETALL', `${prefix}:profile`); } catch {}
-      try { signals = await redis('HGETALL', `${prefix}:signals`); } catch {}
-      try { const raw = await redis('ZREVRANGE', `${prefix}:timeline`, 0, 9);
-        timeline = raw.map(e => { try { return JSON.parse(e); } catch { return { summary: e }; } }); } catch {}
-
-      // HGETALL returns flat array [k1,v1,k2,v2,...]
-      const obj = a => { const o = {}; for (let i = 0; i < a.length; i += 2) o[a[i]] = a[i+1]; return o; };
-      const p = obj(profile);
-      const s = obj(signals);
-      // Try to parse JSON string values
-      for (const k in p) { try { p[k] = JSON.parse(p[k]); } catch {} }
-      for (const k in s) { try { s[k] = JSON.parse(s[k]); } catch {} }
-
-      return { profile: p, signals: s, timeline };
+      // ACMI stores entities as JSON strings (GET) or hashes (HGETALL)
+      try {
+        const t = await redis('TYPE', `${prefix}:profile`);
+        if (t === 'string') {
+          const raw = await redis('GET', `${prefix}:profile`);
+          profile = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+        } else {
+          const raw = await redis('HGETALL', `${prefix}:profile`);
+          const obj = a => { const o = {}; for (let i = 0; i < a.length; i += 2) o[a[i]] = a[i+1]; return o; };
+          profile = obj(raw);
+          for (const k in profile) { try { profile[k] = JSON.parse(profile[k]); } catch {} }
+        }
+      } catch {}
+      try {
+        const t = await redis('TYPE', `${prefix}:signals`);
+        if (t === 'string') {
+          const raw = await redis('GET', `${prefix}:signals`);
+          signals = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+        } else {
+          const raw = await redis('HGETALL', `${prefix}:signals`);
+          const obj = a => { const o = {}; for (let i = 0; i < a.length; i += 2) o[a[i]] = a[i+1]; return o; };
+          signals = obj(raw);
+          for (const k in signals) { try { signals[k] = JSON.parse(signals[k]); } catch {} }
+        }
+      } catch {}
+      try {
+        const raw = await redis('ZREVRANGE', `${prefix}:timeline`, 0, 9);
+        timeline = raw ? raw.map(e => { try { return JSON.parse(e); } catch { return { summary: e }; } }) : [];
+      } catch {}
+      return { profile, signals, timeline };
     }
 
     // ── Multi-stream merge ──────────────────────────────────────
@@ -113,12 +129,8 @@ async function handleTool(tool, params) {
     // ── Profile write ───────────────────────────────────────────
     case 'profile': {
       const { namespace: ns3, id: id3, data } = params;
-      const prefix = `acmi:${ns3}:${id3}`;
-      const flat = [];
-      for (const [k, v] of Object.entries(data || {}))
-        flat.push(k, typeof v === 'string' ? v : JSON.stringify(v));
-      if (flat.length) await redis('HMSET', `${prefix}:profile`, ...flat);
-      // Ensure entity appears in namespace list
+      const key = `acmi:${ns3}:${id3}:profile`;
+      await redis('SET', key, JSON.stringify(data || {}));
       await redis('SADD', `acmi:${ns3}:list`, id3);
       return { ok: true };
     }
@@ -126,10 +138,18 @@ async function handleTool(tool, params) {
     // ── Signal write ────────────────────────────────────────────
     case 'signal': {
       const { namespace: ns4, id: id4, data: data4 } = params;
-      const flat2 = [];
-      for (const [k, v] of Object.entries(data4 || {}))
-        flat2.push(k, typeof v === 'string' ? v : JSON.stringify(v));
-      if (flat2.length) await redis('HMSET', `acmi:${ns4}:${id4}:signals`, ...flat2);
+      const key2 = `acmi:${ns4}:${id4}:signals`;
+      // Merge with existing if present
+      let existing = {};
+      try {
+        const t = await redis('TYPE', key2);
+        if (t === 'string') {
+          const raw = await redis('GET', key2);
+          existing = raw ? JSON.parse(raw) : {};
+        }
+      } catch {}
+      const merged = { ...existing, ...(data4 || {}) };
+      await redis('SET', key2, JSON.stringify(merged));
       return { ok: true };
     }
 
@@ -159,42 +179,48 @@ async function handleTool(tool, params) {
       const prefix2 = `acmi:work:${wid}`;
       let profile2 = {}, signals2 = {}, timeline2 = [];
       try {
-        const raw = await redis('HGETALL', `${prefix2}:profile`);
-        for (let i = 0; i < raw.length; i += 2) {
-          profile2[raw[i]] = raw[i+1];
-          try { profile2[raw[i]] = JSON.parse(profile2[raw[i]]); } catch {}
+        const t = await redis('TYPE', `${prefix2}:profile`);
+        if (t === 'string') {
+          const raw = await redis('GET', `${prefix2}:profile`);
+          profile2 = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+        } else {
+          const raw = await redis('HGETALL', `${prefix2}:profile`);
+          for (let i = 0; i < raw.length; i += 2) { profile2[raw[i]] = raw[i+1]; try { profile2[raw[i]] = JSON.parse(profile2[raw[i]]); } catch {} }
         }
       } catch {}
       try {
-        const raw2 = await redis('HGETALL', `${prefix2}:signals`);
-        for (let i = 0; i < raw2.length; i += 2) {
-          signals2[raw2[i]] = raw2[i+1];
-          try { signals2[raw2[i]] = JSON.parse(signals2[raw2[i]]); } catch {}
+        const t = await redis('TYPE', `${prefix2}:signals`);
+        if (t === 'string') {
+          const raw = await redis('GET', `${prefix2}:signals`);
+          signals2 = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+        } else {
+          const raw = await redis('HGETALL', `${prefix2}:signals`);
+          for (let i = 0; i < raw.length; i += 2) { signals2[raw[i]] = raw[i+1]; try { signals2[raw[i]] = JSON.parse(signals2[raw[i]]); } catch {} }
         }
       } catch {}
       try {
         const raw3 = await redis('ZREVRANGE', `${prefix2}:timeline`, 0, 9);
-        timeline2 = raw3.map(e => { try { return JSON.parse(e); } catch { return { summary: e }; } });
+        timeline2 = raw3 ? raw3.map(e => { try { return JSON.parse(e); } catch { return { summary: e }; } }) : [];
       } catch {}
       return { profile: profile2, signals: signals2, timeline: timeline2 };
     }
 
     case 'workCreate': {
       const { id: wid2, profile: data6 } = params;
-      const flat3 = [];
-      for (const [k, v] of Object.entries(data6 || {}))
-        flat3.push(k, typeof v === 'string' ? v : JSON.stringify(v));
-      if (flat3.length) await redis('HMSET', `acmi:work:${wid2}:profile`, ...flat3);
+      await redis('SET', `acmi:work:${wid2}:profile`, JSON.stringify(data6 || {}));
       await redis('SADD', 'acmi:work:list', wid2);
       return { ok: true };
     }
 
     case 'workSignal': {
       const { id: wid3, data: data7 } = params;
-      const flat4 = [];
-      for (const [k, v] of Object.entries(data7 || {}))
-        flat4.push(k, typeof v === 'string' ? v : JSON.stringify(v));
-      if (flat4.length) await redis('HMSET', `acmi:work:${wid3}:signals`, ...flat4);
+      const key3 = `acmi:work:${wid3}:signals`;
+      let existing2 = {};
+      try {
+        const t = await redis('TYPE', key3);
+        if (t === 'string') { const raw = await redis('GET', key3); existing2 = raw ? JSON.parse(raw) : {}; }
+      } catch {}
+      await redis('SET', key3, JSON.stringify({ ...existing2, ...(data7 || {}) }));
       return { ok: true };
     }
 
