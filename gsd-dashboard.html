@@ -68,6 +68,7 @@
 
       --header-h: 52px;
       --nav-w: 200px;
+      --nav-collapsed-w: 0px;
     }
 
     /* ─── Dark mode ───────────────────────────────────────────────── */
@@ -154,6 +155,7 @@
       grid-template-rows: var(--header-h) 1fr;
       height: 100vh;
       width: 100vw;
+      transition: grid-template-columns var(--d-norm) var(--ease);
     }
 
     /* ─── Header ──────────────────────────────────────────────────── */
@@ -340,6 +342,44 @@
       margin-top: auto;
     }
     .nav-footer .nav-item { font-size: 11px; }
+
+    /* ─── Collapsible Sidebar ────────────────────────────────────────── */
+    .nav-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--ink-3);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      margin-right: 4px;
+      transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease);
+      flex-shrink: 0;
+    }
+    .nav-toggle:hover { background: var(--paper-elev); color: var(--ink-1); }
+    .nav-toggle svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; }
+
+    .app-shell.nav-collapsed .app-nav {
+      width: 0;
+      padding: 0;
+      overflow: hidden;
+      border: none;
+      min-width: 0;
+    }
+    .app-shell.nav-collapsed {
+      grid-template-columns: 0 1fr;
+    }
+    .app-shell.nav-collapsed .app-header {
+      grid-column: 1 / -1;
+    }
+    .app-shell.nav-collapsed .nav-toggle {
+      margin-right: 0;
+    }
+    @media (max-width: 900px) {
+      .nav-toggle { display: none; } /* mobile already hides sidebar */
+    }
 
     /* ─── Pages Container ─────────────────────────────────────────── */
     .pages-container {
@@ -2128,6 +2168,9 @@
       </div>
       <span class="brand-name">GSD <span>Dashboard</span></span>
     </div>
+    <button class="nav-toggle" id="navToggle" title="Toggle sidebar" aria-label="Toggle navigation sidebar">
+      <svg viewBox="0 0 16 16"><line x1="3" y1="4" x2="13" y2="4"/><line x1="3" y1="8" x2="13" y2="8"/><line x1="3" y1="12" x2="13" y2="12"/></svg>
+    </button>
 
     <div class="header-center">
       <div class="search-bar" id="searchBar" data-action="open-search">
@@ -4979,6 +5022,17 @@ The three-slot model replaces the traditional "single document" approach — age
       btn = e.target.closest('[data-action="initACMI"]');
       if (btn) { initACMI(); return; }
     });
+
+    // --- Collapsible Sidebar Toggle ---
+    var navToggle = document.getElementById('navToggle');
+    var appShell = document.getElementById('app');
+    if (navToggle && appShell) {
+      navToggle.addEventListener('click', function() {
+        appShell.classList.toggle('nav-collapsed');
+        var collapsed = appShell.classList.contains('nav-collapsed');
+        navToggle.setAttribute('aria-expanded', String(!collapsed));
+      });
+    }
 
     // Check kanban empty states on initial page load
     updateKanbanEmptyState();
