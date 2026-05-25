@@ -262,17 +262,21 @@ async function handleTool(tool, params) {
       let config = {};
       try { config = await handleTool('get', { namespace: 'config', id: 'dashboard' }); } catch {}
 
-      const agents = [];
-      for (const id of agentIds.slice(0, 60)) {
-        try { agents.push(await handleTool('get', { namespace: 'agent', id })); } catch {}
-      }
-      const workItems = [];
-      for (const id of workIds.slice(0, 200)) {
-        try { workItems.push(await handleTool('workGet', { id })); } catch {}
-      }
+      // Parallel batch fetch agents (limit to first 15, parallel)
+      const agentBatch = (agentIds || []).slice(0, 15);
+      const agents = await Promise.all(agentBatch.map(id =>
+        handleTool('get', { namespace: 'agent', id }).catch(() => null)
+      )).then(r => r.filter(Boolean));
+
+      // Parallel batch fetch work items (limit to first 30, parallel)
+      const workBatch = (workIds || []).slice(0, 30);
+      const workItems = await Promise.all(workBatch.map(id =>
+        handleTool('workGet', { id }).catch(() => null)
+      )).then(r => r.filter(Boolean));
+
       let timeline = [];
       try {
-        timeline = await handleTool('cat', { keys: ['acmi:thread:agent-coordination:timeline'], since: '24h', limit: 50 });
+        timeline = await handleTool('cat', { keys: ['acmi:thread:agent-coordination:timeline'], since: '6h', limit: 30 });
       } catch {}
 
       return { agents, workItems, config, timeline, events: [], docs: [], notes: [], tasks: [] };
