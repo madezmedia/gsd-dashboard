@@ -101,6 +101,7 @@ table.details td:first-child{width:100px;font-weight:500;color:#888;font-size:12
 .theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
 .theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
 </style>
+<script src="../acmi-client.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -154,6 +155,78 @@ table.details td:first-child{width:100px;font-weight:500;color:#888;font-size:12
 </div>
 
 <script>
+// ─── ACMI Data Loading ─────────────────────────
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No event ID specified. Use ?id=... in the URL.</p></div>';
+    return;
+  }
+  try {
+    const data = await window.acmi.get('event', id);
+    const p = data.profile || {};
+    const signals = data.signals || {};
+    document.title = 'ACMI Launchpad \u00b7 ' + (p.title || id);
+
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = p.title || id;
+
+    // Header meta
+    const headerMeta = document.querySelectorAll('.card:first-of-type [style*="font-size:14px"]');
+    if (headerMeta.length >= 2) {
+      if (p.date) headerMeta[0].innerHTML = '\ud83d\udcc5 <strong>' + p.date + '</strong>';
+      if (p.time) headerMeta[1].innerHTML = '\u23f0 <strong>' + p.time + '</strong>';
+    }
+    if (headerMeta.length >= 3 && p.category) {
+      headerMeta[2].textContent = p.category;
+    }
+
+    // Description
+    const descP = document.querySelector('.card:first-of-type p');
+    if (descP && p.description) descP.textContent = p.description;
+
+    // Event details table
+    const detailRows = document.querySelectorAll('table.details tr');
+    if (detailRows.length >= 4) {
+      if (detailRows[0] && p.location) detailRows[0].querySelector('td:last-child').textContent = p.location;
+      if (detailRows[1] && p.longDescription) detailRows[1].querySelector('td:last-child').textContent = p.longDescription;
+      if (detailRows[2] && p.attendees && Array.isArray(p.attendees)) {
+        detailRows[2].querySelector('td:last-child').innerHTML = p.attendees.map(function(a){ return '<span class="tag-chip">' + a + '</span>'; }).join('');
+      }
+      if (detailRows[3] && p.recurrence) detailRows[3].querySelector('td:last-child').textContent = p.recurrence;
+    }
+
+    // Related ACMI timeline events via cat()
+    var timelineKeys = p.timelineKeys || [];
+    if (timelineKeys.length > 0) {
+      try {
+        var catResult = await window.acmi.cat(timelineKeys, { limit: 10 });
+        // cat may return { events: [...] } or an array directly
+        var timelineEvents = Array.isArray(catResult) ? catResult : (catResult.events || []);
+        var timelineCard = null;
+        document.querySelectorAll('.card').forEach(function(c) {
+          var h2 = c.querySelector('h2');
+          if (h2 && h2.textContent.indexOf('Related ACMI') !== -1) timelineCard = c;
+        });
+        if (!timelineCard) timelineCard = document.querySelector('.card:last-of-type');
+        if (timelineCard && timelineEvents.length) {
+          var html = '<h2>Related ACMI Timeline Events</h2>';
+          timelineEvents.forEach(function(ev) {
+            var time = ev.timestamp ? new Date(ev.timestamp).toLocaleString() : '';
+            html += '<div class="timeline-event"><div class="te-dot"></div><span class="te-time">' + time + '</span><span><strong>' + (ev.summary || ev.kind || '') + '</strong>' + (ev.source ? ' \u2014 ' + ev.source : '') + '</span></div>';
+          });
+          timelineCard.innerHTML = html;
+        }
+      } catch(e) {
+        // cat is optional; silently skip
+      }
+    }
+  } catch (err) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">Error loading event: ' + err.message + '</p></div>';
+  }
+})();
+
 // Highlight today's active event in day view
 document.querySelectorAll('.hour-event').forEach(el => {
   el.addEventListener('click', function() {
