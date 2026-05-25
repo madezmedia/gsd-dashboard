@@ -508,6 +508,7 @@ a:hover{text-decoration:underline}
   .risk-table th:nth-child(4),.risk-table td:nth-child(4){display:none}
 }
 </style>
+<script src="../acmi-client.js"></script>
 </head>
 <body>
 
@@ -1105,6 +1106,407 @@ a:hover{text-decoration:underline}
 
 <script>
 (function() {
+  'use strict';
+
+  // ─── Read URL Param ────────────────────────────
+  var urlParams = new URLSearchParams(window.location.search);
+  var projectId = urlParams.get('id') || 'fleet-ops-edge-rollout';
+
+  // ─── ACMI Init ─────────────────────────────────
+  function initACMI() {
+    if (typeof ACMIClient === 'undefined') {
+      setTimeout(initACMI, 500);
+      return;
+    }
+    if (!window.acmi) window.acmi = new ACMIClient();
+    loadProjectData();
+  }
+
+  function loadProjectData() {
+    var titleEl = document.querySelector('.project-hdr-title');
+    if (titleEl) titleEl.textContent = 'Loading ' + projectId + '\u2026';
+
+    setACMIMessage('Connecting\u2026');
+
+    Promise.all([
+      window.acmi.workGet(projectId),
+      window.acmi.cat(['work:' + projectId], { since: '30d', limit: 50 }),
+      window.acmi.list('agent')
+    ]).then(function(results) {
+      var project = results[0];
+      var timelineEvents = results[1] || [];
+      var agentIds = results[2] || [];
+      populateProject(project);
+      populateTimeline(project, timelineEvents);
+      populateTeam(agentIds);
+      populateActivity(project.timeline || timelineEvents || []);
+      setACMIMessage('Online');
+    }).catch(function(err) {
+      console.error('ACMI load failed:', err);
+      setACMIMessage('Offline');
+      if (titleEl) titleEl.textContent = projectId + ' (offline)';
+    });
+  }
+
+  function setACMIMessage(msg) {
+    var el = document.getElementById('acmiStatus');
+    if (el) el.innerHTML = 'ACMI \u00B7 <span style="color:var(--forest)">' + msg + '</span>';
+  }
+
+  function populateProject(project) {
+    var profile = project.profile || {};
+    var signals = project.signals || {};
+
+    // ── Title & Description ──
+    var titleEl = document.querySelector('.project-hdr-title');
+    if (titleEl) titleEl.textContent = profile.title || projectId;
+
+    var descEl = document.querySelector('.project-hdr-desc');
+    if (descEl) descEl.textContent = profile.description || 'No description available.';
+
+    // ── Status Badge ──
+    var badge = document.querySelector('.badge-inline');
+    if (badge) {
+      var status = signals.status || profile.status || 'active';
+      badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+      badge.className = 'badge-inline ' + status;
+    }
+
+    // ── Lifecycle Stepper (6 phases) ──
+    var phases = profile.phases || [
+      { name: 'Concept',    status: 'completed' },
+      { name: 'Planning',   status: 'completed' },
+      { name: 'Development',status: 'current' },
+      { name: 'Validation', status: '' },
+      { name: 'Launch',     status: '' },
+      { name: 'Retro',      status: '' }
+    ];
+    var stepProg = document.querySelector('.step-progress');
+    if (stepProg) {
+      stepProg.innerHTML = '';
+      phases.forEach(function(ph, i) {
+        var step = document.createElement('div');
+        step.className = 'step' + (ph.status ? ' ' + ph.status : '');
+        var circle = document.createElement('div');
+        circle.className = 'step-circle';
+        circle.textContent = ph.status === 'completed' ? '\u2713' : (i + 1);
+        step.appendChild(circle);
+        var label = document.createElement('div');
+        label.className = 'step-label';
+        label.textContent = ph.name;
+        step.appendChild(label);
+        stepProg.appendChild(step);
+        if (i < phases.length - 1) {
+          var conn = document.createElement('div');
+          conn.className = 'step-connector';
+          stepProg.appendChild(conn);
+        }
+      });
+    }
+
+    // ── KPI Strip ──
+    var kpis = signals.kpis || profile.kpis || {};
+    var kpiData = [
+      { val: kpis.progress || '62%', label: 'Progress', color: 'green' },
+      { val: kpis.budget || '$184K', label: 'Budget' },
+      { val: kpis.spent || '$112K', label: 'Spent', color: 'green' },
+      { val: kpis.team || '4', label: 'Team Members' },
+      { val: kpis.vessels || '12', label: 'Vessels', color: 'green' },
+      { val: kpis.nodes || '8/12', label: 'Nodes Deployed', color: 'amber' }
+    ];
+    document.querySelectorAll('.kpi-card').forEach(function(card, i) {
+      if (kpiData[i]) {
+        var valEl = card.querySelector('.kpi-val');
+        var labEl = card.querySelector('.kpi-label');
+        if (valEl) {
+          valEl.textContent = kpiData[i].val;
+          valEl.className = 'kpi-val' + (kpiData[i].color ? ' ' + kpiData[i].color : '');
+        }
+        if (labEl) labEl.textContent = kpiData[i].label;
+      }
+    });
+
+    // ── Overview Milestones ──
+    var milestones = signals.milestones || profile.milestones || [
+      { name: 'Vessel assessment',   desc: 'All 12 vessels surveyed',            status: 'done' },
+      { name: 'Edge hardware install',desc: '8 of 12 nodes deployed',            status: 'done' },
+      { name: 'ACMI payload rollout', desc: '5 vessels live; 7 remaining',       status: 'current' },
+      { name: 'Model sync validation',desc: 'Planned Jun 10',                    status: '' }
+    ];
+    var msOverview = document.querySelector('#layer-overview .milestone-list');
+    if (msOverview) {
+      msOverview.innerHTML = '';
+      milestones.forEach(function(m) {
+        var item = document.createElement('div');
+        item.className = 'milestone-item';
+        item.style.cssText = 'border:0;padding:8px 0';
+        var dot = document.createElement('div');
+        dot.className = 'milestone-dot' + (m.status === 'done' ? ' done' : m.status === 'current' ? ' current' : '');
+        item.appendChild(dot);
+        var content = document.createElement('div');
+        content.className = 'milestone-content';
+        var name = document.createElement('div');
+        name.className = 'milestone-name';
+        name.textContent = m.name;
+        content.appendChild(name);
+        var desc = document.createElement('div');
+        desc.className = 'milestone-desc';
+        desc.textContent = m.desc || '';
+        content.appendChild(desc);
+        item.appendChild(content);
+        var tag = document.createElement('span');
+        var tagCls = m.status === 'done' ? 'tag tag-complete' : m.status === 'current' ? 'tag tag-in-progress' : 'tag tag-pending';
+        tag.className = tagCls;
+        tag.style.cssText = 'font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:2px';
+        tag.textContent = m.status === 'done' ? 'Complete' : m.status === 'current' ? 'In Progress' : 'Pending';
+        item.appendChild(tag);
+        msOverview.appendChild(item);
+      });
+    }
+
+    // ── Budget Chart ──
+    var budgetData = signals.budget || profile.budget || [
+      { label: 'Hardware',     val: '$48K',  pct: 42, cls: '' },
+      { label: 'Software Dev', val: '$32K',  pct: 28, cls: '' },
+      { label: 'Installation',  val: '$21K',  pct: 18, cls: '' },
+      { label: 'Testing & QA', val: '$14K',  pct: 12, cls: 'warn' },
+      { label: 'Contingency',  val: '$0',    pct: 0,  cls: '' }
+    ];
+    document.querySelectorAll('.budget-chart .budget-row').forEach(function(row, i) {
+      if (budgetData[i]) {
+        var label = row.querySelector('.budget-label');
+        var fill = row.querySelector('.budget-fill');
+        if (label) label.textContent = budgetData[i].label;
+        if (fill) {
+          fill.textContent = budgetData[i].val;
+          fill.style.width = budgetData[i].pct + '%';
+          fill.className = 'budget-fill' + (budgetData[i].cls ? ' ' + budgetData[i].cls : '');
+        }
+      }
+    });
+    var totalB = signals.totalBudget || profile.totalBudget || 184000;
+    var totalS = signals.totalSpent || profile.totalSpent || 112000;
+    var pctU = totalB > 0 ? Math.round((totalS / totalB) * 1000) / 10 : 0;
+    var rem = totalB - totalS;
+    var bn = document.querySelector('.budget-note');
+    if (bn) bn.textContent = 'Total spent: $' + (totalS / 1000).toFixed(0) + 'K of $' + (totalB / 1000).toFixed(0) + 'K budget (' + pctU + '%) \u00B7 $' + (rem / 1000).toFixed(0) + 'K remaining';
+
+    // ── Risk Register ──
+    var risks = signals.risks || profile.risks || [];
+    var riskBody = document.querySelector('.risk-table tbody');
+    if (riskBody && risks.length > 0) {
+      riskBody.innerHTML = '';
+      risks.forEach(function(r) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + esc(r.risk) + '</td><td>' + esc(r.likelihood) + '</td><td>' + esc(r.impact) + '</td><td><span class="risk-level ' + (r.levelCls || 'risk-med') + '">' + esc(r.level || 'Medium') + '</span></td><td>' + esc(r.mitigation) + '</td><td style="font-family:var(--font-mono);font-size:11px">' + esc(r.owner) + '</td>';
+        riskBody.appendChild(tr);
+      });
+    }
+
+    // ── Files ──
+    var files = signals.files || profile.files || [];
+    var fileList = document.querySelector('.file-list');
+    if (fileList && files.length > 0) {
+      fileList.innerHTML = '';
+      files.forEach(function(f) {
+        var item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = '<span class="file-icon">' + (f.icon || '\uD83D\uDCC4') + '</span><div class="file-info"><div class="file-name">' + esc(f.name) + '</div><div class="file-meta">' + esc(f.meta || '') + '</div></div><span class="file-size">' + esc(f.size || '') + '</span><div class="file-actions"><span class="action-link">' + (f.icon === '\uD83D\uDCC1' ? 'Open' : 'Download') + '</span></div>';
+        fileList.appendChild(item);
+      });
+    }
+    var fileCount = document.querySelector('#layer-files strong');
+    if (fileCount) fileCount.textContent = (files.length || 7) + ' files';
+
+    // ── Tasks ──
+    var tasks = signals.tasks || profile.tasks || [];
+    var taskHdr = document.querySelector('#layer-tasks strong');
+    if (taskHdr && tasks.length > 0) {
+      var done = tasks.filter(function(t) { return t.done; }).length;
+      var inProg = tasks.filter(function(t) { return t.status === 'in-progress'; }).length;
+      var open = tasks.length - done - inProg;
+      taskHdr.parentElement.textContent = tasks.length + ' tasks \u00B7 ' + open + ' open \u00B7 ' + inProg + ' in progress \u00B7 ' + done + ' completed';
+    }
+    var taskList = document.querySelector('.task-list');
+    if (taskList && tasks.length > 0) {
+      taskList.innerHTML = '';
+      tasks.forEach(function(t) {
+        var item = document.createElement('div');
+        item.className = 'task-item';
+        var chk = t.done ? 'checked' : '';
+        var doneCls = t.done ? 'done' : '';
+        var pCls = 'p' + (t.priority || 2);
+        var overDue = t.overdue ? ' \u00B7 <span style="color:var(--danger)">\u26A0 ' + t.overdue + '</span>' : '';
+        item.innerHTML = '<input type="checkbox" ' + chk + '><div class="task-info"><div class="task-name ' + doneCls + '">' + esc(t.name) + '</div><div class="task-meta">' + esc(t.assignee || '') + ' \u00B7 Due ' + esc(t.due || '') + overDue + '</div></div><span class="task-priority ' + pCls + '">P' + (t.priority || 2) + '</span><span class="task-assignee">' + esc(t.tag || '@' + (t.assignee || '').toLowerCase().replace(/ .*/, '')) + '</span>';
+        taskList.appendChild(item);
+      });
+      taskList.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          var nm = cb.closest('.task-item').querySelector('.task-name');
+          if (nm) nm.classList.toggle('done', cb.checked);
+        });
+      });
+    }
+  }
+
+  function populateTimeline(project, events) {
+    var signals = project.signals || {};
+    var profile = project.profile || {};
+    var milestones = signals.milestones || profile.milestones || [
+      { name: 'Vessel Assessment',          desc: 'Complete survey of all 12 target vessels.',                       date: 'May 12 \u00B7 Maya Reyes',      status: 'done' },
+      { name: 'Edge Hardware Installation', desc: 'Install NVIDIA Jetson Orin edge nodes.',                           date: 'May 12\u201328 \u00B7 James Kwon',  status: 'done' },
+      { name: 'ACMI Payload Agent Rollout', desc: 'Deploy ACMI payload agent on each edge node.',                     date: 'May 28 \u2013 Jun 15 \u00B7 Maya+James', status: 'current' },
+      { name: 'Model Sync Validation',      desc: 'Validate inference matches cloud baseline >99.5%.',                date: 'Jun 10\u201320 \u00B7 Tessa Rivera', status: 'atrisk' },
+      { name: 'Full Fleet Go-Live',         desc: 'Cut over all 12 vessels to edge inference.',                       date: 'Jun 30 \u00B7 Maya Reyes',       status: '' },
+      { name: 'Post-Launch Review',         desc: 'Performance review, benchmarks, cost analysis.',                   date: 'Jul 7\u201311 \u00B7 Full Team',    status: '' }
+    ];
+    var msList = document.querySelector('#layer-timeline .milestone-list');
+    if (msList) {
+      msList.innerHTML = '';
+      milestones.forEach(function(m) {
+        var item = document.createElement('div');
+        item.className = 'milestone-item';
+        var dot = document.createElement('div');
+        dot.className = 'milestone-dot' + (m.status === 'done' ? ' done' : m.status === 'current' ? ' current' : m.status === 'atrisk' ? ' atrisk' : '');
+        item.appendChild(dot);
+        var content = document.createElement('div');
+        content.className = 'milestone-content';
+        var name = document.createElement('div');
+        name.className = 'milestone-name';
+        name.textContent = m.name;
+        content.appendChild(name);
+        var desc = document.createElement('div');
+        desc.className = 'milestone-desc';
+        desc.textContent = m.desc || '';
+        content.appendChild(desc);
+        var md = document.createElement('div');
+        md.className = 'milestone-date';
+        var statusMap = { done: 'Complete', current: 'In Progress', atrisk: 'At Risk' };
+        var tagCls = { done: 'tag-complete', current: 'tag-in-progress', atrisk: 'tag-in-progress' };
+        var tag = document.createElement('span');
+        tag.className = 'tag ' + (tagCls[m.status] || 'tag-pending');
+        tag.textContent = statusMap[m.status] || 'Pending';
+        md.appendChild(tag);
+        md.appendChild(document.createTextNode(' ' + (m.date || '')));
+        content.appendChild(md);
+        item.appendChild(content);
+        msList.appendChild(item);
+      });
+    }
+  }
+
+  function populateTeam(agentIds) {
+    var grid = document.querySelector('.team-grid');
+    if (!grid || !agentIds || agentIds.length === 0) return;
+
+    Promise.all(agentIds.map(function(id) {
+      return window.acmi.get('agent', id).then(function(ctx) {
+        var p = ctx.profile || {};
+        var s = ctx.signals || {};
+        return {
+          id: id,
+          initials: p.initials || id.substring(0, 2).toUpperCase(),
+          name: p.name || id,
+          role: p.role || 'Agent',
+          status: s.status || 'available',
+          tasks: s.taskCount || 0
+        };
+      }).catch(function() {
+        return { id: id, initials: id.substring(0, 2).toUpperCase(), name: id, role: 'Agent', status: 'unknown', tasks: 0 };
+      });
+    })).then(function(agents) {
+      grid.innerHTML = '';
+      agents.forEach(function(a) {
+        var dotCls = a.status === 'available' || a.status === 'active' ? 'green' : a.status === 'busy' ? 'amber' : 'red';
+        var statusText = a.status === 'available' || a.status === 'active' ? 'Available' : a.status === 'busy' ? 'In meeting' : 'Offline';
+        var card = document.createElement('div');
+        card.className = 'team-card';
+        card.innerHTML = '<div class="avatar">' + esc(a.initials) + '</div><div class="info"><div class="name">' + esc(a.name) + '</div><div class="role">' + esc(a.role) + '</div><div class="avail"><span class="dot ' + dotCls + '"></span>' + statusText + ' \u00B7 ' + a.tasks + ' tasks</div></div><div class="actions"><button class="btn btn-sm">\uD83D\uDCAC</button></div>';
+        grid.appendChild(card);
+      });
+      grid.querySelectorAll('.team-card .btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var nm = btn.closest('.team-card').querySelector('.name');
+          if (nm) alert('\uD83D\uDCAC DM to ' + nm.textContent + ' opened');
+        });
+      });
+
+      // Workload bars
+      var maxT = 1;
+      agents.forEach(function(a) { if (a.tasks > maxT) maxT = a.tasks; });
+      var wlDivs = document.querySelectorAll('#layer-team [style*=\"flex-direction:column\"]');
+      if (wlDivs.length > 0) {
+        var wl = wlDivs[0];
+        wl.innerHTML = '';
+        agents.forEach(function(a) {
+          var pct = maxT > 0 ? Math.round((a.tasks / maxT) * 100) : 0;
+          var bar = pct > 66 ? 'forest' : pct > 33 ? 'forest-2' : 'forest-3';
+          var d = document.createElement('div');
+          d.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>' + esc(a.name) + '</span><span style="font-family:var(--font-mono);color:var(--ink-4)">' + a.tasks + ' tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:var(--' + bar + ');border-radius:3px"></div></div>';
+          wl.appendChild(d);
+        });
+      }
+
+      // Availability
+      var avDivs = document.querySelectorAll('#layer-team [style*=\"line-height:1.8\"]');
+      if (avDivs.length > 0) {
+        var av = avDivs[0];
+        av.innerHTML = '';
+        agents.forEach(function(a) {
+          var dot = a.status === 'available' || a.status === 'active' ? '\uD83D\uDFE2' : a.status === 'busy' ? '\uD83D\uDFE1' : '\uD83D\uDD34';
+          var st = a.status === 'available' || a.status === 'active' ? 'Available' : a.status === 'busy' ? 'In review' : 'Offline';
+          var d = document.createElement('div');
+          d.textContent = dot + ' ' + a.name + ' \u00B7 ' + st;
+          av.appendChild(d);
+        });
+      }
+    });
+  }
+
+  function populateActivity(timeline) {
+    if (!Array.isArray(timeline) || timeline.length === 0) return;
+    var items = timeline.slice(0, 3);
+    var feed = document.querySelector('#layer-overview .activity-feed');
+    if (feed) {
+      feed.innerHTML = '';
+      items.forEach(function(ev) {
+        var actor = ev.source || ev.actor || 'System';
+        var initials = actor.substring(0, 2).toUpperCase();
+        var summary = ev.summary || ev.text || '';
+        var timeStr = ev.time || ev.timestamp || '';
+        var item = document.createElement('div');
+        item.className = 'activity-item';
+        item.style.cssText = 'border:0;padding:8px 0';
+        item.innerHTML = '<div class="activity-avatar">' + esc(initials) + '</div><div class="activity-body"><div class="activity-text">' + esc(summary) + '</div><div class="activity-time">' + esc(timeStr) + '</div></div>';
+        feed.appendChild(item);
+      });
+    }
+
+    // Full activity layer (layer 7)
+    var fullFeed = document.querySelector('#layer-activity .activity-feed');
+    if (fullFeed && timeline.length > 0) {
+      fullFeed.innerHTML = '';
+      var count = document.querySelector('#layer-activity strong');
+      if (count) count.textContent = timeline.length + ' events';
+      timeline.slice(0, 10).forEach(function(ev) {
+        var actor = ev.source || ev.actor || 'System';
+        var initials = actor.substring(0, 2).toUpperCase();
+        var summary = ev.summary || ev.text || '';
+        var timeStr = ev.time || ev.timestamp || '';
+        var item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML = '<div class="activity-avatar">' + esc(initials) + '</div><div class="activity-body"><div class="activity-text">' + esc(summary) + '</div><div class="activity-time">' + esc(timeStr) + '</div><div class="activity-actions"><button class="act-btn">\uD83D\uDCAC Reply</button></div></div>';
+        fullFeed.appendChild(item);
+      });
+    }
+  }
+
+  function esc(str) {
+    if (typeof str !== 'string') return String(str || '');
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   // ─── Theme Toggle ──────────────────────────────
   var toggle = document.getElementById('themeToggleProj');
   if (toggle) {
@@ -1150,18 +1552,10 @@ a:hover{text-decoration:underline}
     });
   });
 
-  // ─── Task Checkboxes ───────────────────────────
-  document.querySelectorAll('.task-item input[type=checkbox]').forEach(function(cb) {
-    cb.addEventListener('change', function() {
-      var name = cb.closest('.task-item').querySelector('.task-name');
-      if (name) name.classList.toggle('done', cb.checked);
-    });
-  });
-
   // ─── Collab Actions ────────────────────────────
   document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      if (btn.textContent.trim().startsWith('👍') || btn.textContent.trim().startsWith('🎉')) {
+      if (btn.textContent.trim().startsWith('\uD83D\uDC4D') || btn.textContent.trim().startsWith('\uD83C\uDF89')) {
         var m = btn.textContent.match(/(\d+)/);
         var count = m ? parseInt(m[1]) : 0;
         btn.textContent = btn.textContent.replace(/\d+/, count + 1);
@@ -1177,7 +1571,7 @@ a:hover{text-decoration:underline}
       var banner = btn.closest('.approval-banner');
       if (banner) {
         banner.className = 'approval-banner approved';
-        banner.innerHTML = '<span style="font-weight:600">✓ Approved</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout approved by you</span>';
+        banner.innerHTML = '<span style="font-weight:600">\u2713 Approved</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout approved by you</span>';
       }
     });
   });
@@ -1186,7 +1580,7 @@ a:hover{text-decoration:underline}
       var banner = btn.closest('.approval-banner');
       if (banner) {
         banner.className = 'approval-banner rejected';
-        banner.innerHTML = '<span style="font-weight:600">✗ Rejected</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout rejected. Reason required.</span><button class="btn btn-sm">Add reason</button>';
+        banner.innerHTML = '<span style="font-weight:600">\u2717 Rejected</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout rejected. Reason required.</span><button class="btn btn-sm">Add reason</button>';
       }
     });
   });
@@ -1194,7 +1588,7 @@ a:hover{text-decoration:underline}
   // ─── Upload Zone ───────────────────────────────
   var uploadZone = document.querySelector('.upload-zone');
   if (uploadZone) {
-    uploadZone.addEventListener('click', function() { alert('📎 File browser would open here'); });
+    uploadZone.addEventListener('click', function() { alert('\uD83D\uDCCE File browser would open here'); });
   }
 
   // ─── Quick action buttons ──────────────────────
@@ -1214,18 +1608,9 @@ a:hover{text-decoration:underline}
     btn.addEventListener('click', function() {
       var ta = btn.closest('.composer').querySelector('textarea');
       if (ta && ta.value.trim()) {
-        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+        alert('\uD83D\uDCAC Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '\u2026' : '') + '"');
         ta.value = '';
       }
-    });
-  });
-
-  // ─── Team DM buttons ───────────────────────────
-  document.querySelectorAll('.team-card .btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var name = btn.closest('.team-card').querySelector('.name');
-      if (name) alert('💬 DM to ' + name.textContent + ' opened');
     });
   });
 
@@ -1239,6 +1624,10 @@ a:hover{text-decoration:underline}
       if (layers[idx]) activateLayer(layers[idx]);
     }
   });
+
+  // ─── Start ACMI ────────────────────────────────
+  setACMIMessage('Connecting\u2026');
+  initACMI();
 
 })();
 </script>
