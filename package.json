@@ -1,0 +1,10 @@
+{
+  "name": "gsd-dashboard",
+  "version": "1.0.0",
+  "description": "GSD Dashboard — ACMI Fleet Command Center",
+  "scripts": {
+    "start": "source ~/clawd/.env && node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "type": "module"
+}

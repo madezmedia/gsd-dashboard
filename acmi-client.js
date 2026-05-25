@@ -10,9 +10,9 @@
 (function (root) {
   'use strict';
 
-  /* ─── Default Configuration ─────────────────────────────────── */
   var DEFAULTS = {
-    endpoint: '/api/acmi',          // MCP-over-HTTP endpoint
+    endpoint: '/acmi-proxy',        // ACMI-over-HTTP endpoint (Upstash REST proxy)
+    token: null,                    // Auth Bearer token
     cacheTTL: 15000,                // Default cache TTL (15s)
     timeout: 10000,                 // Request timeout (10s)
     retries: 2,                     // Failed request retries
@@ -29,11 +29,26 @@
     return Date.now() >= this.expiresAt;
   };
 
-  /* ─── ACMIClient Constructor ─────────────────────────────────── */
   function ACMIClient(opts) {
     opts = opts || {};
+    
+    // Auto-detect token from URL or localStorage if not explicitly passed
+    var detectedToken = null;
+    if (typeof window !== 'undefined') {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        detectedToken = params.get('token');
+      } catch (e) {}
+      if (!detectedToken) {
+        try {
+          detectedToken = localStorage.getItem('gsd:token');
+        } catch (e) {}
+      }
+    }
+
     this._config = {
       endpoint: opts.endpoint || DEFAULTS.endpoint,
+      token: opts.token || detectedToken || DEFAULTS.token || null,
       cacheTTL: opts.cacheTTL || DEFAULTS.cacheTTL,
       timeout: opts.timeout || DEFAULTS.timeout,
       retries: opts.retries != null ? opts.retries : DEFAULTS.retries,
@@ -91,9 +106,14 @@
           reject(new Error('ACMI request timeout: ' + tool + ' (request #' + reqId + ')'));
         }, opts.timeout || self._config.timeout);
 
+        var headers = { 'Content-Type': 'application/json' };
+        if (self._config.token) {
+          headers['Authorization'] = 'Bearer ' + self._config.token;
+        }
+
         fetch(self._config.endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: headers,
           body: JSON.stringify(payload),
           signal: controller.signal
         }).then(function (response) {
