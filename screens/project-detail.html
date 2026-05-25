@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACMI · Project Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── MZM Design System · Project Detail ──────────────────── */
+:root {
+  --paper:         #faf9f5;
+  --paper-elev:    #f4f2eb;
+  --paper-deep:    #efece2;
+  --paper-shade:   #e8e4d8;
+  --paper-inverse: #ffffff;
+  --divider:       #ebe8de;
+  --ink-1: #1a1a1a; --ink-2: #2c2c2a; --ink-3: #4a4a48;
+  --ink-4: #7a7a76; --ink-5: #9a9a96; --border: #d4d2cc;
+  --forest:        #2d4a3e;
+  --forest-2:      #5a7d6f;
+  --forest-3:      #7fa090;
+  --forest-deep:   #1c3027;
+  --forest-glow:   rgba(45,74,62,0.1);
+  --danger:        #c75050;
+  --danger-bg:     #fdf2f2;
+  --warning:       #c4903a;
+  --warning-bg:    #fdf8f0;
+  --success:       var(--forest-2);
+  --font-serif: 'Source Serif 4', Georgia, Palatino, serif;
+  --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --ease: cubic-bezier(0.16,1,0.3,1);
+  --d-fast: 150ms;
+  --d-norm: 280ms;
+}
+.theme-deep {
+  --paper:         #121418;
+  --paper-elev:    #1c1e24;
+  --paper-deep:    #262830;
+  --paper-shade:   #2e3038;
+  --divider:       #2a2c34;
+  --ink-1: #e8e6e0; --ink-2: #c8c6c0; --ink-3: #989690;
+  --ink-4: #686660; --ink-5: #484640; --border: #3a3c42;
+  --forest:        #7fa090;
+  --forest-2:      #5a7d6f;
+  --forest-3:      #4a6d5f;
+  --forest-deep:   #9cc0b0;
+  --forest-glow:   rgba(127,160,144,0.12);
+  --danger:        #e07070;
+  --danger-bg:     #2a1a1a;
+  --warning:       #d4a050;
+  --warning-bg:    #2a2210;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;scroll-behavior:smooth}
+body{
+  background:var(--paper);color:var(--ink-1);
+  font-family:var(--font-sans);font-weight:400;line-height:1.6;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+}
+::selection{background:var(--ink-1);color:var(--paper)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+a{color:var(--forest);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ─── Layout ───────────────────────────────────── */
+.app-wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);
+  margin-bottom:0;position:sticky;top:0;z-index:50;
+  background:var(--paper);
+}
+.top-bar-left{display:flex;align-items:center;gap:12px}
+.top-bar-right{display:flex;align-items:center;gap:8px}
+.back-link{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;
+  color:var(--ink-4);display:flex;align-items:center;gap:4px;
+  padding:4px 8px;border-radius:var(--radius-sm);
+  transition:all var(--d-fast) var(--ease);
+}
+.back-link:hover{color:var(--ink-1);background:var(--paper-elev);text-decoration:none}
+.badge-inline{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:var(--radius-sm);
+  font-family:var(--font-mono);font-size:9px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:600;
+}
+.badge-inline.active{background:var(--forest);color:#fff}
+.badge-inline.draft{background:var(--warning-bg);color:var(--warning)}
+.badge-inline.stalled{background:var(--danger-bg);color:var(--danger)}
+.badge-inline.done{background:rgba(45,74,62,.12);color:var(--forest)}.theme-deep .badge-inline.done{background:rgba(127,160,144,.15);color:var(--forest)}
+
+/* ─── Project Header ────────────────────────────── */
+.project-hdr{
+  padding:24px 0 20px;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+}
+.project-hdr-left{flex:1;min-width:280px}
+.project-hdr-title{
+  font-family:var(--font-serif);font-weight:700;
+  font-size:clamp(22px,3vw,32px);letter-spacing:-.02em;
+  color:var(--ink-1);line-height:1.2;margin-bottom:4px;
+}
+.project-hdr-desc{
+  font-size:14px;color:var(--ink-3);max-width:640px;
+  line-height:1.6;
+}
+.project-hdr-right{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ─── Step Progress ─────────────────────────────── */
+.step-progress{
+  display:flex;gap:0;padding:20px 0 24px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:0;overflow-x:auto;
+}
+.step{
+  display:flex;align-items:center;flex:1;min-width:0;
+  position:relative;
+}
+.step-circle{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  border:2px solid var(--border);color:var(--ink-4);background:var(--paper);
+  flex-shrink:0;transition:all var(--d-norm) var(--ease);
+  position:relative;z-index:1;
+}
+.step.completed .step-circle{
+  background:var(--forest);border-color:var(--forest);color:#fff;
+}
+.step.current .step-circle{
+  border-color:var(--forest);color:var(--forest);background:var(--paper);
+  box-shadow:0 0 0 4px var(--forest-glow);
+}
+.step-label{
+  margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:11px;font-weight:500;color:var(--ink-4);
+  transition:color var(--d-fast) var(--ease);
+}
+.step.completed .step-label{color:var(--forest)}
+.step.current .step-label{color:var(--ink-1);font-weight:600}
+.step-connector{
+  flex:1;height:2px;background:var(--border);margin:0 4px;
+  transition:background var(--d-norm) var(--ease);
+  min-width:8px;
+}
+.step.completed + .step-connector{background:var(--forest)}
+
+/* ─── Layer Tabs ────────────────────────────────── */
+.layer-tabs{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+  overflow-x:auto;position:sticky;top:49px;z-index:40;
+  background:var(--paper);
+}
+.layer-tab{
+  padding:10px 16px;font-size:12px;font-weight:500;
+  color:var(--ink-4);cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;
+  transition:all var(--d-fast) var(--ease);
+  font-family:var(--font-sans);
+  background:transparent;border-top:0;border-left:0;border-right:0;
+}
+.layer-tab:hover{color:var(--ink-1);background:var(--paper-elev)}
+.layer-tab.active{color:var(--forest);border-bottom-color:var(--forest);font-weight:600}
+.layer-tab .tab-icon{margin-right:6px;font-size:13px}
+
+/* ─── Layer Content ─────────────────────────────── */
+.layer-pane{display:none;padding:20px 0 40px}
+.layer-pane.active{display:block}
+
+/* ─── KPI Strip ─────────────────────────────────── */
+.kpi-strip{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--radius-md);
+  overflow:hidden;margin-bottom:20px;
+}
+.kpi-card{
+  background:var(--paper);padding:14px 16px;
+}
+.kpi-val{
+  font-family:var(--font-serif);font-weight:700;
+  font-size:20px;letter-spacing:-.01em;color:var(--ink-1);line-height:1;
+}
+.kpi-val.green{color:var(--forest)}
+.kpi-val.amber{color:var(--warning)}
+.kpi-val.red{color:var(--danger)}
+.kpi-label{
+  font-family:var(--font-mono);font-size:9px;text-transform:uppercase;
+  letter-spacing:.12em;color:var(--ink-4);margin-top:4px;
+}
+
+/* ─── Cards ─────────────────────────────────────── */
+.card{
+  border:1px solid var(--border);border-radius:var(--radius-md);
+  background:var(--paper);padding:20px;margin-bottom:16px;
+}
+.card-title{
+  font-family:var(--font-serif);font-weight:600;
+  font-size:15px;color:var(--ink-1);margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title .action-link{
+  font-family:var(--font-mono);font-size:10px;color:var(--forest);
+  cursor:pointer;font-weight:400;
+}
+.card-title .action-link:hover{text-decoration:underline}
+
+/* ─── Quick Actions ─────────────────────────────── */
+.qactions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:var(--radius-sm);
+  font-family:var(--font-sans);font-size:12px;font-weight:500;
+  border:1px solid var(--border);background:transparent;
+  color:var(--ink-2);cursor:pointer;text-decoration:none;
+  transition:all var(--d-fast) var(--ease);
+}
+.btn:hover{background:var(--paper-elev);border-color:var(--ink-4);text-decoration:none}
+.btn-primary{background:var(--forest);color:#fff;border-color:var(--forest)}
+.btn-primary:hover{background:var(--forest-2);border-color:var(--forest-2)}
+.btn-sm{padding:6px 12px;font-size:11px}
+.btn-danger{color:var(--danger);border-color:rgba(199,80,80,.3)}
+.btn-danger:hover{background:var(--danger-bg);border-color:var(--danger)}
+.theme-deep .btn-danger{color:#e07070;border-color:rgba(224,112,112,.3)}
+.theme-deep .btn-danger:hover{background:#2a1a1a}
+
+/* ─── Team Grid ─────────────────────────────────── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.team-card{
+  display:flex;align-items:center;gap:10px;padding:12px;
+  border:1px solid var(--border);border-radius:var(--radius-md);
+  background:var(--paper);transition:all var(--d-fast) var(--ease);
+}
+.team-card:hover{background:var(--paper-elev)}
+.team-card .avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--forest);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;flex-shrink:0;
+}
+.team-card .info{flex:1;min-width:0}
+.team-card .name{font-size:13px;font-weight:600;color:var(--ink-1)}
+.team-card .role{font-size:10px;color:var(--ink-4);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.04em}
+.team-card .avail{font-size:10px;color:var(--ink-5);font-family:var(--font-mono);margin-top:2px}
+.team-card .avail .dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:3px}
+.team-card .avail .dot.green{background:var(--forest)}
+.team-card .avail .dot.amber{background:var(--warning)}
+.team-card .avail .dot.red{background:var(--danger)}
+.team-card .actions{display:flex;gap:4px}
+
+/* ─── Task List ─────────────────────────────────── */
+.task-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.task-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-bottom:1px solid var(--divider);
+  transition:background var(--d-fast) var(--ease);
+}
+.task-item:last-child{border:0}
+.task-item:hover{background:var(--paper-elev)}
+.task-item input[type=checkbox]{accent-color:var(--forest);width:15px;height:15px;cursor:pointer;flex-shrink:0}
+.task-item .task-info{flex:1;min-width:0}
+.task-item .task-name{font-size:13px;font-weight:500;color:var(--ink-1)}
+.task-item .task-name.done{text-decoration:line-through;color:var(--ink-4)}
+.task-item .task-meta{font-size:11px;color:var(--ink-4);margin-top:2px;font-family:var(--font-mono)}
+.task-item .task-priority{
+  display:inline-flex;padding:1px 6px;border-radius:2px;
+  font-family:var(--font-mono);font-size:9px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.task-priority.p0{background:var(--danger-bg);color:var(--danger)}
+.task-priority.p1{background:var(--warning-bg);color:var(--warning)}
+.task-priority.p2{background:rgba(45,74,62,.1);color:var(--forest)}
+.theme-deep .task-priority.p2{background:rgba(127,160,144,.15);color:var(--forest)}
+.task-item .task-assignee{
+  font-family:var(--font-mono);font-size:10px;color:var(--ink-5);
+  padding:2px 6px;border:1px solid var(--border);border-radius:2px;
+  flex-shrink:0;
+}
+
+/* ─── Timeline/Milestones ───────────────────────── */
+.milestone-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.milestone-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px;border-bottom:1px solid var(--divider);
+  position:relative;
+}
+.milestone-item:last-child{border:0}
+.milestone-item::before{
+  content:'';position:absolute;left:22px;top:36px;bottom:0;
+  width:1px;background:var(--border);
+}
+.milestone-item:last-child::before{display:none}
+.milestone-dot{
+  width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:2px;
+  border:2px solid var(--border);background:var(--paper);position:relative;z-index:1;
+}
+.milestone-dot.done{border-color:var(--forest);background:var(--forest)}
+.milestone-dot.current{border-color:var(--forest);background:var(--paper);box-shadow:0 0 0 4px var(--forest-glow)}
+.theme-deep .milestone-dot.current{box-shadow:0 0 0 4px rgba(127,160,144,.15)}
+.milestone-dot.atrisk{border-color:var(--warning);background:var(--warning-bg)}
+.milestone-content{flex:1}
+.milestone-name{font-size:13px;font-weight:600;color:var(--ink-1)}
+.milestone-desc{font-size:12px;color:var(--ink-3);margin-top:2px;line-height:1.5}
+.milestone-date{font-family:var(--font-mono);font-size:10px;color:var(--ink-4);margin-top:4px;display:flex;align-items:center;gap:6px}
+.milestone-date .tag{
+  display:inline-flex;padding:1px 6px;border-radius:2px;font-size:9px;font-weight:600;text-transform:uppercase;
+}
+.tag-complete{background:rgba(45,74,62,.12);color:var(--forest)}
+.tag-in-progress{background:var(--warning-bg);color:var(--warning)}
+.tag-pending{background:var(--divider);color:var(--ink-4)}
+.theme-deep .tag-pending{background:var(--border);color:var(--ink-5)}
+
+/* ─── Budget Chart ──────────────────────────────── */
+.budget-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.budget-chart{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.budget-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.budget-label{width:120px;flex-shrink:0;font-weight:500;color:var(--ink-2)}
+.budget-track{flex:1;height:20px;border-radius:var(--radius-sm);background:var(--divider);overflow:hidden;position:relative}
+.budget-fill{
+  height:100%;border-radius:var(--radius-sm);background:var(--forest);
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:6px;color:#fff;font-family:var(--font-mono);font-size:10px;font-weight:600;
+  transition:width .6s var(--ease);
+}
+.budget-fill.warn{background:var(--warning)}
+.budget-fill.danger{background:var(--danger)}
+.budget-note{font-size:11px;color:var(--ink-4);margin-top:8px;font-family:var(--font-mono)}
+
+/* ─── Risk Register ─────────────────────────────── */
+.risk-table{width:100%;border-collapse:collapse;font-size:12px}
+.risk-table th{
+  font-family:var(--font-mono);font-size:9px;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--ink-4);text-align:left;
+  padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600;
+}
+.risk-table td{padding:8px 12px;border-bottom:1px solid var(--divider);color:var(--ink-2)}
+.risk-table tr:hover td{background:var(--paper-elev)}
+.risk-level{
+  display:inline-flex;padding:1px 8px;border-radius:2px;
+  font-family:var(--font-mono);font-size:9px;font-weight:600;text-transform:uppercase;
+}
+.risk-high{background:var(--danger-bg);color:var(--danger)}
+.risk-med{background:var(--warning-bg);color:var(--warning)}
+.risk-low{background:rgba(45,74,62,.1);color:var(--forest)}
+
+/* ─── Files ─────────────────────────────────────── */
+.file-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.file-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-bottom:1px solid var(--divider);
+  transition:background var(--d-fast) var(--ease);
+}
+.file-item:last-child{border:0}
+.file-item:hover{background:var(--paper-elev)}
+.file-icon{font-size:18px;flex-shrink:0}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:13px;font-weight:500;color:var(--ink-1)}
+.file-meta{font-size:11px;color:var(--ink-4);font-family:var(--font-mono)}
+.file-size{font-family:var(--font-mono);font-size:10px;color:var(--ink-5);flex-shrink:0}
+.file-actions{display:flex;gap:4px}
+.upload-zone{
+  border:2px dashed var(--border);border-radius:var(--radius-md);
+  padding:32px;text-align:center;color:var(--ink-4);font-size:13px;
+  transition:all var(--d-fast) var(--ease);cursor:pointer;margin-top:12px;
+}
+.upload-zone:hover{border-color:var(--forest);color:var(--forest);background:var(--forest-glow)}
+
+/* ─── Activity Feed ─────────────────────────────── */
+.activity-feed{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.activity-item{
+  display:flex;gap:10px;padding:12px 14px;
+  border-bottom:1px solid var(--divider);
+}
+.activity-item:last-child{border:0}
+.activity-avatar{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:var(--forest);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;
+}
+.activity-body{flex:1;min-width:0}
+.activity-text{font-size:12px;color:var(--ink-2);line-height:1.5}
+.activity-text strong{font-weight:600}
+.activity-text .mention{color:var(--forest);font-weight:500;font-family:var(--font-mono);font-size:11px}
+.activity-time{font-family:var(--font-mono);font-size:10px;color:var(--ink-5);margin-top:2px}
+.activity-actions{display:flex;gap:8px;margin-top:6px}
+.activity-actions .act-btn{
+  font-family:var(--font-mono);font-size:10px;color:var(--ink-4);
+  cursor:pointer;background:none;border:0;padding:0;
+  transition:color var(--d-fast) var(--ease);
+}
+.activity-actions .act-btn:hover{color:var(--forest);text-decoration:underline}
+.activity-filter{
+  display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;
+}
+.filter-chip{
+  padding:4px 12px;border-radius:999px;border:1px solid var(--border);
+  font-size:11px;color:var(--ink-4);cursor:pointer;background:transparent;
+  transition:all var(--d-fast) var(--ease);font-family:var(--font-sans);
+}
+.filter-chip:hover{border-color:var(--ink-3);color:var(--ink-1)}
+.filter-chip.active{background:var(--forest);color:#fff;border-color:var(--forest)}
+
+/* ─── Collaboration ─────────────────────────────── */
+.collab-thread{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:16px}
+.collab-thread-hdr{
+  padding:12px 16px;background:var(--paper-elev);
+  border-bottom:1px solid var(--border);
+  font-size:13px;font-weight:600;color:var(--ink-1);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.collab-thread-hdr .thread-meta{font-weight:400;font-size:11px;color:var(--ink-4)}
+.collab-msg{
+  padding:14px 16px;border-bottom:1px solid var(--divider);
+  transition:background var(--d-fast) var(--ease);
+}
+.collab-msg:last-child{border:0}
+.collab-msg:hover{background:var(--paper-elev)}
+.collab-msg-hdr{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.collab-avatar{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;color:#fff;
+}
+.collab-name{font-size:12px;font-weight:600;color:var(--ink-1)}
+.collab-role{font-size:10px;color:var(--ink-4);font-family:var(--font-mono)}
+.collab-time{font-size:10px;color:var(--ink-5);font-family:var(--font-mono);margin-left:auto}
+.collab-body{font-size:13px;color:var(--ink-2);line-height:1.6;margin-left:36px}
+.collab-body .mention{color:var(--forest);font-weight:500;font-family:var(--font-mono);font-size:12px}
+.collab-body .tag-ref{
+  display:inline-block;padding:1px 6px;border-radius:2px;
+  background:var(--forest-glow);color:var(--forest);
+  font-family:var(--font-mono);font-size:11px;
+}
+.collab-actions{
+  display:flex;gap:12px;margin-top:8px;margin-left:36px;
+}
+.collab-actions .act{
+  font-family:var(--font-mono);font-size:10px;color:var(--ink-4);
+  cursor:pointer;display:flex;align-items:center;gap:3px;
+  background:none;border:0;padding:0;
+  transition:color var(--d-fast) var(--ease);
+}
+.collab-actions .act:hover{color:var(--forest);text-decoration:underline}
+.collab-actions .act.active{color:var(--forest)}
+
+.approval-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;margin:0 16px 12px;
+  border-radius:var(--radius-sm);
+  font-size:12px;
+}
+.approval-banner.pending{background:var(--warning-bg);color:var(--warning)}
+.approval-banner.approved{background:rgba(45,74,62,.08);color:var(--forest)}
+.approval-banner.rejected{background:var(--danger-bg);color:var(--danger)}
+.approval-banner .btn-group{display:flex;gap:6px;margin-left:auto}
+
+/* ─── Comment Input ─────────────────────────────── */
+.composer{border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-top:16px}
+.composer textarea{
+  width:100%;min-height:80px;padding:10px;
+  border:1px solid var(--divider);border-radius:var(--radius-sm);
+  font:inherit;font-size:13px;color:var(--ink-2);background:var(--paper);
+  resize:vertical;transition:border-color var(--d-fast) var(--ease);
+  outline:none;
+}
+.composer textarea:focus{border-color:var(--forest)}
+.composer .composer-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:8px;
+}
+.composer .composer-tools{display:flex;gap:4px}
+.composer .composer-tools button{
+  width:28px;height:28px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:transparent;
+  color:var(--ink-4);cursor:pointer;display:grid;place-items:center;
+  font-size:13px;transition:all var(--d-fast) var(--ease);
+}
+.composer .composer-tools button:hover{background:var(--paper-elev);color:var(--ink-1)}
+
+/* ─── Responsive ────────────────────────────────── */
+@media(max-width:860px){
+  .step-label{display:none}
+  .step-progress{padding:14px 0}
+  .budget-grid{grid-template-columns:1fr}
+  .app-wrap{padding:0 16px}
+  .project-hdr-title{font-size:20px}
+  .layer-tab{padding:8px 12px;font-size:11px}
+  .layer-tab .tab-icon{margin-right:4px}
+}
+@media(max-width:540px){
+  .kpi-strip{grid-template-columns:1fr 1fr}
+  .team-grid{grid-template-columns:1fr}
+  .project-hdr-right{width:100%}
+  .project-hdr-right .btn{flex:1;justify-content:center}
+  .risk-table th:nth-child(3),.risk-table td:nth-child(3),
+  .risk-table th:nth-child(4),.risk-table td:nth-child(4){display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="app-wrap">
+
+<!-- ─── Top Bar ──────────────────────────────── -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="../gsd-dashboard.html#page-projects" class="back-link">← Dashboard</a>
+    <span style="color:var(--ink-5);font-size:12px">|</span>
+    <a href="../gsd-dashboard.html#page-projects" class="back-link">Projects</a>
+    <span class="badge-inline active" style="margin-left:4px">Active</span>
+  </div>
+  <div class="top-bar-right">
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5);letter-spacing:.08em;text-transform:uppercase" id="themeToggleProj" style="cursor:pointer;">☾ Dark</span>
+    <span style="color:var(--ink-5);font-size:10px">|</span>
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5)" id="acmiStatus">ACMI · <span style="color:var(--forest)">Online</span></span>
+  </div>
+</div>
+
+<!-- ─── Project Header ────────────────────────── -->
+<div class="project-hdr">
+  <div class="project-hdr-left">
+    <div class="project-hdr-title">ACMI Fleet Ops — Edge Computing Rollout</div>
+    <div class="project-hdr-desc">Phase 2 of fleet-wide edge compute deployment. Migrating model inference from cloud to vessel-based ACMI agents across 12 ships. Multi-agent orchestration with real-time Upstash Redis sync.</div>
+  </div>
+  <div class="project-hdr-right">
+    <button class="btn btn-primary btn-sm">✎ Edit</button>
+    <button class="btn btn-sm">☆ Star</button>
+    <button class="btn btn-sm">⋮</button>
+  </div>
+</div>
+
+<!-- ─── Step Progress ─────────────────────────── -->
+<div class="step-progress">
+  <div class="step completed"><div class="step-circle">✓</div><div class="step-label">Concept</div></div>
+  <div class="step-connector"></div>
+  <div class="step completed"><div class="step-circle">✓</div><div class="step-label">Planning</div></div>
+  <div class="step-connector"></div>
+  <div class="step current"><div class="step-circle">3</div><div class="step-label">Development</div></div>
+  <div class="step-connector"></div>
+  <div class="step"><div class="step-circle">4</div><div class="step-label">Validation</div></div>
+  <div class="step-connector"></div>
+  <div class="step"><div class="step-circle">5</div><div class="step-label">Launch</div></div>
+  <div class="step-connector"></div>
+  <div class="step"><div class="step-circle">6</div><div class="step-label">Retro</div></div>
+</div>
+
+<!-- ─── Layer Tabs ────────────────────────────── -->
+<div class="layer-tabs" id="layerTabs">
+  <button class="layer-tab active" data-layer="overview"><span class="tab-icon">🏠</span>Overview</button>
+  <button class="layer-tab" data-layer="team"><span class="tab-icon">👥</span>Team</button>
+  <button class="layer-tab" data-layer="tasks"><span class="tab-icon">✅</span>Tasks</button>
+  <button class="layer-tab" data-layer="timeline"><span class="tab-icon">📊</span>Timeline</button>
+  <button class="layer-tab" data-layer="budget"><span class="tab-icon">💰</span>Budget &amp; Risks</button>
+  <button class="layer-tab" data-layer="files"><span class="tab-icon">📄</span>Files &amp; Docs</button>
+  <button class="layer-tab" data-layer="activity"><span class="tab-icon">📋</span>Activity</button>
+  <button class="layer-tab" data-layer="collab"><span class="tab-icon">💬</span>Collab</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 1: OVERVIEW
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane active" id="layer-overview">
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-val green">62%</div><div class="kpi-label">Progress</div></div>
+    <div class="kpi-card"><div class="kpi-val">$184K</div><div class="kpi-label">Budget</div></div>
+    <div class="kpi-card"><div class="kpi-val green">$112K</div><div class="kpi-label">Spent</div></div>
+    <div class="kpi-card"><div class="kpi-val">4</div><div class="kpi-label">Team Members</div></div>
+    <div class="kpi-card"><div class="kpi-val green">12</div><div class="kpi-label">Vessels</div></div>
+    <div class="kpi-card"><div class="kpi-val amber">8 / 12</div><div class="kpi-label">Nodes Deployed</div></div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <div class="card-title">Quick Actions</div>
+    <div class="qactions">
+      <button class="btn btn-sm">+ Add Task</button>
+      <button class="btn btn-sm">📅 Schedule Meeting</button>
+      <button class="btn btn-sm">📄 Upload Document</button>
+      <button class="btn btn-sm">💬 Message Team</button>
+      <button class="btn btn-sm">📊 Generate Report</button>
+    </div>
+  </div>
+
+  <!-- Progress Overview + Recent Activity 2-col -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title">Milestone Progress</div>
+      <div class="milestone-list">
+        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot done"></div><div class="milestone-content"><div class="milestone-name">Vessel assessment</div><div class="milestone-desc">All 12 vessels surveyed</div></div><span class="tag-complete" style="font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:2px">Complete</span></div>
+        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot done"></div><div class="milestone-content"><div class="milestone-name">Edge hardware install</div><div class="milestone-desc">8 of 12 nodes deployed</div></div><span class="tag-complete">Complete</span></div>
+        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot current"></div><div class="milestone-content"><div class="milestone-name">ACMI payload rollout</div><div class="milestone-desc">5 vessels live; 7 remaining</div></div><span class="tag-in-progress">In Progress</span></div>
+        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot" style="border-color:var(--border)"></div><div class="milestone-content"><div class="milestone-name">Model sync validation</div><div class="milestone-desc">Planned Jun 10</div></div><span class="tag-pending">Pending</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recent Activity <span class="action-link">View all →</span></div>
+      <div class="activity-feed">
+        <div class="activity-item" style="border:0;padding:8px 0">
+          <div class="activity-avatar">MR</div>
+          <div class="activity-body"><div class="activity-text"><strong>Maya Reyes</strong> deployed hotfix v2.4.1 to staging fleet</div><div class="activity-time">2h ago</div></div>
+        </div>
+        <div class="activity-item" style="border:0;padding:8px 0">
+          <div class="activity-avatar" style="background:var(--ink-4)">LL7</div>
+          <div class="activity-body"><div class="activity-text"><strong>Agent LL-7</strong> detected sync anomaly on vessel 7 · <span class="mention">@maya</span></div><div class="activity-time">5h ago</div></div>
+        </div>
+        <div class="activity-item" style="border:0;padding:8px 0">
+          <div class="activity-avatar">JK</div>
+          <div class="activity-body"><div class="activity-text"><strong>James Kwon</strong> completed edge node install on vessels 9 &amp; 11</div><div class="activity-time">1d ago</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 2: TEAM
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-team">
+  <div class="card">
+    <div class="card-title">Team Roster <span class="action-link">+ Invite Member</span></div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="avatar">MR</div>
+        <div class="info">
+          <div class="name">Maya Reyes</div>
+          <div class="role">Lead Engineer</div>
+          <div class="avail"><span class="dot green"></span>Available · 4 tasks</div>
+        </div>
+        <div class="actions"><button class="btn btn-sm">💬</button></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">JK</div>
+        <div class="info">
+          <div class="name">James Kwon</div>
+          <div class="role">Edge Deploy</div>
+          <div class="avail"><span class="dot green"></span>Available · 2 tasks</div>
+        </div>
+        <div class="actions"><button class="btn btn-sm">💬</button></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar" style="background:var(--ink-4)">LL7</div>
+        <div class="info">
+          <div class="name">Agent LL-7</div>
+          <div class="role">Fleet Monitor</div>
+          <div class="avail"><span class="dot green"></span>Online · Auto-watch</div>
+        </div>
+        <div class="actions"><button class="btn btn-sm">💬</button></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">TR</div>
+        <div class="info">
+          <div class="name">Tessa Rivera</div>
+          <div class="role">QA &amp; Validation</div>
+          <div class="avail"><span class="dot amber"></span>In meeting · 3 tasks</div>
+        </div>
+        <div class="actions"><button class="btn btn-sm">💬</button></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar" style="background:var(--warning)">✧</div>
+        <div class="info">
+          <div class="name">Bentley</div>
+          <div class="role">Design Lead</div>
+          <div class="avail"><span class="dot green"></span>Available · Design review</div>
+        </div>
+        <div class="actions"><button class="btn btn-sm">💬</button></div>
+      </div>
+      <div class="team-card">
+        <div class="avatar" style="background:#4a6fa5">FO</div>
+        <div class="info">
+          <div class="name">Fleet Ops Center</div>
+          <div class="role">Orchestration</div>
+          <div class="avail"><span class="dot green"></span>Monitoring fleet</div>
+        </div>
+        <div class="actions"><button class="btn btn-sm">💬</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title">Workload Distribution</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>Maya Reyes</span><span style="font-family:var(--font-mono);color:var(--ink-4)">4 tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:67%;height:100%;background:var(--forest);border-radius:3px"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>James Kwon</span><span style="font-family:var(--font-mono);color:var(--ink-4)">2 tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:33%;height:100%;background:var(--forest-2);border-radius:3px"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>Tessa Rivera</span><span style="font-family:var(--font-mono);color:var(--ink-4)">3 tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:50%;height:100%;background:var(--forest-3);border-radius:3px"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>Agent LL-7</span><span style="font-family:var(--font-mono);color:var(--ink-4)">Auto</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:20%;height:100%;background:var(--ink-4);border-radius:3px"></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Availability</div>
+      <div style="font-size:13px;color:var(--ink-2);line-height:1.8">
+        <div>🟢 Maya Reyes · Available until 6:00 PM</div>
+        <div>🟢 James Kwon · Available</div>
+        <div>🟢 Agent LL-7 · Online 24/7</div>
+        <div>🟡 Tessa Rivera · In review (ends 3:30 PM)</div>
+        <div>🟢 Bentley · Available</div>
+        <div>🟢 Fleet Ops Center · Monitoring</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 3: TASKS
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-tasks">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:13px;color:var(--ink-3)"><strong style="color:var(--ink-1)">14 tasks</strong> · 4 open · 3 in progress · 7 completed</div>
+    <div style="display:flex;gap:6px">
+      <input type="text" placeholder="Filter tasks…" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--paper);color:var(--ink-1);width:160px;outline:none">
+      <button class="btn btn-sm btn-primary">+ Add Task</button>
+    </div>
+  </div>
+
+  <div class="task-list">
+    <div class="task-item"><input type="checkbox" checked><div class="task-info"><div class="task-name done">Vessel assessment completion report</div><div class="task-meta">Maya Reyes · Due May 12</div></div><span class="task-priority p2">P2</span><span class="task-assignee">@maya</span></div>
+    <div class="task-item"><input type="checkbox" checked><div class="task-info"><div class="task-name done">Edge node hardware procurement</div><div class="task-meta">James Kwon · Due May 20</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@james</span></div>
+    <div class="task-item"><input type="checkbox" checked><div class="task-info"><div class="task-name done">Staging environment setup on vessels 1-4</div><div class="task-meta">Maya Reyes · Due May 25</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@maya</span></div>
+    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Deploy ACMI payload agent on vessels 5-8</div><div class="task-meta">James Kwon · Due Jun 5 · <span style="color:var(--danger)">⚠ 2 days overdue</span></div></div><span class="task-priority p0">P0</span><span class="task-assignee">@james</span></div>
+    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Validate model sync across deployed nodes</div><div class="task-meta">Tessa Rivera · Due Jun 10</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@tessa</span></div>
+    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Regression test edge model inference</div><div class="task-meta">Tessa Rivera · Due Jun 12</div></div><span class="task-priority p2">P2</span><span class="task-assignee">@tessa</span></div>
+    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Write runbook for fleet edge operations</div><div class="task-meta">Maya Reyes · Due Jun 15</div></div><span class="task-priority p2">P2</span><span class="task-assignee">@maya</span></div>
+    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Final go-live sign-off from fleet safety</div><div class="task-meta">Maya Reyes · Due Jun 25</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@maya</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 4: TIMELINE
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-timeline">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+    <div class="card-title" style="margin:0">Project Milestones</div>
+    <div style="display:flex;gap:6px">
+      <button class="filter-chip active">All</button>
+      <button class="filter-chip">Complete</button>
+      <button class="filter-chip">In Progress</button>
+      <button class="filter-chip">At Risk</button>
+    </div>
+  </div>
+
+  <div class="milestone-list">
+    <div class="milestone-item">
+      <div class="milestone-dot done"></div>
+      <div class="milestone-content">
+        <div class="milestone-name">Vessel Assessment</div>
+        <div class="milestone-desc">Complete structural and connectivity survey of all 12 target vessels. Includes power draw, network latency, and physical mounting points.</div>
+        <div class="milestone-date"><span class="tag tag-complete">Complete</span> May 12 · Maya Reyes</div>
+      </div>
+    </div>
+    <div class="milestone-item">
+      <div class="milestone-dot done"></div>
+      <div class="milestone-content">
+        <div class="milestone-name">Edge Hardware Installation</div>
+        <div class="milestone-desc">Install NVIDIA Jetson Orin edge nodes on all vessels. Configure network isolation, power redundancy, and physical security.</div>
+        <div class="milestone-date"><span class="tag tag-complete">Complete · 8/12</span> May 12–28 · James Kwon</div>
+      </div>
+    </div>
+    <div class="milestone-item">
+      <div class="milestone-dot current"></div>
+      <div class="milestone-content">
+        <div class="milestone-name">ACMI Payload Agent Rollout</div>
+        <div class="milestone-desc">Deploy ACMI payload agent on each edge node. Configure model distribution pipeline, health checks, and automatic rollback on sync failure.</div>
+        <div class="milestone-date"><span class="tag tag-in-progress">In Progress</span> May 28 – Jun 15 · Maya Reyes + James</div>
+      </div>
+    </div>
+    <div class="milestone-item">
+      <div class="milestone-dot atrisk"></div>
+      <div class="milestone-content">
+        <div class="milestone-name">Model Sync Validation</div>
+        <div class="milestone-desc">Validate that model inference results match cloud baseline within 99.5% confidence across all 12 vessels. Run 48h continuous test.</div>
+        <div class="milestone-date"><span class="tag tag-in-progress">At Risk</span> Jun 10–20 · Tessa Rivera · <span style="color:var(--danger)">⚠ Depends on payload rollout</span></div>
+      </div>
+    </div>
+    <div class="milestone-item">
+      <div class="milestone-dot" style="border-color:var(--border)"></div>
+      <div class="milestone-content">
+        <div class="milestone-name">Full Fleet Go-Live</div>
+        <div class="milestone-desc">Cut over all 12 vessels to edge inference. Retire cloud inference dependency for non-training workloads. Monitoring period begins.</div>
+        <div class="milestone-date"><span class="tag tag-pending">Target</span> Jun 30 · Maya Reyes</div>
+      </div>
+    </div>
+    <div class="milestone-item">
+      <div class="milestone-dot" style="border-color:var(--border)"></div>
+      <div class="milestone-content">
+        <div class="milestone-name">Post-Launch Review</div>
+        <div class="milestone-desc">Performance review, latency benchmarks, cost analysis vs cloud baseline, knowledge base capture, and retro.</div>
+        <div class="milestone-date"><span class="tag tag-pending">Planned</span> Jul 7–11 · Full Team</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 5: BUDGET & RISKS
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-budget">
+  <div class="budget-grid">
+    <div class="card">
+      <div class="card-title">Budget Breakdown</div>
+      <div class="budget-chart">
+        <div class="budget-row"><span class="budget-label">Hardware</span><div class="budget-track"><div class="budget-fill" style="width:42%">$48K</div></div></div>
+        <div class="budget-row"><span class="budget-label">Software Dev</span><div class="budget-track"><div class="budget-fill" style="width:28%">$32K</div></div></div>
+        <div class="budget-row"><span class="budget-label">Installation</span><div class="budget-track"><div class="budget-fill" style="width:18%">$21K</div></div></div>
+        <div class="budget-row"><span class="budget-label">Testing &amp; QA</span><div class="budget-track"><div class="budget-fill warn" style="width:12%">$14K</div></div></div>
+        <div class="budget-row"><span class="budget-label">Contingency</span><div class="budget-track"><div class="budget-fill" style="width:0%"></div></div></div>
+      </div>
+      <div class="budget-note">Total spent: $112,000 of $184,000 budget (60.8%) · $72,000 remaining</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Spend by Month</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:16px">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:40px;background:var(--forest);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Mar</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:65px;background:var(--forest-2);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Apr</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:85px;background:var(--forest);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">May</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:55px;background:var(--forest-3);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Jun</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:25px;background:var(--ink-4);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Jul</span></div>
+      </div>
+      <div class="budget-note" style="margin-top:8px">Estimated: Mar $18K · Apr $32K · May $42K · Jun $28K · Jul $12K</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Risk Register <span class="action-link">+ Add Risk</span></div>
+    <table class="risk-table">
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Level</th><th>Mitigation</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr><td>Edge node hardware failure</td><td>Low</td><td>Critical</td><td><span class="risk-level risk-med">Medium</span></td><td>Redundant nodes on vessels 1-4</td><td style="font-family:var(--font-mono);font-size:11px">@james</td></tr>
+        <tr><td>ACMI sync protocol mismatch</td><td>Medium</td><td>High</td><td><span class="risk-level risk-high">High</span></td><td>Rolling hotfix + manifest checksum</td><td style="font-family:var(--font-mono);font-size:11px">@maya</td></tr>
+        <tr><td>Vessel network latency spikes</td><td>Medium</td><td>Medium</td><td><span class="risk-level risk-med">Medium</span></td><td>Async queue + backpressure buffer</td><td style="font-family:var(--font-mono);font-size:11px">@james</td></tr>
+        <tr><td>Model accuracy drift on edge</td><td>Low</td><td>High</td><td><span class="risk-level risk-low">Low</span></td><td>48h continuous validation suite</td><td style="font-family:var(--font-mono);font-size:11px">@tessa</td></tr>
+        <tr><td>Supply chain delay - replacement nodes</td><td>Low</td><td>Medium</td><td><span class="risk-level risk-low">Low</span></td><td>3 spare nodes in inventory</td><td style="font-family:var(--font-mono);font-size:11px">@maya</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 6: FILES & DOCS
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-files">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:13px;color:var(--ink-3)"><strong style="color:var(--ink-1)">18 files</strong> · 4.2 GB total</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-sm">+ Upload</button>
+      <button class="btn btn-sm">+ New Folder</button>
+    </div>
+  </div>
+
+  <div class="file-list">
+    <div class="file-item"><span class="file-icon">📁</span><div class="file-info"><div class="file-name">Architecture Diagrams</div><div class="file-meta">Folder · 6 files</div></div><span class="file-size">24 MB</span><div class="file-actions"><span class="action-link">Open</span></div></div>
+    <div class="file-item"><span class="file-icon">📁</span><div class="file-info"><div class="file-name">Vessel Survey Reports</div><div class="file-meta">Folder · 12 files</div></div><span class="file-size">18 MB</span><div class="file-actions"><span class="action-link">Open</span></div></div>
+    <div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">Edge-Compute-Architecture-v2.pdf</div><div class="file-meta">PDF · Updated May 22</div></div><span class="file-size">3.2 MB</span><div class="file-actions"><span class="action-link">Download</span></div></div>
+    <div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">ACMI-Payload-Agent-Spec.md</div><div class="file-meta">Markdown · Updated May 24</div></div><span class="file-size">48 KB</span><div class="file-actions"><span class="action-link">View</span></div></div>
+    <div class="file-item"><span class="file-icon">📊</span><div class="file-info"><div class="file-name">Fleet-Metrics-Dashboard.sb3</div><div class="file-meta">Tableau · Updated May 20</div></div><span class="file-size">12 MB</span><div class="file-actions"><span class="action-link">Download</span></div></div>
+    <div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">Edge-Rollout-Runbook-v1.md</div><div class="file-meta">Markdown · Updated May 18</div></div><span class="file-size">36 KB</span><div class="file-actions"><span class="action-link">View</span></div></div>
+    <div class="file-item"><span class="file-icon">📁</span><div class="file-info"><div class="file-name">Validation Reports</div><div class="file-meta">Folder · 8 files</div></div><span class="file-size">340 MB</span><div class="file-actions"><span class="action-link">Open</span></div></div>
+  </div>
+
+  <div class="upload-zone">
+    <div style="font-size:24px;margin-bottom:8px">📎</div>
+    <div><strong>Drop files here</strong> or click to browse</div>
+    <div style="font-size:11px;color:var(--ink-5);margin-top:4px">PDF, Markdown, Images, CAD files — up to 500 MB each</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 7: ACTIVITY
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-activity">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:13px;color:var(--ink-3)"><strong style="color:var(--ink-1)">24 events</strong> this week</div>
+    <div class="activity-filter">
+      <button class="filter-chip active">All</button>
+      <button class="filter-chip">Deploys</button>
+      <button class="filter-chip">Tasks</button>
+      <button class="filter-chip">Comments</button>
+      <button class="filter-chip">System</button>
+    </div>
+  </div>
+
+  <div class="activity-feed">
+    <div class="activity-item">
+      <div class="activity-avatar">MR</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>Maya Reyes</strong> deployed <strong>hotfix v2.4.1</strong> to staging fleet · <span class="mention">@james</span> <span class="mention">@tessa</span></div>
+        <div class="activity-time">2 hours ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">👍 3</button><button class="act-btn">🔗 Copy link</button></div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-avatar" style="background:var(--ink-4)">LL7</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>Agent LL-7</strong> detected sync anomaly on vessel 7 · Created task <span class="mention">#ota-12</span></div>
+        <div class="activity-time">5 hours ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">🔗 View task</button></div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-avatar" style="background:var(--ink-4)">LL7</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>Agent LL-7</strong> auto-resolved task <span class="mention">#ota-12</span> after hotfix deployment confirmed</div>
+        <div class="activity-time">1 hour ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button></div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-avatar">JK</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>James Kwon</strong> completed edge node install on vessels 9 and 11</div>
+        <div class="activity-time">1 day ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">👍 5</button></div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-avatar">TR</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>Tessa Rivera</strong> passed validation suite for payload agent v2.4 · <span class="mention">@maya</span> ready for review</div>
+        <div class="activity-time">2 days ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">✅ Approve</button></div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-avatar">MR</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>Maya Reyes</strong> merged PR <span class="mention">#142</span> — ACMI manifest checksum fix</div>
+        <div class="activity-time">3 days ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">🔗 View PR</button></div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-avatar" style="background:var(--warning)">✧</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>Bentley</strong> left design review feedback on edge-compute-architecture-v2 PDF</div>
+        <div class="activity-time">3 days ago</div>
+        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">📄 View doc</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LAYER 8: COLLABORATION
+     ═══════════════════════════════════════════════ -->
+<div class="layer-pane" id="layer-collab">
+  <!-- Thread 1 -->
+  <div class="collab-thread">
+    <div class="collab-thread-hdr">
+      <span># Hotfix v2.4.1 Rollout Discussion</span>
+      <span class="thread-meta">3 replies · Last reply 1h ago</span>
+    </div>
+
+    <div class="collab-msg">
+      <div class="collab-msg-hdr">
+        <div class="collab-avatar" style="background:var(--ink-4)">LL7</div>
+        <span class="collab-name">Agent LL-7</span>
+        <span class="collab-role">Fleet Monitor</span>
+        <span class="collab-time">2h ago</span>
+      </div>
+      <div class="collab-body">
+        Sync anomaly detected on vessel 7 at 03:14Z. Payload agent logs show checksum mismatch in manifest header — OTA writes v2.3 format but edge agent expects v2.4. <span class="tag-ref">Correlation ID: sync-fail-20260522</span>
+      </div>
+      <div class="collab-actions">
+        <button class="act">💬 Reply</button>
+        <button class="act">👍 2</button>
+        <button class="act">🔗 Copy ID</button>
+      </div>
+    </div>
+
+    <div class="collab-msg">
+      <div class="collab-msg-hdr">
+        <div class="collab-avatar" style="background:var(--forest)">MR</div>
+        <span class="collab-name">Maya Reyes</span>
+        <span class="collab-role">Lead Engineer</span>
+        <span class="collab-time">2h ago</span>
+      </div>
+      <div class="collab-body">
+        Confirmed the same pattern on vessels 7 and 11. Root cause is in <span class="mention">@acmi-payload-agent</span>'s <code>verify()</code> function. Pushed hotfix to <span class="mention">#branch-hotfix-v2.4.1</span>. <span class="mention">@james</span> can you deploy to staging?
+      </div>
+      <div class="collab-actions">
+        <button class="act">💬 Reply</button>
+        <button class="act">👍 5</button>
+        <button class="act active">✅ Approved</button>
+      </div>
+    </div>
+
+    <div class="collab-msg">
+      <div class="collab-msg-hdr">
+        <div class="collab-avatar">JK</div>
+        <span class="collab-name">James Kwon</span>
+        <span class="collab-role">Edge Deploy</span>
+        <span class="collab-time">1h ago</span>
+      </div>
+      <div class="collab-body">
+        Deployed to staging fleet (vessels 1-4). Running 2h validation window — will report back. Also added a rollback script just in case: <span class="mention">./scripts/rollback-edge.sh</span>
+      </div>
+      <div class="collab-actions">
+        <button class="act">💬 Reply</button>
+        <button class="act">👍 3</button>
+        <button class="act">🔗 View script</button>
+      </div>
+    </div>
+
+    <div class="collab-msg">
+      <div class="collab-msg-hdr">
+        <div class="collab-avatar" style="background:var(--ink-4)">LL7</div>
+        <span class="collab-name">Agent LL-7</span>
+        <span class="collab-role">Fleet Monitor</span>
+        <span class="collab-time">45m ago</span>
+      </div>
+      <div class="collab-body">
+        Validation window complete. Sync success rate on staging fleet: <strong>100%</strong> (48/48 attempts). Auto-resolved <span class="mention">#ota-12</span>. Ready for production rollout.
+      </div>
+      <div class="collab-actions">
+        <button class="act">💬 Reply</button>
+        <button class="act">🎉 8</button>
+        <button class="act active">✅ Auto-approved</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approval Request -->
+  <div class="approval-banner pending">
+    <span style="font-weight:600">⏳ Approval Required</span>
+    <span style="flex:1;font-size:12px">Maya Reyes requested approval for <strong>Production rollout of hotfix v2.4.1</strong></span>
+    <div class="btn-group">
+      <button class="btn btn-sm btn-primary">✓ Approve</button>
+      <button class="btn btn-sm btn-danger">✗ Reject</button>
+    </div>
+  </div>
+
+  <!-- Thread 2 -->
+  <div class="collab-thread">
+    <div class="collab-thread-hdr">
+      <span># Edge Node Installation — Vessel 10 Access Issue</span>
+      <span class="thread-meta">2 replies · Resolved</span>
+    </div>
+
+    <div class="collab-msg">
+      <div class="collab-msg-hdr">
+        <div class="collab-avatar">JK</div>
+        <span class="collab-name">James Kwon</span>
+        <span class="collab-role">Edge Deploy</span>
+        <span class="collab-time">3d ago</span>
+      </div>
+      <div class="collab-body">
+        Vessel 10 has restricted access due to dry-dock maintenance schedule. Can't install until Jun 5 at earliest. <span class="mention">@maya</span> can we swap order with vessel 12?
+      </div>
+      <div class="collab-actions">
+        <button class="act">💬 Reply</button>
+        <button class="act">👍 1</button>
+      </div>
+    </div>
+
+    <div class="collab-msg">
+      <div class="collab-msg-hdr">
+        <div class="collab-avatar" style="background:var(--forest)">MR</div>
+        <span class="collab-name">Maya Reyes</span>
+        <span class="collab-role">Lead Engineer</span>
+        <span class="collab-time">3d ago</span>
+      </div>
+      <div class="collab-body">
+        Good call. Swap to vessel 12 — it's already cleared. I'll update the milestone tracker. <span class="mention">@agent-ll7</span> please re-scan vessel 12 connectivity profile.
+      </div>
+      <div class="collab-actions">
+        <button class="act">💬 Reply</button>
+        <button class="act active">✅ Resolved</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comment Composer -->
+  <div class="composer">
+    <textarea placeholder="Write a message… Use @ to mention someone, # to reference a task or PR."></textarea>
+    <div class="composer-bar">
+      <div class="composer-tools">
+        <button title="Bold"><strong>B</strong></button>
+        <button title="Italic"><em>I</em></button>
+        <button title="Code">{ }</button>
+        <button title="Link">🔗</button>
+        <button title="Mention">@</button>
+        <button title="Emoji">😊</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5)">Shift + Enter to send</span>
+        <button class="btn btn-sm btn-primary">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.app-wrap -->
+
+<script>
+(function() {
+  // ─── Theme Toggle ──────────────────────────────
+  var toggle = document.getElementById('themeToggleProj');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      document.body.classList.toggle('theme-deep');
+    });
+  }
+
+  // ─── Layer Tabs ────────────────────────────────
+  var tabs = document.querySelectorAll('.layer-tab');
+  var panes = {};
+  document.querySelectorAll('.layer-pane').forEach(function(p) {
+    panes[p.id.replace('layer-', '')] = p;
+  });
+
+  function activateLayer(layerId) {
+    tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.layer === layerId); });
+    Object.keys(panes).forEach(function(k) { panes[k].classList.toggle('active', k === layerId); });
+    window.location.hash = 'layer-' + layerId;
+  }
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var layerId = tab.dataset.layer;
+      if (layerId) activateLayer(layerId);
+    });
+  });
+
+  // ─── Hash-based deep link ──────────────────────
+  var hash = window.location.hash.replace('#', '');
+  if (hash && panes[hash.replace('layer-', '')]) {
+    activateLayer(hash.replace('layer-', ''));
+  }
+
+  // ─── Filter Chips ──────────────────────────────
+  document.querySelectorAll('.filter-chip').forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      var parent = chip.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+      }
+      chip.classList.add('active');
+    });
+  });
+
+  // ─── Task Checkboxes ───────────────────────────
+  document.querySelectorAll('.task-item input[type=checkbox]').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var name = cb.closest('.task-item').querySelector('.task-name');
+      if (name) name.classList.toggle('done', cb.checked);
+    });
+  });
+
+  // ─── Collab Actions ────────────────────────────
+  document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.textContent.trim().startsWith('👍') || btn.textContent.trim().startsWith('🎉')) {
+        var m = btn.textContent.match(/(\d+)/);
+        var count = m ? parseInt(m[1]) : 0;
+        btn.textContent = btn.textContent.replace(/\d+/, count + 1);
+      } else if (btn.textContent.includes('Approved') || btn.textContent.includes('Resolved')) {
+        btn.classList.toggle('active');
+      }
+    });
+  });
+
+  // ─── Approval Buttons ──────────────────────────
+  document.querySelectorAll('.approval-banner .btn-primary').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var banner = btn.closest('.approval-banner');
+      if (banner) {
+        banner.className = 'approval-banner approved';
+        banner.innerHTML = '<span style="font-weight:600">✓ Approved</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout approved by you</span>';
+      }
+    });
+  });
+  document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var banner = btn.closest('.approval-banner');
+      if (banner) {
+        banner.className = 'approval-banner rejected';
+        banner.innerHTML = '<span style="font-weight:600">✗ Rejected</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout rejected. Reason required.</span><button class="btn btn-sm">Add reason</button>';
+      }
+    });
+  });
+
+  // ─── Upload Zone ───────────────────────────────
+  var uploadZone = document.querySelector('.upload-zone');
+  if (uploadZone) {
+    uploadZone.addEventListener('click', function() { alert('📎 File browser would open here'); });
+  }
+
+  // ─── Quick action buttons ──────────────────────
+  document.querySelectorAll('.qactions .btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.textContent.includes('Add Task')) {
+        document.querySelector('.layer-tab[data-layer="tasks"]').click();
+      } else if (btn.textContent.includes('Message Team')) {
+        document.querySelector('.layer-tab[data-layer="collab"]').click();
+      }
+    });
+  });
+
+  // ─── Composer Send ─────────────────────────────
+  var sendBtns = document.querySelectorAll('.composer .btn-primary');
+  sendBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var ta = btn.closest('.composer').querySelector('textarea');
+      if (ta && ta.value.trim()) {
+        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+        ta.value = '';
+      }
+    });
+  });
+
+  // ─── Team DM buttons ───────────────────────────
+  document.querySelectorAll('.team-card .btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var name = btn.closest('.team-card').querySelector('.name');
+      if (name) alert('💬 DM to ' + name.textContent + ' opened');
+    });
+  });
+
+  // ─── Keyboard Shortcuts ────────────────────────
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    var num = parseInt(e.key);
+    if (num >= 1 && num <= 8) {
+      var layers = ['overview','team','tasks','timeline','budget','files','activity','collab'];
+      var idx = num - 1;
+      if (layers[idx]) activateLayer(layers[idx]);
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

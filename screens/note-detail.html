@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACMI Launchpad · Note Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:#faf9f5;color:#1c1c1c;line-height:1.6;padding:24px}
+body.theme-deep{background:#0f1215;color:#e3e1dc}
+.wrap{max-width:800px;margin:0 auto}
+.card{background:#fff;border-radius:4px;border:1px solid rgba(45,74,62,.12);padding:24px;margin-bottom:16px}
+.theme-deep .card{background:#171b1f;border-color:rgba(255,255,255,.08)}
+h1{font-family:'Source Serif 4',serif;font-size:26px;font-weight:600;color:#2d4a3e}
+.theme-deep h1{color:#e3e1dc}
+h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bottom:10px;color:#2d4a3e}
+.theme-deep h2{color:#e3e1dc}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:4px;border:1px solid rgba(45,74,62,.25);background:transparent;color:#2d4a3e;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:.15s}
+.btn:hover{background:#2d4a3e;color:#fff}
+.theme-deep .btn{color:#e3e1dc;border-color:rgba(255,255,255,.15)}
+.theme-deep .btn:hover{background:#2d4a3e;color:#fff}
+.btn-primary{background:#2d4a3e;color:#fff;border-color:#2d4a3e}
+.btn-primary:hover{background:#1f332a}
+.toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px 0;border-bottom:1px solid rgba(45,74,62,.12);margin-bottom:12px}
+.theme-deep .toolbar{border-color:rgba(255,255,255,.08)}
+.toolbar button{padding:6px 10px;border-radius:3px;border:1px solid transparent;background:transparent;color:#444;font-size:13px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif}
+.toolbar button:hover{background:rgba(45,74,62,.08);border-color:rgba(45,74,62,.2)}
+.theme-deep .toolbar button{color:#ccc}
+.toolbar button.active{background:rgba(45,74,62,.12);border-color:#2d4a3e}
+.tag-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:4px;font-size:12px;background:rgba(45,74,62,.08);color:#2d4a3e;cursor:pointer;transition:.12s}
+.tag-chip:hover{background:rgba(45,74,62,.15)}
+.theme-deep .tag-chip{background:rgba(255,255,255,.08);color:#e3e1dc}
+.tag-chip .close{font-size:14px;line-height:1;cursor:pointer;opacity:.5}
+.tag-chip .close:hover{opacity:1}
+.tag-input{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0}
+.tag-input input{border:none;background:transparent;font-size:13px;color:inherit;outline:none;min-width:120px;font-family:Inter,sans-serif}
+.editor{min-height:280px;padding:12px;border-radius:4px;border:1px solid rgba(45,74,62,.12);background:transparent;font-size:15px;line-height:1.7;outline:none;color:inherit}
+.theme-deep .editor{border-color:rgba(255,255,255,.08)}
+.editor:focus{border-color:#2d4a3e}
+.status-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:12px;color:#888}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.meta-item .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:2px}
+.meta-item .value{font-size:14px;font-weight:500}
+.theme-deep .meta-item .label{color:#999}
+.title-input{border:none;background:transparent;font-family:'Source Serif 4',serif;font-size:26px;font-weight:600;color:#2d4a3e;width:100%;outline:none;padding:0;margin-bottom:4px}
+.theme-deep .title-input{color:#e3e1dc}
+@media(max-width:768px){body{padding:16px}.card{padding:16px}.editor{min-height:200px}.toolbar{overflow-x:auto}}
+
+/* ─── Collaboration ─────────────────────────── */
+.collab-thread{border:1px solid rgba(45,74,62,.12);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.theme-deep .collab-thread{border-color:rgba(255,255,255,.08)}
+.collab-thread-hdr{padding:12px 16px;background:rgba(45,74,62,.04);border-bottom:1px solid rgba(45,74,62,.12);font-size:13px;font-weight:600;color:#1c1c1c;display:flex;align-items:center;justify-content:space-between}
+.theme-deep .collab-thread-hdr{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#e3e1dc}
+.collab-thread-hdr .thread-meta{font-weight:400;font-size:11px;color:#888}
+.theme-deep .collab-thread-hdr .thread-meta{color:#999}
+.collab-msg{padding:14px 16px;border-bottom:1px solid rgba(45,74,62,.06);transition:background .15s}
+.collab-msg:last-child{border:0}
+.collab-msg:hover{background:rgba(45,74,62,.03)}
+.theme-deep .collab-msg{border-color:rgba(255,255,255,.05)}
+.theme-deep .collab-msg:hover{background:rgba(255,255,255,.03)}
+.collab-msg-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.collab-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+.collab-name{font-size:12px;font-weight:600;color:#1c1c1c}
+.theme-deep .collab-name{color:#e3e1dc}
+.collab-role{font-size:10px;color:#888;font-family:'JetBrains Mono',monospace}
+.theme-deep .collab-role{color:#999}
+.collab-time{font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-left:auto}
+.collab-body{font-size:13px;color:#444;line-height:1.6;margin-left:36px}
+.theme-deep .collab-body{color:#bbb}
+.collab-body .mention{color:#2d4a3e;font-weight:500;font-family:'JetBrains Mono',monospace;font-size:12px}
+.theme-deep .collab-body .mention{color:#7fa090}
+.collab-body .tag-ref{display:inline-block;padding:1px 6px;border-radius:2px;background:rgba(45,74,62,.08);color:#2d4a3e;font-family:'JetBrains Mono',monospace;font-size:11px}
+.theme-deep .collab-body .tag-ref{background:rgba(127,160,144,.12);color:#7fa090}
+.collab-actions{display:flex;gap:12px;margin-top:8px;margin-left:36px}
+.collab-actions .act{font-family:'JetBrains Mono',monospace;font-size:10px;color:#888;cursor:pointer;display:flex;align-items:center;gap:3px;background:none;border:0;padding:0;transition:color .15s}
+.collab-actions .act:hover{color:#2d4a3e;text-decoration:underline}
+.theme-deep .collab-actions .act:hover{color:#7fa090}
+.collab-actions .act.active{color:#2d4a3e}
+.theme-deep .collab-actions .act.active{color:#7fa090}
+.approval-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:4px;font-size:12px;margin-bottom:16px}
+.approval-banner.pending{background:rgba(196,144,58,.08);color:#c4903a}
+.approval-banner.approved{background:rgba(45,74,62,.08);color:#2d4a3e}
+.theme-deep .approval-banner.approved{background:rgba(127,160,144,.12);color:#7fa090}
+.approval-banner.rejected{background:rgba(199,80,80,.08);color:#c75050}
+.approval-banner .btn-group{display:flex;gap:6px;margin-left:auto}
+.composer{border:1px solid rgba(45,74,62,.12);border-radius:4px;padding:16px}
+.theme-deep .composer{border-color:rgba(255,255,255,.08)}
+.composer textarea{width:100%;min-height:80px;padding:10px;border:1px solid rgba(45,74,62,.12);border-radius:4px;font:inherit;font-size:13px;color:#444;background:transparent;resize:vertical;transition:border-color .15s;outline:none}
+.composer textarea:focus{border-color:#2d4a3e}
+.theme-deep .composer textarea{color:#bbb;border-color:rgba(255,255,255,.12)}
+.theme-deep .composer textarea:focus{border-color:#7fa090}
+.composer .composer-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.composer .composer-tools{display:flex;gap:4px}
+.composer .composer-tools button{width:28px;height:28px;border-radius:4px;border:1px solid rgba(45,74,62,.12);background:transparent;color:#888;cursor:pointer;display:grid;place-items:center;font-size:13px;transition:all .15s}
+.composer .composer-tools button:hover{background:rgba(45,74,62,.06);color:#1c1c1c}
+.theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
+.theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="../index.html" class="btn" style="margin-bottom:16px">&larr; Back to Dashboard</a>
+<a href="#" class="btn" style="margin-bottom:16px;margin-left:8px">&larr; Back to Notes</a>
+
+<div class="card">
+<input class="title-input" value="Fleet Agent Context Architecture — Design Notes" placeholder="Note title…">
+<div class="tag-input">
+<span class="tag-chip">acmi <span class="close">&times;</span></span>
+<span class="tag-chip">design <span class="close">&times;</span></span>
+<span class="tag-chip">fleet <span class="close">&times;</span></span>
+<span class="tag-chip">backend <span class="close">&times;</span></span>
+<input placeholder="Add tag…">
+</div>
+
+<div class="toolbar">
+<button data-cmd="bold" title="Bold"><strong>B</strong></button>
+<button data-cmd="italic" title="Italic"><em>I</em></button>
+<button data-cmd="heading" title="Heading">H</button>
+<button data-cmd="code" title="Code">{ }</button>
+<button data-cmd="list" title="List">≡</button>
+</div>
+
+<div class="editor" contenteditable="true">
+<h2 style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;margin:16px 0 8px">Context Window Strategy</h2>
+<p>Each fleet agent receives a sliding window of the last 50 ACMI timeline events. For the OTA operations thread, we prepend the vessel manifest manifest checksum history and recent sync failures.</p>
+<h2 style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;margin:16px 0 8px">Payload Agent Design</h2>
+<p>The <code>acmi-payload-agent</code> runs on each vessel's edge node. It subscribes to <code>acmi:work:ota-push-*</code> and reconciles the on-device model index against the fleet manifest every 15 minutes.</p>
+<pre style="background:rgba(45,74,62,.06);padding:12px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;overflow-x:auto;margin:12px 0">// payload agent sync loop
+while (true) {
+  manifest = await fetchManifest(fleetId);
+  local = await indexLocalModels();
+  diff = computeDiff(manifest, local);
+  if (diff.length > 0) await reconcile(diff);
+  await sleep(15 * 60 * 1000);
+}</pre>
+<h2 style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;margin:16px 0 8px">Correlation ID Scheme</h2>
+<p>Every sync event carries a <code>correlationId</code> following <code>sync-{fleetId}-{timestamp}</code>. This lets us trace a single OTA push across all 12 vessels from the ACMI timeline.</p>
+</div>
+
+<div class="status-bar">
+<span id="saveIndicator">Saved · 2m ago</span>
+<span id="wordCount">189 words</span>
+</div>
+</div>
+
+<div class="card">
+<h2>Note Metadata</h2>
+<div class="meta-grid">
+<div class="meta-item"><div class="label">Created</div><div class="value">2026-05-20 14:32</div></div>
+<div class="meta-item"><div class="label">Modified</div><div class="value">2026-05-23 09:17</div></div>
+<div class="meta-item"><div class="label">Version</div><div class="value">v3</div></div>
+<div class="meta-item"><div class="label">Author</div><div class="value">Maya Reyes</div></div>
+</div>
+</div>
+</div>
+
+<script>
+// Toolbar commands
+document.querySelectorAll('[data-cmd]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cmd = btn.dataset.cmd;
+    const editor = document.querySelector('.editor');
+    editor.focus();
+    if (cmd === 'bold') document.execCommand('bold');
+    else if (cmd === 'italic') document.execCommand('italic');
+    else if (cmd === 'heading') document.execCommand('formatBlock', false, '<h2>');
+    else if (cmd === 'code') document.execCommand('insertHTML', false, '<code style="background:rgba(45,74,62,.08);padding:2px 6px;border-radius:3px;font-family:JetBrains Mono,monospace;font-size:13px">code</code>');
+    else if (cmd === 'list') document.execCommand('insertUnorderedList');
+  });
+});
+
+// Word count
+const editor = document.querySelector('.editor');
+function updateWordCount() {
+  const text = editor.innerText || '';
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = words + ' words';
+}
+editor.addEventListener('input', updateWordCount);
+updateWordCount();
+
+// Auto-save indicator
+function saveNow() {
+  document.getElementById('saveIndicator').textContent = 'Saving…';
+  setTimeout(() => { document.getElementById('saveIndicator').textContent = 'Saved · just now'; }, 600);
+}
+editor.addEventListener('blur', saveNow);
+document.querySelector('.title-input').addEventListener('blur', saveNow);
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     COLLABORATION SECTION
+     ═══════════════════════════════════════════════ -->
+<div class="card">
+<h2>💬 Collaboration</h2>
+
+<div class="collab-thread">
+<div class="collab-thread-hdr">
+<span># Design Review Feedback</span>
+<span class="thread-meta">3 replies · Last reply 4h ago</span>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:var(--warning,#c4903a)">✧</div>
+<span class="collab-name">Bentley</span>
+<span class="collab-role">Design Lead</span>
+<span class="collab-time">1d ago</span>
+</div>
+<div class="collab-body">
+Great architecture notes! A few thoughts on the context window strategy: the sliding window of 50 events might be too narrow during OTA operations when we have burst sync activity. Consider expanding to 75 with a deduplication filter. <span class="mention">@maya</span> thoughts?
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 5</button>
+<button class="act">🔗 Reference</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Lead Engineer</span>
+<span class="collab-time">12h ago</span>
+</div>
+<div class="collab-body">
+Good catch — the burst scenario is exactly what happened with the OTA sync failure last week. I'll update the spec to use adaptive window sizing: 50 events normally, 75 during detected burst activity. <span class="mention">@bentley</span> updated in section 2.1.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 3</button>
+<button class="act active">✅ Addressed</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">TR</div>
+<span class="collab-name">Tessa Rivera</span>
+<span class="collab-role">QA &amp; Validation</span>
+<span class="collab-time">4h ago</span>
+</div>
+<div class="collab-body">
+The correlation ID scheme looks solid. One note: we should document the segment appending rule more explicitly — I've seen agents use both <code>-</code> and <code>.</code> as separators. Suggest standardizing on <code>-</code> only.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 2</button>
+</div>
+</div>
+</div>
+
+<div class="approval-banner pending">
+<span style="font-weight:600">⏳ Document Review Pending</span>
+<span style="flex:1;font-size:12px">Maya Reyes submitted <strong>Fleet Agent Context Architecture v3</strong> for final review</span>
+<div class="btn-group">
+<button class="btn btn-sm btn-primary">✓ Approve</button>
+<button class="btn btn-sm btn-danger">✗ Reject</button>
+</div>
+</div>
+
+<div class="collab-thread">
+<div class="collab-thread-hdr">
+<span># Implementation Questions</span>
+<span class="thread-meta">2 replies · Resolved</span>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">JK</div>
+<span class="collab-name">James Kwon</span>
+<span class="collab-role">Edge Deploy</span>
+<span class="collab-time">3d ago</span>
+</div>
+<div class="collab-body">
+For the payload agent sync loop — what happens when <code>fetchManifest()</code> times out? Should we implement a retry with exponential backoff? The current pseudocode just awaits.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 1</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Lead Engineer</span>
+<span class="collab-time">3d ago</span>
+</div>
+<div class="collab-body">
+Yes — adding a retry wrapper with 3 attempts and exponential backoff (1s, 4s, 16s). I'll also add a circuit breaker if the edge node is unreachable for >5min. Will update the code snippet in section 2.2.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act active">✅ Resolved</button>
+</div>
+</div>
+</div>
+
+<div class="composer">
+<textarea placeholder="Write a message… Use @ to mention someone, # to reference a section."></textarea>
+<div class="composer-bar">
+<div class="composer-tools">
+<button title="Bold"><strong>B</strong></button>
+<button title="Italic"><em>I</em></button>
+<button title="Code">{ }</button>
+<button title="Link">🔗</button>
+<button title="Mention">@</button>
+<button title="Emoji">😊</button>
+</div>
+<div style="display:flex;gap:6px;align-items:center">
+<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#999">Shift + Enter to send</span>
+<button class="btn btn-sm btn-primary">Send</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// ─── Collab Actions ────────────────────────────
+document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (btn.textContent.trim().startsWith('👍') || btn.textContent.trim().startsWith('🎉') || btn.textContent.trim().startsWith('❤️')) {
+      var m = btn.textContent.match(/(\d+)/);
+      var count = m ? parseInt(m[1]) : 0;
+      btn.textContent = btn.textContent.replace(/\d+/, count + 1);
+    } else if (btn.textContent.includes('Approved') || btn.textContent.includes('Resolved') || btn.textContent.includes('Addressed') || btn.textContent.includes('Signed')) {
+      btn.classList.toggle('active');
+    }
+  });
+});
+
+// ─── Approval Buttons ──────────────────────────
+document.querySelectorAll('.approval-banner .btn-primary').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var banner = btn.closest('.approval-banner');
+    if (banner) {
+      banner.className = 'approval-banner approved';
+      var strong = banner.querySelector('strong');
+      var itemName = strong ? strong.textContent : 'item';
+      banner.innerHTML = '<span style="font-weight:600">✓ Approved</span><span style="flex:1;font-size:12px">' + itemName + ' approved by you</span>';
+    }
+  });
+});
+document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var banner = btn.closest('.approval-banner');
+    if (banner) {
+      banner.className = 'approval-banner rejected';
+      var strong = banner.querySelector('strong');
+      var itemName = strong ? strong.textContent : 'item';
+      banner.innerHTML = '<span style="font-weight:600">✗ Rejected</span><span style="flex:1;font-size:12px">' + itemName + ' rejected. Reason required.</span><button class="btn btn-sm" onclick="alert(\'Please provide a reason\')">Add reason</button>';
+    }
+  });
+});
+
+// ─── Composer Send (Shift+Enter + Button) ──────
+document.querySelectorAll('.composer').forEach(function(comp) {
+  var ta = comp.querySelector('textarea');
+  var btn = comp.querySelector('.btn-primary');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      if (ta && ta.value.trim()) {
+        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+        ta.value = '';
+      }
+    });
+  }
+  if (ta) {
+    ta.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.shiftKey) {
+        e.preventDefault();
+        if (ta.value.trim()) {
+          alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+          ta.value = '';
+        }
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>

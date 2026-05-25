@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACMI Launchpad · Event Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:#faf9f5;color:#1c1c1c;line-height:1.6;padding:24px}
+body.theme-deep{background:#0f1215;color:#e3e1dc}
+.wrap{max-width:860px;margin:0 auto}
+.card{background:#fff;border-radius:4px;border:1px solid rgba(45,74,62,.12);padding:24px;margin-bottom:16px}
+.theme-deep .card{background:#171b1f;border-color:rgba(255,255,255,.08)}
+h1{font-family:'Source Serif 4',serif;font-size:26px;font-weight:600;color:#2d4a3e}
+.theme-deep h1{color:#e3e1dc}
+h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bottom:12px;color:#2d4a3e}
+.theme-deep h2{color:#e3e1dc}
+h3{font-size:14px;font-weight:600;margin-bottom:4px;color:inherit}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:4px;border:1px solid rgba(45,74,62,.25);background:transparent;color:#2d4a3e;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:.15s}
+.btn:hover{background:#2d4a3e;color:#fff}
+.theme-deep .btn{color:#e3e1dc;border-color:rgba(255,255,255,.15)}
+.theme-deep .btn:hover{background:#2d4a3e;color:#fff}
+.badge{display:inline-flex;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.badge-event{background:#2d4a3e;color:#fff}
+.badge-acmi{background:rgba(45,74,62,.1);color:#2d4a3e;font-size:10px}
+.theme-deep .badge-acmi{background:rgba(255,255,255,.08);color:#e3e1dc}
+.day-view{border:1px solid rgba(45,74,62,.12);border-radius:4px;overflow:hidden}
+.theme-deep .day-view{border-color:rgba(255,255,255,.08)}
+.hour-slot{display:flex;border-bottom:1px solid rgba(45,74,62,.06);font-size:13px}
+.theme-deep .hour-slot{border-color:rgba(255,255,255,.05)}
+.hour-slot:last-child{border-bottom:0}
+.hour-label{width:50px;padding:8px 8px 8px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#888;flex-shrink:0}
+.hour-event{flex:1;padding:8px;cursor:pointer;border-radius:3px;margin:2px 4px;transition:.1s}
+.hour-event:hover{background:rgba(45,74,62,.06)}
+.hour-event.active{background:rgba(45,74,62,.1);border-left:3px solid #2d4a3e}
+.theme-deep .hour-event.active{background:rgba(255,255,255,.06)}
+.hour-event .evt-name{font-weight:500;font-size:13px}
+.hour-event .evt-meta{font-size:11px;color:#888}
+table.details{width:100%;border-collapse:collapse}
+table.details td{padding:8px 0;border-bottom:1px solid rgba(45,74,62,.06);font-size:13px;vertical-align:top}
+table.details td:first-child{width:100px;font-weight:500;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.3px}
+.theme-deep table.details td{border-color:rgba(255,255,255,.05)}
+.tag-chip{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:11px;background:rgba(45,74,62,.08);color:#2d4a3e;margin:2px}
+.theme-deep .tag-chip{background:rgba(255,255,255,.08);color:#e3e1dc}
+.layout-split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.timeline-event{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(45,74,62,.06);font-size:13px}
+.timeline-event:last-child{border-bottom:0}
+.te-dot{width:8px;height:8px;border-radius:50%;background:#2d4a3e;margin-top:5px;flex-shrink:0}
+.te-time{font-size:11px;color:#888;white-space:nowrap;min-width:60px}
+@media(max-width:768px){body{padding:16px}.card{padding:16px}h1{font-size:22px}.layout-split{grid-template-columns:1fr}}
+
+/* ─── Collaboration ─────────────────────────── */
+.collab-thread{border:1px solid rgba(45,74,62,.12);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.theme-deep .collab-thread{border-color:rgba(255,255,255,.08)}
+.collab-thread-hdr{padding:12px 16px;background:rgba(45,74,62,.04);border-bottom:1px solid rgba(45,74,62,.12);font-size:13px;font-weight:600;color:#1c1c1c;display:flex;align-items:center;justify-content:space-between}
+.theme-deep .collab-thread-hdr{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#e3e1dc}
+.collab-thread-hdr .thread-meta{font-weight:400;font-size:11px;color:#888}
+.theme-deep .collab-thread-hdr .thread-meta{color:#999}
+.collab-msg{padding:14px 16px;border-bottom:1px solid rgba(45,74,62,.06);transition:background .15s}
+.collab-msg:last-child{border:0}
+.collab-msg:hover{background:rgba(45,74,62,.03)}
+.theme-deep .collab-msg{border-color:rgba(255,255,255,.05)}
+.theme-deep .collab-msg:hover{background:rgba(255,255,255,.03)}
+.collab-msg-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.collab-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+.collab-name{font-size:12px;font-weight:600;color:#1c1c1c}
+.theme-deep .collab-name{color:#e3e1dc}
+.collab-role{font-size:10px;color:#888;font-family:'JetBrains Mono',monospace}
+.theme-deep .collab-role{color:#999}
+.collab-time{font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-left:auto}
+.collab-body{font-size:13px;color:#444;line-height:1.6;margin-left:36px}
+.theme-deep .collab-body{color:#bbb}
+.collab-body .mention{color:#2d4a3e;font-weight:500;font-family:'JetBrains Mono',monospace;font-size:12px}
+.theme-deep .collab-body .mention{color:#7fa090}
+.collab-body .tag-ref{display:inline-block;padding:1px 6px;border-radius:2px;background:rgba(45,74,62,.08);color:#2d4a3e;font-family:'JetBrains Mono',monospace;font-size:11px}
+.theme-deep .collab-body .tag-ref{background:rgba(127,160,144,.12);color:#7fa090}
+.collab-actions{display:flex;gap:12px;margin-top:8px;margin-left:36px}
+.collab-actions .act{font-family:'JetBrains Mono',monospace;font-size:10px;color:#888;cursor:pointer;display:flex;align-items:center;gap:3px;background:none;border:0;padding:0;transition:color .15s}
+.collab-actions .act:hover{color:#2d4a3e;text-decoration:underline}
+.theme-deep .collab-actions .act:hover{color:#7fa090}
+.collab-actions .act.active{color:#2d4a3e}
+.theme-deep .collab-actions .act.active{color:#7fa090}
+.approval-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:4px;font-size:12px;margin-bottom:16px}
+.approval-banner.pending{background:rgba(196,144,58,.08);color:#c4903a}
+.approval-banner.approved{background:rgba(45,74,62,.08);color:#2d4a3e}
+.theme-deep .approval-banner.approved{background:rgba(127,160,144,.12);color:#7fa090}
+.approval-banner.rejected{background:rgba(199,80,80,.08);color:#c75050}
+.approval-banner .btn-group{display:flex;gap:6px;margin-left:auto}
+.composer{border:1px solid rgba(45,74,62,.12);border-radius:4px;padding:16px}
+.theme-deep .composer{border-color:rgba(255,255,255,.08)}
+.composer textarea{width:100%;min-height:80px;padding:10px;border:1px solid rgba(45,74,62,.12);border-radius:4px;font:inherit;font-size:13px;color:#444;background:transparent;resize:vertical;transition:border-color .15s;outline:none}
+.composer textarea:focus{border-color:#2d4a3e}
+.theme-deep .composer textarea{color:#bbb;border-color:rgba(255,255,255,.12)}
+.theme-deep .composer textarea:focus{border-color:#7fa090}
+.composer .composer-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.composer .composer-tools{display:flex;gap:4px}
+.composer .composer-tools button{width:28px;height:28px;border-radius:4px;border:1px solid rgba(45,74,62,.12);background:transparent;color:#888;cursor:pointer;display:grid;place-items:center;font-size:13px;transition:all .15s}
+.composer .composer-tools button:hover{background:rgba(45,74,62,.06);color:#1c1c1c}
+.theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
+.theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="../index.html" class="btn" style="margin-bottom:16px">&larr; Back to Dashboard</a>
+<a href="#" class="btn" style="margin-bottom:16px;margin-left:8px">&larr; Back to Calendar</a>
+
+<div class="card">
+<h1>Fleet OTA v2.4.1 — Production Hotfix Window</h1>
+<div style="display:flex;flex-wrap:wrap;gap:16px;margin:8px 0 12px">
+<span style="font-size:14px">📅 <strong>2026-05-25</strong></span>
+<span style="font-size:14px">⏰ <strong>09:00 – 11:30 UTC</strong></span>
+<span class="badge badge-event">OTA Window</span>
+</div>
+<p style="font-size:14px;color:#555">Scheduled maintenance window to deploy the ACMI payload manifest checksum hotfix to the production fleet. Vessels will be updated in rolling batches of 4 with 15-minute validation pauses.</p>
+</div>
+
+<div class="layout-split">
+<div class="card">
+<h2>Day Schedule — May 25</h2>
+<div class="day-view" id="dayView">
+<div class="hour-slot"><span class="hour-label">08:00</span><div class="hour-event"><div class="evt-name">Pre-deployment sync</div><div class="evt-meta">Fleet ops review</div></div></div>
+<div class="hour-slot"><span class="hour-label">09:00</span><div class="hour-event active"><div class="evt-name">🚀 OTA Hotfix v2.4.1</div><div class="evt-meta">Rolling deploy · batch 1-4</div></div></div>
+<div class="hour-slot"><span class="hour-label">09:30</span><div class="hour-event active"><div class="evt-name">🚀 OTA Hotfix v2.4.1</div><div class="evt-meta">Rolling deploy · batch 5-8</div></div></div>
+<div class="hour-slot"><span class="hour-label">10:00</span><div class="hour-event active"><div class="evt-name">🚀 OTA Hotfix v2.4.1</div><div class="evt-meta">Rolling deploy · batch 9-12</div></div></div>
+<div class="hour-slot"><span class="hour-label">10:30</span><div class="hour-event"><div class="evt-name">Post-deploy validation</div><div class="evt-meta">Sync success rate check</div></div></div>
+<div class="hour-slot"><span class="hour-label">11:00</span><div class="hour-event"><div class="evt-name">Regress test pass</div><div class="evt-meta">Automated suite v2.4.1</div></div></div>
+<div class="hour-slot"><span class="hour-label">13:00</span><div class="hour-event"><div class="evt-name">Fleet standup</div><div class="evt-meta">Daily ops sync</div></div></div>
+<div class="hour-slot"><span class="hour-label">15:00</span><div class="hour-event"><div class="evt-name">Agent LL-7 check-in</div><div class="evt-meta">Auto health report</div></div></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Event Details</h2>
+<table class="details">
+<tr><td>Location</td><td>Vessel Fleet · Edge Nodes (distributed)</td></tr>
+<tr><td>Description</td><td>Production deployment of OTA hotfix v2.4.1 addressing ACMI payload manifest checksum mismatch on edge compute nodes. All 12 vessels targeted.</td></tr>
+<tr><td>Attendees</td><td><span class="tag-chip">Maya Reyes</span><span class="tag-chip">James Kwon</span><span class="tag-chip">Tessa Rivera</span><span class="tag-chip">Agent LL-7</span></td></tr>
+<tr><td>Recurrence</td><td>One-time deployment window</td></tr>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>Related ACMI Timeline Events</h2>
+<div class="timeline-event"><div class="te-dot"></div><span class="te-time">09:12Z</span><span><strong>Batch 1/3 complete</strong> — vessels 1-4 patched, sync verified</span></div>
+<div class="timeline-event"><div class="te-dot"></div><span class="te-time">08:55Z</span><span><strong>Pre-flight checks passed</strong> — all edge nodes reachable</span></div>
+<div class="timeline-event"><div class="te-dot"></div><span class="te-time">08:30Z</span><span><strong>Hotfix image built</strong> — SHA256: a3f2c8…9d1e, pushed to registry</span></div>
+<div class="timeline-event"><div class="te-dot"></div><span class="te-time">06:00Z</span><span><strong>Approval granted</strong> — Maya Reyes signed off on change request</span></div>
+<div class="timeline-event"><div class="te-dot"></div><span class="te-time">2026-05-24</span><span><strong>Task #ota-12 created</strong> — P0 sync failure diagnosed</span></div>
+</div>
+</div>
+
+<script>
+// Highlight today's active event in day view
+document.querySelectorAll('.hour-event').forEach(el => {
+  el.addEventListener('click', function() {
+    document.querySelectorAll('.hour-event').forEach(e => e.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     COLLABORATION SECTION
+     ═══════════════════════════════════════════════ -->
+<div class="card">
+<h2>💬 Collaboration</h2>
+
+<div class="collab-thread">
+<div class="collab-thread-hdr">
+<span># Pre-Deployment Sync — May 25 Window</span>
+<span class="thread-meta">4 replies · Last reply 30m ago</span>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Lead Engineer</span>
+<span class="collab-time">4h ago</span>
+</div>
+<div class="collab-body">
+Pre-flight checklist complete for tomorrow's deployment window. All 12 edge nodes reachable, hotfix image staged in registry. Let's confirm the rollout sequence: <strong>batch 1-4 → validate 15min → batch 5-8 → validate → batch 9-12</strong>. <span class="mention">@james</span> any pre-flight issues?
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 3</button>
+<button class="act">🔗 Checklist</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">JK</div>
+<span class="collab-name">James Kwon</span>
+<span class="collab-role">Edge Deploy</span>
+<span class="collab-time">3h ago</span>
+</div>
+<div class="collab-body">
+Vessels 1-4 confirmed ready. Vessel 10 is in dry dock — skipping per earlier discussion. I've pre-configured the rollback scripts on all nodes. Also added <span class="mention">@agent-ll7</span> to auto-monitor sync rates during the window.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 4</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:var(--ink-4,#888)">LL7</div>
+<span class="collab-name">Agent LL-7</span>
+<span class="collab-role">Fleet Monitor</span>
+<span class="collab-time">2h ago</span>
+</div>
+<div class="collab-body">
+Auto-monitor configured. Will report sync success rate every 5 minutes during the deployment window. Threshold alert if <strong>&lt;98%</strong>. Baseline established: 99.8% current fleet sync rate. <span class="tag-ref">Correlation ID: deploy-mon-20260525</span>
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 2</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">TR</div>
+<span class="collab-name">Tessa Rivera</span>
+<span class="collab-role">QA &amp; Validation</span>
+<span class="collab-time">30m ago</span>
+</div>
+<div class="collab-body">
+Validation suite ready for post-deploy testing. I'll run the 48h continuous sync validation starting at 11:00 UTC after the window closes. <span class="mention">@maya</span> do we want to hold the fleet standup at 13:00 as usual?
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 1</button>
+</div>
+</div>
+</div>
+
+<div class="approval-banner pending">
+<span style="font-weight:600">⏳ Deployment Window Sign-off</span>
+<span style="flex:1;font-size:12px">Maya Reyes requested sign-off for <strong>Fleet OTA Hotfix v2.4.1 deployment window</strong> on May 25</span>
+<div class="btn-group">
+<button class="btn btn-sm btn-primary">✓ Approve</button>
+<button class="btn btn-sm btn-danger">✗ Reject</button>
+</div>
+</div>
+
+<div class="collab-thread">
+<div class="collab-thread-hdr">
+<span># Post-Mortem Planning</span>
+<span class="thread-meta">2 replies · Last reply 1d ago</span>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Lead Engineer</span>
+<span class="collab-time">1d ago</span>
+</div>
+<div class="collab-body">
+Let's schedule a post-mortem for Wednesday after the deployment. We need to document the checksum root cause and update the OTA pipeline spec. <span class="mention">@tessa</span> can you prepare the timeline of events?
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 5</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">TR</div>
+<span class="collab-name">Tessa Rivera</span>
+<span class="collab-role">QA &amp; Validation</span>
+<span class="collab-time">1d ago</span>
+</div>
+<div class="collab-body">
+Already pulled the timeline from ACMI — 14 events from detection to hotfix deploy. I'll add the sync success rate charts and present at Wednesday's review. Blocking out 1h.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act active">✅ Confirmed</button>
+</div>
+</div>
+</div>
+
+<div class="composer">
+<textarea placeholder="Write a message… Use @ to mention someone, # to reference a topic."></textarea>
+<div class="composer-bar">
+<div class="composer-tools">
+<button title="Bold"><strong>B</strong></button>
+<button title="Italic"><em>I</em></button>
+<button title="Code">{ }</button>
+<button title="Link">🔗</button>
+<button title="Mention">@</button>
+<button title="Emoji">😊</button>
+</div>
+<div style="display:flex;gap:6px;align-items:center">
+<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#999">Shift + Enter to send</span>
+<button class="btn btn-sm btn-primary">Send</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// ─── Collab Actions ────────────────────────────
+document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (btn.textContent.trim().startsWith('👍') || btn.textContent.trim().startsWith('🎉') || btn.textContent.trim().startsWith('❤️')) {
+      var m = btn.textContent.match(/(\d+)/);
+      var count = m ? parseInt(m[1]) : 0;
+      btn.textContent = btn.textContent.replace(/\d+/, count + 1);
+    } else if (btn.textContent.includes('Approved') || btn.textContent.includes('Resolved') || btn.textContent.includes('Confirmed') || btn.textContent.includes('Signed')) {
+      btn.classList.toggle('active');
+    }
+  });
+});
+
+// ─── Approval Buttons ──────────────────────────
+document.querySelectorAll('.approval-banner .btn-primary').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var banner = btn.closest('.approval-banner');
+    if (banner) {
+      banner.className = 'approval-banner approved';
+      var strong = banner.querySelector('strong');
+      var itemName = strong ? strong.textContent : 'item';
+      banner.innerHTML = '<span style="font-weight:600">✓ Approved</span><span style="flex:1;font-size:12px">' + itemName + ' approved by you</span>';
+    }
+  });
+});
+document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var banner = btn.closest('.approval-banner');
+    if (banner) {
+      banner.className = 'approval-banner rejected';
+      var strong = banner.querySelector('strong');
+      var itemName = strong ? strong.textContent : 'item';
+      banner.innerHTML = '<span style="font-weight:600">✗ Rejected</span><span style="flex:1;font-size:12px">' + itemName + ' rejected. Reason required.</span><button class="btn btn-sm" onclick="alert(\'Please provide a reason\')">Add reason</button>';
+    }
+  });
+});
+
+// ─── Composer Send (Shift+Enter + Button) ──────
+document.querySelectorAll('.composer').forEach(function(comp) {
+  var ta = comp.querySelector('textarea');
+  var btn = comp.querySelector('.btn-primary');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      if (ta && ta.value.trim()) {
+        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+        ta.value = '';
+      }
+    });
+  }
+  if (ta) {
+    ta.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.shiftKey) {
+        e.preventDefault();
+        if (ta.value.trim()) {
+          alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+          ta.value = '';
+        }
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>

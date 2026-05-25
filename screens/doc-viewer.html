@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACMI Launchpad · Document Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:#faf9f5;color:#1c1c1c;line-height:1.7;padding:24px}
+body.theme-deep{background:#0f1215;color:#e3e1dc}
+.wrap{max-width:1000px;margin:0 auto}
+.card{background:#fff;border-radius:4px;border:1px solid rgba(45,74,62,.12);padding:24px;margin-bottom:16px}
+.theme-deep .card{background:#171b1f;border-color:rgba(255,255,255,.08)}
+h1{font-family:'Source Serif 4',serif;font-size:26px;font-weight:600;color:#2d4a3e;margin-bottom:4px}
+.theme-deep h1{color:#e3e1dc}
+h2{font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;color:#2d4a3e;margin:28px 0 12px}
+.theme-deep h2{color:#e3e1dc}
+h3{font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#2d4a3e;margin:20px 0 8px}
+.theme-deep h3{color:#e3e1dc}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:4px;border:1px solid rgba(45,74,62,.25);background:transparent;color:#2d4a3e;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:.15s}
+.btn:hover{background:#2d4a3e;color:#fff}
+.theme-deep .btn{color:#e3e1dc;border-color:rgba(255,255,255,.15)}
+.theme-deep .btn:hover{background:#2d4a3e;color:#fff}
+.doc-layout{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start}
+.toc{position:sticky;top:24px;font-size:13px}
+.toc a{display:block;padding:6px 0 6px 12px;border-left:2px solid transparent;color:#555;text-decoration:none;transition:.12s}
+.toc a:hover,.toc a.active{border-left-color:#2d4a3e;color:#2d4a3e;font-weight:500}
+.theme-deep .toc a{color:#999}
+.theme-deep .toc a:hover,.theme-deep .toc a.active{color:#e3e1dc;border-left-color:#e3e1dc}
+.mono{font-family:'JetBrains Mono',monospace;font-size:13px}
+.search-row{display:flex;gap:8px;margin-bottom:16px}
+.search-row input{flex:1;padding:8px 12px;border-radius:4px;border:1px solid rgba(45,74,62,.2);background:transparent;font-size:13px;color:inherit;outline:none;font-family:Inter,sans-serif}
+.search-row input:focus{border-color:#2d4a3e}
+.theme-deep .search-row input{border-color:rgba(255,255,255,.12)}
+.meta-line{font-size:13px;color:#888;margin-bottom:2px}
+.code-block{background:rgba(45,74,62,.06);padding:16px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;overflow-x:auto;margin:12px 0;white-space:pre}
+.theme-deep .code-block{background:rgba(255,255,255,.04)}
+.content-area p{margin:6px 0 12px;font-size:15px;color:#333}
+.theme-deep .content-area p{color:#ccc}
+.content-area code{padding:2px 6px;border-radius:3px;background:rgba(45,74,62,.08);font-family:'JetBrains Mono',monospace;font-size:13px}
+.theme-deep .content-area code{background:rgba(255,255,255,.08)}
+.highlight{background:#fff3b0;padding:0 2px;border-radius:2px}
+.theme-deep .highlight{background:#665c00;color:#fff}
+.hidden{display:none!important}
+@media(max-width:768px){body{padding:16px}.doc-layout{grid-template-columns:1fr}.toc{position:static;display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}.toc a{border-left:none;padding:4px 10px;border-radius:4px;background:rgba(45,74,62,.06)}.toc a.active{background:#2d4a3e;color:#fff}}
+
+/* ─── Collaboration ─────────────────────────── */
+.collab-thread{border:1px solid rgba(45,74,62,.12);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.theme-deep .collab-thread{border-color:rgba(255,255,255,.08)}
+.collab-thread-hdr{padding:12px 16px;background:rgba(45,74,62,.04);border-bottom:1px solid rgba(45,74,62,.12);font-size:13px;font-weight:600;color:#1c1c1c;display:flex;align-items:center;justify-content:space-between}
+.theme-deep .collab-thread-hdr{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#e3e1dc}
+.collab-thread-hdr .thread-meta{font-weight:400;font-size:11px;color:#888}
+.theme-deep .collab-thread-hdr .thread-meta{color:#999}
+.collab-msg{padding:14px 16px;border-bottom:1px solid rgba(45,74,62,.06);transition:background .15s}
+.collab-msg:last-child{border:0}
+.collab-msg:hover{background:rgba(45,74,62,.03)}
+.theme-deep .collab-msg{border-color:rgba(255,255,255,.05)}
+.theme-deep .collab-msg:hover{background:rgba(255,255,255,.03)}
+.collab-msg-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.collab-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+.collab-name{font-size:12px;font-weight:600;color:#1c1c1c}
+.theme-deep .collab-name{color:#e3e1dc}
+.collab-role{font-size:10px;color:#888;font-family:'JetBrains Mono',monospace}
+.theme-deep .collab-role{color:#999}
+.collab-time{font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-left:auto}
+.collab-body{font-size:13px;color:#444;line-height:1.6;margin-left:36px}
+.theme-deep .collab-body{color:#bbb}
+.collab-body .mention{color:#2d4a3e;font-weight:500;font-family:'JetBrains Mono',monospace;font-size:12px}
+.theme-deep .collab-body .mention{color:#7fa090}
+.collab-body .tag-ref{display:inline-block;padding:1px 6px;border-radius:2px;background:rgba(45,74,62,.08);color:#2d4a3e;font-family:'JetBrains Mono',monospace;font-size:11px}
+.theme-deep .collab-body .tag-ref{background:rgba(127,160,144,.12);color:#7fa090}
+.collab-actions{display:flex;gap:12px;margin-top:8px;margin-left:36px}
+.collab-actions .act{font-family:'JetBrains Mono',monospace;font-size:10px;color:#888;cursor:pointer;display:flex;align-items:center;gap:3px;background:none;border:0;padding:0;transition:color .15s}
+.collab-actions .act:hover{color:#2d4a3e;text-decoration:underline}
+.theme-deep .collab-actions .act:hover{color:#7fa090}
+.collab-actions .act.active{color:#2d4a3e}
+.theme-deep .collab-actions .act.active{color:#7fa090}
+.approval-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:4px;font-size:12px;margin-bottom:16px}
+.approval-banner.pending{background:rgba(196,144,58,.08);color:#c4903a}
+.approval-banner.approved{background:rgba(45,74,62,.08);color:#2d4a3e}
+.theme-deep .approval-banner.approved{background:rgba(127,160,144,.12);color:#7fa090}
+.approval-banner.rejected{background:rgba(199,80,80,.08);color:#c75050}
+.approval-banner .btn-group{display:flex;gap:6px;margin-left:auto}
+.composer{border:1px solid rgba(45,74,62,.12);border-radius:4px;padding:16px}
+.theme-deep .composer{border-color:rgba(255,255,255,.08)}
+.composer textarea{width:100%;min-height:80px;padding:10px;border:1px solid rgba(45,74,62,.12);border-radius:4px;font:inherit;font-size:13px;color:#444;background:transparent;resize:vertical;transition:border-color .15s;outline:none}
+.composer textarea:focus{border-color:#2d4a3e}
+.theme-deep .composer textarea{color:#bbb;border-color:rgba(255,255,255,.12)}
+.theme-deep .composer textarea:focus{border-color:#7fa090}
+.composer .composer-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.composer .composer-tools{display:flex;gap:4px}
+.composer .composer-tools button{width:28px;height:28px;border-radius:4px;border:1px solid rgba(45,74,62,.12);background:transparent;color:#888;cursor:pointer;display:grid;place-items:center;font-size:13px;transition:all .15s}
+.composer .composer-tools button:hover{background:rgba(45,74,62,.06);color:#1c1c1c}
+.theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
+.theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="../index.html" class="btn" style="margin-bottom:16px">&larr; Back to Dashboard</a>
+<a href="#" class="btn" style="margin-bottom:16px;margin-left:8px">&larr; Back to Docs</a>
+
+<div class="card">
+<h1>ACMI Agent Communication Standard v1.1</h1>
+<div class="meta-line">Author: Maya Reyes · Version: 1.1 · Modified: 2026-05-20</div>
+<div class="search-row" style="margin-top:12px;margin-bottom:0">
+<input type="text" id="searchInput" placeholder="Search within document…" oninput="filterContent(this.value)">
+</div>
+</div>
+
+<div class="doc-layout">
+<div class="toc" id="toc">
+<a href="#sec1" class="active">1. Overview</a>
+<a href="#sec2">2. Event Structure</a>
+<a href="#sec3">3. Correlation IDs</a>
+<a href="#sec4">4. Namespace Registry</a>
+</div>
+
+<div class="content-area card" id="contentArea">
+
+<h2 id="sec1">1. Overview</h2>
+<p>The ACMI Communication Standard defines how agents, threads, and systems within the fleet ecosystem emit and consume structured timeline events. Every event flows through the <code>acmi:event</code> namespace and carries a uniform schema that ensures cross-agent traceability.</p>
+<p>This standard applies to all ACMI-compatible agents deployed on the fleet edge (vessels 1-12), backend orchestrators, and developer tooling. Compliance is enforced at the event gateway layer.</p>
+
+<h3>Why a Standard?</h3>
+<p>Without a shared schema, events from Agent LL-7, the OTA pipeline, and manual operator actions would be incomparable. The standard guarantees that any consumer — human or agent — can reconstruct the full chain of causality for any fleet operation.</p>
+
+<h2 id="sec2">2. Event Structure</h2>
+<p>Each ACMI event is a JSON object with the following top-level keys:</p>
+<div class="code-block">{
+  "namespace": "agent|thread|work|system",
+  "id":       "&lt;entity-id&gt;",
+  "source":   "&lt;agent-name|system&gt;",
+  "summary":  "&lt;human-readable description&gt;",
+  "kind":     "&lt;event-kind&gt;",
+  "correlationId": "&lt;cross-session-token&gt;"
+}</div>
+<p>The <code>kind</code> field is a controlled vocabulary. Standard kinds include <code>handoff-complete</code>, <code>step-done</code>, <code>decision</code>, <code>alert</code>, <code>sync-failure</code>, and <code>deployment</code>.</p>
+
+<h2 id="sec3">3. Correlation IDs</h2>
+<p>Correlation IDs link events across namespaces and sessions. They follow a flattened camelCase convention: <code>otaPush-20260522-v2_4</code> or <code>syncFail-vessel7-1743</code>. Every event that participates in the same logical operation MUST carry the same correlationId.</p>
+<p>When an agent spawns a sub-task, it MUST propagate the parent's correlationId and append a segment. Example: <code>otaPush-20260522-v2_4-hotfix</code>.</p>
+
+<h2 id="sec4">4. Namespace Registry</h2>
+<p>Four top-level namespaces are defined:</p>
+<p><strong>agent</strong> — Individual ACMI agent timelines (LL-7, Maya's dev agent, etc.)<br>
+<strong>thread</strong> — Multi-agent conversation and coordination threads<br>
+<strong>work</strong> — Cross-session work items (tasks, projects, OTA pushes)<br>
+<strong>system</strong> — Infrastructure events (deployments, health checks, scaling events)</p>
+<p>Each namespace stores its events under <code>acmi:{namespace}:{id}:timeline</code>. Consumers use the <code>acmi_cat</code> tool to merge multiple timelines into a single sorted view.</p>
+
+</div>
+</div>
+</div>
+
+<script>
+function filterContent(q) {
+  q = q.toLowerCase().trim();
+  const area = document.getElementById('contentArea');
+  const els = area.querySelectorAll('h2, h3, p, .code-block');
+  if (!q) { els.forEach(e => e.classList.remove('hidden','highlight')); return; }
+  els.forEach(el => {
+    const txt = el.textContent.toLowerCase();
+    if (txt.includes(q)) {
+      el.classList.remove('hidden');
+      el.innerHTML = el.textContent.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<span class="highlight">$1</span>');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+}
+// TOC scroll highlight
+document.querySelectorAll('.toc a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.toc a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    const target = document.getElementById(a.getAttribute('href').slice(1));
+    if (target) target.scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     COLLABORATION SECTION
+     ═══════════════════════════════════════════════ -->
+<div class="card" style="margin-top:0">
+<h2>💬 Collaboration</h2>
+
+<div class="collab-thread">
+<div class="collab-thread-hdr">
+<span># Standard Feedback & Discussion</span>
+<span class="thread-meta">3 replies · Last reply 6h ago</span>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Author</span>
+<span class="collab-time">2d ago</span>
+</div>
+<div class="collab-body">
+Published ACMI Communication Standard v1.1 for review. Key changes from v1.0: added <code>correlationId</code> as a required field, expanded the controlled vocabulary for <code>kind</code>, and defined the segment appending rule for sub-tasks. <span class="mention">@everyone</span> please review the namespace registry section.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 7</button>
+<button class="act">🔗 View diff</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">JK</div>
+<span class="collab-name">James Kwon</span>
+<span class="collab-role">Edge Deploy</span>
+<span class="collab-time">1d ago</span>
+</div>
+<div class="collab-body">
+The controlled vocabulary for <code>kind</code> looks comprehensive. Should we add <code>timeout</code> as a standard kind? We've been seeing edge cases where agents don't respond within their TTL and there's no standard event for that.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 3</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Author</span>
+<span class="collab-time">6h ago</span>
+</div>
+<div class="collab-body">
+Good call — added <code>timeout</code> to the vocabulary table in section 2. Also added <code>recovery</code> for when an agent comes back after a timeout. <span class="mention">@james</span> updated in v1.2 draft.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 4</button>
+<button class="act active">✅ Addressed</button>
+</div>
+</div>
+</div>
+
+<div class="approval-banner pending">
+<span style="font-weight:600">⏳ Standard Approval Required</span>
+<span style="flex:1;font-size:12px">Maya Reyes submitted <strong>ACMI Communication Standard v1.1</strong> for team approval</span>
+<div class="btn-group">
+<button class="btn btn-sm btn-primary">✓ Approve</button>
+<button class="btn btn-sm btn-danger">✗ Reject</button>
+</div>
+</div>
+
+<div class="collab-thread">
+<div class="collab-thread-hdr">
+<span># Implementation Notes</span>
+<span class="thread-meta">2 replies · Resolved</span>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar">TR</div>
+<span class="collab-name">Tessa Rivera</span>
+<span class="collab-role">QA &amp; Validation</span>
+<span class="collab-time">3d ago</span>
+</div>
+<div class="collab-body">
+For the event gateway layer — do we enforce the schema at ingress or egress? If we validate at ingress, we can reject malformed events before they enter the timeline. If at egress, we risk polluting the store.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act">👍 2</button>
+</div>
+</div>
+
+<div class="collab-msg">
+<div class="collab-msg-hdr">
+<div class="collab-avatar" style="background:#2d4a3e">MR</div>
+<span class="collab-name">Maya Reyes</span>
+<span class="collab-role">Author</span>
+<span class="collab-time">3d ago</span>
+</div>
+<div class="collab-body">
+Ingress validation is the right call — documented in section 4.2. The gateway rejects events missing <code>correlationId</code> or using undefined <code>kind</code> values. I'll add a validation middleware example to the appendix.
+</div>
+<div class="collab-actions">
+<button class="act">💬 Reply</button>
+<button class="act active">✅ Resolved</button>
+</div>
+</div>
+</div>
+
+<div class="composer">
+<textarea placeholder="Write a message… Use @ to mention someone, # to reference a section."></textarea>
+<div class="composer-bar">
+<div class="composer-tools">
+<button title="Bold"><strong>B</strong></button>
+<button title="Italic"><em>I</em></button>
+<button title="Code">{ }</button>
+<button title="Link">🔗</button>
+<button title="Mention">@</button>
+<button title="Emoji">😊</button>
+</div>
+<div style="display:flex;gap:6px;align-items:center">
+<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#999">Shift + Enter to send</span>
+<button class="btn btn-sm btn-primary">Send</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// ─── Collab Actions ────────────────────────────
+document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (btn.textContent.trim().startsWith('👍') || btn.textContent.trim().startsWith('🎉') || btn.textContent.trim().startsWith('❤️')) {
+      var m = btn.textContent.match(/(\d+)/);
+      var count = m ? parseInt(m[1]) : 0;
+      btn.textContent = btn.textContent.replace(/\d+/, count + 1);
+    } else if (btn.textContent.includes('Approved') || btn.textContent.includes('Resolved') || btn.textContent.includes('Addressed') || btn.textContent.includes('Signed')) {
+      btn.classList.toggle('active');
+    }
+  });
+});
+
+// ─── Approval Buttons ──────────────────────────
+document.querySelectorAll('.approval-banner .btn-primary').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var banner = btn.closest('.approval-banner');
+    if (banner) {
+      banner.className = 'approval-banner approved';
+      var strong = banner.querySelector('strong');
+      var itemName = strong ? strong.textContent : 'item';
+      banner.innerHTML = '<span style="font-weight:600">✓ Approved</span><span style="flex:1;font-size:12px">' + itemName + ' approved by you</span>';
+    }
+  });
+});
+document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var banner = btn.closest('.approval-banner');
+    if (banner) {
+      banner.className = 'approval-banner rejected';
+      var strong = banner.querySelector('strong');
+      var itemName = strong ? strong.textContent : 'item';
+      banner.innerHTML = '<span style="font-weight:600">✗ Rejected</span><span style="flex:1;font-size:12px">' + itemName + ' rejected. Reason required.</span><button class="btn btn-sm" onclick="alert(\'Please provide a reason\')">Add reason</button>';
+    }
+  });
+});
+
+// ─── Composer Send (Shift+Enter + Button) ──────
+document.querySelectorAll('.composer').forEach(function(comp) {
+  var ta = comp.querySelector('textarea');
+  var btn = comp.querySelector('.btn-primary');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      if (ta && ta.value.trim()) {
+        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+        ta.value = '';
+      }
+    });
+  }
+  if (ta) {
+    ta.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.shiftKey) {
+        e.preventDefault();
+        if (ta.value.trim()) {
+          alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
+          ta.value = '';
+        }
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>
