@@ -4509,6 +4509,24 @@ The three-slot model replaces the traditional "single document" approach — age
     }
   }
 
+  // ─── Kanban empty state ──────────────────────────────────────────
+  function updateKanbanEmptyState() {
+    document.querySelectorAll('.kanban-col').forEach(function(col) {
+      var items = col.querySelectorAll('.kanban-item');
+      var placeholder = col.querySelector('.kanban-empty-placeholder');
+      if (items.length === 0) {
+        if (!placeholder) {
+          var div = document.createElement('div');
+          div.className = 'kanban-empty-placeholder';
+          div.innerHTML = '<div class="msg">No tasks</div><div class="action">Drop a task here or add one above</div>';
+          col.appendChild(div);
+        }
+      } else {
+        if (placeholder) placeholder.remove();
+      }
+    });
+  }
+
   // ─── Restore last page from localStorage ────────────────────────
   (function() {
     try {
