@@ -98,6 +98,7 @@ h2{font-family:'Source Serif 4',serif;font-size:16px;font-weight:600;margin-bott
 .theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
 .theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
 </style>
+<script src="../acmi-client.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -157,6 +158,61 @@ while (true) {
 </div>
 
 <script>
+// ─── ACMI Data Loading ─────────────────────────
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No note ID specified. Use ?id=... in the URL.</p></div>';
+    return;
+  }
+  try {
+    const data = await window.acmi.get('note', id);
+    const p = data.profile || {};
+    document.title = 'ACMI Launchpad \u00b7 ' + (p.title || id);
+
+    const titleInput = document.querySelector('.title-input');
+    if (titleInput) titleInput.value = p.title || '';
+
+    const editor = document.querySelector('.editor');
+    if (editor && p.body) editor.innerHTML = p.body;
+
+    // Tags
+    const tagInput = document.querySelector('.tag-input');
+    if (tagInput && p.tags && Array.isArray(p.tags)) {
+      var chips = '';
+      p.tags.forEach(function(t) {
+        chips += '<span class="tag-chip">' + t + ' <span class="close">&times;</span></span>';
+      });
+      chips += '<input placeholder="Add tag\u2026">';
+      tagInput.innerHTML = chips;
+    }
+
+    // Metadata
+    const metaItems = document.querySelectorAll('.meta-item .value');
+    if (metaItems.length >= 4 && p.meta) {
+      if (metaItems[0] && p.meta.created) metaItems[0].textContent = p.meta.created;
+      if (metaItems[1] && p.meta.modified) metaItems[1].textContent = p.meta.modified;
+      if (metaItems[2] && p.meta.version) metaItems[2].textContent = p.meta.version;
+      if (metaItems[3] && p.meta.author) metaItems[3].textContent = p.meta.author;
+    }
+
+    // Status bar
+    const saveIndicator = document.getElementById('saveIndicator');
+    if (saveIndicator && p.savedAt) saveIndicator.textContent = 'Saved \u00b7 ' + p.savedAt;
+
+    // Update word count from loaded content
+    if (editor) {
+      var text = editor.innerText || '';
+      var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      var wc = document.getElementById('wordCount');
+      if (wc) wc.textContent = words + ' words';
+    }
+  } catch (err) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">Error loading note: ' + err.message + '</p></div>';
+  }
+})();
+
 // Toolbar commands
 document.querySelectorAll('[data-cmd]').forEach(btn => {
   btn.addEventListener('click', () => {
