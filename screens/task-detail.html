@@ -105,6 +105,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
 .theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
 </style>
+<script src="../acmi-client.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -311,6 +312,79 @@ Plan looks solid. Vessel 10 is in dry dock — let's skip it and do vessel 12 fi
 </div>
 
 <script>
+// ─── ACMI Data Loading ─────────────────────────
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No task ID specified. Use ?id=... in the URL.</p></div>';
+    return;
+  }
+  try {
+    const data = await window.acmi.workGet(id);
+    const p = data.profile || {};
+    document.title = 'ACMI Launchpad \u00b7 ' + (p.title || id);
+
+    const badge = document.querySelector('.badge');
+    if (badge && p.priority) {
+      badge.textContent = p.priority;
+      badge.className = 'badge badge-' + (p.priority || 'p2').toLowerCase().replace(/^p/,'p');
+    }
+
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = p.title || id;
+
+    const desc = document.querySelector('.card > p');
+    if (desc && p.description) desc.textContent = p.description;
+
+    // Assignee
+    const avatarEl = document.querySelector('.meta-grid > div:first-child .avatar');
+    const nameEl = document.querySelector('.meta-grid > div:first-child span');
+    if (p.assignee) {
+      if (nameEl) nameEl.textContent = p.assignee;
+      if (avatarEl) {
+        const initials = p.assignee.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2);
+        avatarEl.textContent = initials;
+      }
+    }
+
+    // Due date
+    const dueEl = document.querySelector('.meta-grid > div:nth-child(2) div:last-child');
+    if (dueEl && p.dueDate) dueEl.textContent = p.dueDate;
+
+    // Project
+    const projEl = document.querySelector('.meta-grid > div:nth-child(3) div:last-child');
+    if (projEl && p.project) projEl.textContent = p.project;
+
+    // Tags
+    const tagContainer = document.querySelector('.card:first-of-type > div:last-child');
+    if (tagContainer && p.tags && Array.isArray(p.tags) && p.tags.length) {
+      tagContainer.innerHTML = p.tags.map(function(t){ return '<span class="tag">' + t + '</span>'; }).join('');
+    }
+
+    // Subtasks (second card)
+    const cards = document.querySelectorAll('.wrap > .card');
+    if (cards[1] && p.subtasks && Array.isArray(p.subtasks)) {
+      var html = '<h2>Subtasks</h2>';
+      p.subtasks.forEach(function(s) {
+        html += '<div class="checklist-item"><input type="checkbox"' + (s.done ? ' checked' : '') + '><span><strong>' + (s.title || '') + '</strong>' + (s.description ? ' \u2014 ' + s.description : '') + '</span></div>';
+      });
+      cards[1].innerHTML = html;
+    }
+
+    // Status history (fourth card)
+    if (cards[3] && p.statusHistory && Array.isArray(p.statusHistory)) {
+      var html = '<h2>Status History</h2>';
+      p.statusHistory.forEach(function(s) {
+        html += '<div class="timeline-item"><div class="timeline-dot"></div><div><div style="font-weight:600;font-size:14px">' + (s.status || '') + '</div><div style="font-size:12px;color:#888">' + (s.actor || '') + (s.time ? ' \u00b7 ' + s.time : '') + '</div>' + (s.note ? '<div style="font-size:13px;color:#555;margin-top:2px">' + s.note + '</div>' : '') + '</div></div>';
+      });
+      cards[3].innerHTML = html;
+    }
+  } catch (err) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">Error loading task: ' + err.message + '</p></div>';
+  }
+})();
+
 // ─── Collab Actions ────────────────────────────
 document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
   btn.addEventListener('click', function() {
