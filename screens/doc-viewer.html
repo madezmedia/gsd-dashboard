@@ -96,6 +96,7 @@ h3{font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#2d4a
 .theme-deep .composer .composer-tools button{border-color:rgba(255,255,255,.12);color:#999}
 .theme-deep .composer .composer-tools button:hover{background:rgba(255,255,255,.06);color:#e3e1dc}
 </style>
+<script src="../acmi-client.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -156,6 +157,71 @@ h3{font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;color:#2d4a
 </div>
 
 <script>
+// ─── ACMI Data Loading ─────────────────────────
+(async function() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No document ID specified. Use ?id=... in the URL.</p></div>';
+    return;
+  }
+  try {
+    const data = await window.acmi.get('doc', id);
+    const p = data.profile || {};
+    document.title = 'ACMI Launchpad \u00b7 ' + (p.title || id);
+
+    const h1 = document.querySelector('h1');
+    if (h1) h1.textContent = p.title || id;
+
+    const metaLine = document.querySelector('.meta-line');
+    if (metaLine && (p.author || p.version || p.modified)) {
+      var parts = [];
+      if (p.author) parts.push('Author: ' + p.author);
+      if (p.version) parts.push('Version: ' + p.version);
+      if (p.modified) parts.push('Modified: ' + p.modified);
+      metaLine.textContent = parts.join(' \u00b7 ');
+    }
+
+    // Populate content area
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea && p.body) {
+      contentArea.innerHTML = p.body;
+    }
+
+    // Rebuild TOC from content headings if body provided
+    if (contentArea && p.body) {
+      var toc = document.getElementById('toc');
+      if (toc) {
+        var headings = contentArea.querySelectorAll('h2, h3');
+        if (headings.length) {
+          var tocHtml = '';
+          headings.forEach(function(h, idx) {
+            var idAttr = h.getAttribute('id') || 'sec' + (idx + 1);
+            if (!h.getAttribute('id')) h.id = idAttr;
+            var indent = h.tagName === 'H3' ? 'padding-left:20px;' : '';
+            var activeCls = idx === 0 ? ' active' : '';
+            tocHtml += '<a href="#' + idAttr + '" class="' + activeCls + '" style="' + indent + '">' + h.textContent + '</a>';
+          });
+          toc.innerHTML = tocHtml;
+
+          // Re-bind TOC click handlers
+          toc.querySelectorAll('a').forEach(function(a) {
+            a.addEventListener('click', function(e) {
+              e.preventDefault();
+              toc.querySelectorAll('a').forEach(function(x) { x.classList.remove('active'); });
+              a.classList.add('active');
+              var target = document.getElementById(a.getAttribute('href').slice(1));
+              if (target) target.scrollIntoView({ behavior: 'smooth' });
+            });
+          });
+        }
+      }
+    }
+  } catch (err) {
+    document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">Error loading document: ' + err.message + '</p></div>';
+  }
+})();
+
 function filterContent(q) {
   q = q.toLowerCase().trim();
   const area = document.getElementById('contentArea');
