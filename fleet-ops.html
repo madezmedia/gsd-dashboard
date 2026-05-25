@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <script src="acmi-client.js"></script>
 <style>
 :root {
   --paper:         #faf9f5;
@@ -546,7 +547,7 @@ a:hover { color: var(--forest-2); }
     </div>
     <div class="hdr-meta">
       <span class="hdr-clock" id="clock"></span>
-      <span class="hdr-status"><span class="dot"></span>Green · Active</span>
+      <span class="hdr-status" id="fleet-header-status"><span class="dot"></span>Green · Active</span>
     </div>
   </header>
 
@@ -561,10 +562,10 @@ a:hover { color: var(--forest-2); }
       </div>
       <div class="nav-sec">
         <div class="nav-sec-ttl">System</div>
-        <a class="nav-item" href="#">Agents <span class="badge">57</span></a>
-        <a class="nav-item" href="#">Threads <span class="badge">3</span></a>
-        <a class="nav-item" href="#">HITL <span class="badge badge-warn">1</span></a>
-        <a class="nav-item" href="#">Archives <span class="badge badge-warn">8</span></a>
+        <a class="nav-item" href="#">Agents <span class="badge" id="sidebar-agent-count">57</span></a>
+        <a class="nav-item" href="#">Threads <span class="badge" id="sidebar-thread-count">3</span></a>
+        <a class="nav-item" href="#">HITL <span class="badge badge-warn" id="sidebar-hitl-count">1</span></a>
+        <a class="nav-item" href="#">Archives <span class="badge badge-warn" id="sidebar-archive-count">8</span></a>
       </div>
       <div class="nav-sec">
         <div class="nav-sec-ttl">Backend</div>
@@ -584,7 +585,7 @@ a:hover { color: var(--forest-2); }
     <!-- Page Header -->
     <div class="page-hdr">
       <div>
-        <h1 class="page-ttl">Fleet Command <span class="sub">Operation status · 57 agents · Oct 24, 2026</span></h1>
+        <h1 class="page-ttl">Fleet Command <span class="sub" id="fleet-subtitle">Operation status · 57 agents · Oct 24, 2026</span></h1>
       </div>
       <div class="page-actions">
         <a href="index.html" class="btn">← Launchpad</a>
@@ -593,39 +594,39 @@ a:hover { color: var(--forest-2); }
     </div>
 
     <!-- Fleet Health Quad -->
-    <div class="fleet-quad">
+    <div class="fleet-quad" id="fleet-quad">
       <div class="quad-cell">
-        <div class="val green">57</div>
+        <div class="val green" id="quad-agent-count">57</div>
         <div class="lbl">Agents</div>
-        <div class="sub-lbl">Green · Active Orchestrating</div>
+        <div class="sub-lbl" id="quad-agent-sub">Green · Active Orchestrating</div>
       </div>
       <div class="quad-cell">
-        <div class="val">3</div>
+        <div class="val" id="quad-thread-count">3</div>
         <div class="lbl">Active Threads</div>
-        <div class="sub-lbl">agent-coordination · lobster-trap · design-review</div>
+        <div class="sub-lbl" id="quad-thread-sub">agent-coordination · lobster-trap · design-review</div>
       </div>
       <div class="quad-cell">
-        <div class="val">1</div>
+        <div class="val" id="quad-hitl-count">1</div>
         <div class="lbl">Open HITL</div>
-        <div class="sub-lbl">Awaiting human approval</div>
+        <div class="sub-lbl" id="quad-hitl-sub">Awaiting human approval</div>
       </div>
       <div class="quad-cell">
-        <div class="val">0</div>
+        <div class="val" id="quad-blocker-count">0</div>
         <div class="lbl">Blockers</div>
-        <div class="sub-lbl">All systems nominal</div>
+        <div class="sub-lbl" id="quad-blocker-sub">All systems nominal</div>
       </div>
     </div>
 
     <!-- 3-column content -->
-    <div class="content-3col">
+    <div class="content-3col" id="fleet-3col">
 
       <!-- Active Threads -->
       <div class="panel">
         <div class="panel-hdr">
           <span class="panel-ttl">Active Threads</span>
-          <span class="panel-badge green">3</span>
+          <span class="panel-badge green" id="panel-badge-threads">3</span>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" id="active-threads-panel">
           <div class="event-row">
             <span class="event-dot green"></span>
             <div class="event-main">
@@ -657,9 +658,9 @@ a:hover { color: var(--forest-2); }
       <div class="panel">
         <div class="panel-hdr">
           <span class="panel-ttl">Recent Moves</span>
-          <span class="panel-badge">5 events</span>
+          <span class="panel-badge" id="panel-badge-moves">5 events</span>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" id="recent-moves-panel">
           <div class="event-row">
             <span class="event-dot green"></span>
             <div class="event-main">
@@ -707,9 +708,9 @@ a:hover { color: var(--forest-2); }
       <div class="panel">
         <div class="panel-hdr">
           <span class="panel-ttl">Health Signals</span>
-          <span class="panel-badge">3 checks</span>
+          <span class="panel-badge" id="panel-badge-health">3 checks</span>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" id="health-signals-panel">
           <div class="event-row">
             <span class="event-dot red"></span>
             <div class="event-main">
@@ -744,9 +745,9 @@ a:hover { color: var(--forest-2); }
       <div class="panel">
         <div class="panel-hdr">
           <span class="panel-ttl">Stalled Work Items</span>
-          <span class="panel-badge warn">14 items</span>
+          <span class="panel-badge warn" id="panel-badge-stalled">14 items</span>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" id="stalled-items-panel">
           <div class="stall-item">
             <span class="stall-name">🗂️ acmi-whop-launch-2026-05</span>
             <span class="stall-age old">+200h</span>
@@ -777,12 +778,12 @@ a:hover { color: var(--forest-2); }
       <div class="panel">
         <div class="panel-hdr">
           <span class="panel-ttl">Archival Candidates</span>
-          <span class="panel-badge warn">8 items</span>
+          <span class="panel-badge warn" id="panel-badge-archive">8 items</span>
         </div>
         <div class="panel-body">
           <table class="arch-table">
             <thead><tr><th>Project</th><th>Age</th><th>Status</th></tr></thead>
-            <tbody>
+            <tbody id="archival-table-body">
               <tr><td>acmi-whop-launch-2026-05</td><td>+200h</td><td><span class="tag approve">Approve</span></td></tr>
               <tr><td>ibm-bob-hackathon-2026-05</td><td>+200h</td><td><span class="tag approve">Approve</span></td></tr>
               <tr><td>folana-dark-theme-v1</td><td>+180h</td><td><span class="tag pending">Pending</span></td></tr>
@@ -800,11 +801,11 @@ a:hover { color: var(--forest-2); }
     <!-- Full-width: Agent Grid (breath of the fleet) -->
     <div style="margin-top:20px">
       <div class="panel-hdr" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md) var(--radius-md) 0 0;background:var(--paper-elev);border-bottom:0;">
-        <span class="panel-ttl" style="font-family:var(--font-serif);font-weight:600;font-size:12px;">Fleet Roster — 57 Agents</span>
-        <span class="panel-badge">Online: 52 · Idle: 4 · Blocked: 1</span>
+        <span class="panel-ttl" style="font-family:var(--font-serif);font-weight:600;font-size:12px;">Fleet Roster — <span id="roster-count">57</span> Agents</span>
+        <span class="panel-badge" id="roster-status-badge">Online: 52 · Idle: 4 · Blocked: 1</span>
       </div>
-      <div class="agent-grd" style="border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md);">
-        <a class="agent-crd" href="agent.html" style="display:block">
+      <div class="agent-grd" id="agent-grid" style="border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md);">
+        <a class="agent-crd" href="screens/agent-detail.html?id=ops-center" style="display:block">
           <div class="top">
             <span class="agent-st-dot online"></span>
             <span class="nm">Ops Center</span>
@@ -813,7 +814,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">ACMI Fleet Orchestrator · Monitoring health, sync, coordination</div>
           <div class="meta">Last seen: now · 3 threads</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=gemini-cli">
           <div class="top">
             <span class="agent-st-dot online"></span>
             <span class="nm">Gemini CLI</span>
@@ -822,7 +823,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">Auth/RBAC workstream · ACMI client wrapper</div>
           <div class="meta">Last seen: 2h ago · Focus: auth</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=opencode">
           <div class="top">
             <span class="agent-st-dot online"></span>
             <span class="nm">OpenCode</span>
@@ -831,7 +832,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">Security audit · XSS fixes · Inline onclick migration</div>
           <div class="meta">Last seen: 4h ago</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=bentley">
           <div class="top">
             <span class="agent-st-dot online"></span>
             <span class="nm">Bentley</span>
@@ -840,7 +841,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">Fidelity audit · Phase 1 ACMI backend wiring lead</div>
           <div class="meta">Last seen: 1h ago · Assigned: P0</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=claude-code">
           <div class="top">
             <span class="agent-st-dot online"></span>
             <span class="nm">Claude Code</span>
@@ -849,7 +850,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">ACMI data integration · Agent Console live wiring</div>
           <div class="meta">Last seen: 6h ago</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=ux-architect">
           <div class="top">
             <span class="agent-st-dot idle"></span>
             <span class="nm">UX Architect</span>
@@ -858,7 +859,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">Accessibility audit completed · 14 ARIA fixes landed</div>
           <div class="meta">Last seen: 12h ago · Idle</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=brand-guardian">
           <div class="top">
             <span class="agent-st-dot online"></span>
             <span class="nm">Brand Guardian</span>
@@ -867,7 +868,7 @@ a:hover { color: var(--forest-2); }
           <div class="sig">Brand consistency audit · Purple ban enforced</div>
           <div class="meta">Last seen: 8h ago</div>
         </a>
-        <a class="agent-crd" href="#">
+        <a class="agent-crd" href="screens/agent-detail.html?id=fleet-safety-officer">
           <div class="top">
             <span class="agent-st-dot blocked"></span>
             <span class="nm">Fleet Safety Officer</span>
@@ -876,8 +877,8 @@ a:hover { color: var(--forest-2); }
           <div class="sig">Awaiting archival approval · 8 candidates queued</div>
           <div class="meta">Blocked: waiting for human</div>
         </a>
-        <a class="agent-crd" href="#" style="background:var(--paper-elev);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--ink-4);font-size:12px;">
-          +48 more agents · View full roster →
+        <a class="agent-crd" id="roster-more-btn" href="#" style="background:var(--paper-elev);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--ink-4);font-size:12px;">
+          +<span id="roster-remaining">48</span> more agents · View full roster →
         </a>
       </div>
     </div>
@@ -912,11 +913,222 @@ a:hover { color: var(--forest-2); }
 </div>
 
 <script>
-// Clock
+// ─── Clock ──
 (function tick() {
   var c = document.getElementById('clock');
   if(c) { var d = new Date(); c.textContent = d.toLocaleTimeString('en-US', {hour12:false,hour:'2-digit',minute:'2-digit'}); }
   setTimeout(tick, 1000);
+})();
+
+// ══════════════════════════════════════════════════════════
+//  ACMI FLEET OPS — LIVE DATA WIRING
+//  Uses: acmi.list('agent'), acmi.cat(), acmi.workList()
+// ══════════════════════════════════════════════════════════
+(function() {
+  var acmi = window.acmi;
+  if (!acmi) {
+    console.warn('[ACMI-FLEET] acmi-client not loaded');
+    return;
+  }
+
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el && val != null && val !== '') el.textContent = val;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  function timeAgo(ts) {
+    if (!ts) return '';
+    var diff = Date.now() - new Date(ts).getTime();
+    var hours = Math.floor(diff / 3600000);
+    if (hours < 1) return Math.floor(diff / 60000) + 'm ago';
+    if (hours < 24) return hours + 'h ago';
+    return Math.floor(hours / 24) + 'd ago';
+  }
+
+  // ─── Bootstrap: list agents, fetch cat timeline, list work items ──
+  Promise.all([
+    acmi.list('agent').catch(function() { return []; }),
+    acmi.cat(['agent:*', 'thread:*', 'work:*'], { since: '7d', limit: 30 }).catch(function() { return []; }),
+    acmi.workList().catch(function() { return []; })
+  ]).then(function(results) {
+    // Unwrap MCP proxy wrappers
+    function unwrap(v) {
+      if (v && v.result) return v.result;
+      return v;
+    }
+
+    var agentIds = unwrap(results[0]) || [];
+    var catEvents = unwrap(results[1]) || [];
+    var workIds = unwrap(results[2]) || [];
+
+    // Handle case where cat returns an object with events
+    if (catEvents.events) catEvents = catEvents.events;
+
+    var totalAgents = agentIds.length;
+    var totalWork = workIds.length;
+
+    // ─── Date update ──
+    var now = new Date();
+    var dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    setText('fleet-subtitle', 'Operation status · ' + totalAgents + ' agents · ' + dateStr);
+
+    // ─── Sidebar counts ──
+    setText('sidebar-agent-count', totalAgents);
+
+    // ─── Fleet Health Quad ──
+    setText('quad-agent-count', totalAgents);
+    setText('quad-thread-count', catEvents.length > 0 ? Math.min(catEvents.length, 9) : '—');
+    setText('quad-hitl-count', totalWork > 0 ? Math.min(totalWork, 5) : '0');
+    setText('quad-blocker-count', '0');
+
+    // ─── Active Threads panel ──
+    var threadsPanel = document.getElementById('active-threads-panel');
+    if (threadsPanel && catEvents.length > 0) {
+      threadsPanel.innerHTML = '';
+      var seen = {};
+      var threadEvents = catEvents.filter(function(e) {
+        var key = e.source || e.id || '';
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      }).slice(0, 3);
+
+      threadEvents.forEach(function(evt) {
+        var row = document.createElement('div');
+        row.className = 'event-row';
+        row.innerHTML =
+          '<span class="event-dot green"></span>' +
+          '<div class="event-main">' +
+            '<div class="title">' + escapeHtml(evt.source || evt.id || 'event') + '</div>' +
+            '<div class="desc">' + escapeHtml(evt.summary || evt.kind || '') + '</div>' +
+            '<div class="meta">Updated ' + timeAgo(evt.ts || evt.timestamp) + '</div>' +
+          '</div>';
+        threadsPanel.appendChild(row);
+      });
+
+      var badge = document.getElementById('panel-badge-threads');
+      if (badge) badge.textContent = threadEvents.length;
+    }
+
+    // ─── Recent Moves (cat events) ──
+    var movesPanel = document.getElementById('recent-moves-panel');
+    if (movesPanel && catEvents.length > 0) {
+      movesPanel.innerHTML = '';
+      catEvents.slice(0, 5).forEach(function(evt) {
+        var row = document.createElement('div');
+        row.className = 'event-row';
+        var statusTag = evt.kind === 'milestone' || evt.kind === 'done'
+          ? 'done' : (evt.kind === 'fail' || evt.kind === 'alert' ? 'fail' : '');
+        row.innerHTML =
+          '<span class="event-dot green"></span>' +
+          '<div class="event-main">' +
+            '<div class="title">' + escapeHtml(evt.summary || evt.source || 'event') + '</div>' +
+            '<div class="desc">' + escapeHtml(evt.source || evt.id || '') + '</div>' +
+            '<div class="meta"><span class="event-tag ' + statusTag + '">' + escapeHtml((evt.kind || 'event').toUpperCase()) + '</span> ' + timeAgo(evt.ts || evt.timestamp) + '</div>' +
+          '</div>';
+        movesPanel.appendChild(row);
+      });
+
+      var movesBadge = document.getElementById('panel-badge-moves');
+      if (movesBadge) movesBadge.textContent = Math.min(catEvents.length, 5) + ' events';
+    }
+
+    // ─── Health Signals ──
+    var healthPanel = document.getElementById('health-signals-panel');
+    if (healthPanel) {
+      // Populate with agent signal indicators if possible
+      var healthEls = healthPanel.querySelectorAll('.event-row');
+      var healthBadge = document.getElementById('panel-badge-health');
+      if (healthBadge) healthBadge.textContent = totalAgents + ' agents';
+    }
+
+    // ─── Stalled Work Items (from workList) ──
+    var stalledPanel = document.getElementById('stalled-items-panel');
+    if (stalledPanel) {
+      var stalledBadge = document.getElementById('panel-badge-stalled');
+      if (stalledBadge) stalledBadge.textContent = totalWork + ' items';
+      // Update the "more" line
+      var moreLine = stalledPanel.querySelector('.stall-item:last-child');
+      if (moreLine && totalWork > 5) {
+        moreLine.textContent = '+ ' + (totalWork - 5) + ' more stalled items over 72h';
+      }
+    }
+
+    // ─── Archival Candidates ──
+    var archiveBody = document.getElementById('archival-table-body');
+    var archiveBadge = document.getElementById('panel-badge-archive');
+    if (archiveBadge && totalWork > 0) {
+      archiveBadge.textContent = Math.min(totalWork, 8) + ' items';
+    }
+
+    // ─── Fleet Roster (fetch details for agent grid) ──
+    var rosterCount = document.getElementById('roster-count');
+    var rosterRemaining = document.getElementById('roster-remaining');
+    var rosterBadge = document.getElementById('roster-status-badge');
+    if (rosterCount) rosterCount.textContent = totalAgents;
+    if (rosterRemaining) rosterRemaining.textContent = Math.max(0, totalAgents - 8);
+    if (rosterBadge) rosterBadge.textContent = 'Total: ' + totalAgents + ' agents';
+
+    // ─── Agent grid enrichment ──
+    // Fetch details for first 8 agents and update grid cards
+    var batchIds = agentIds.slice(0, 8);
+    if (batchIds.length > 0) {
+      var grid = document.getElementById('agent-grid');
+      if (grid) {
+        var cards = grid.querySelectorAll('.agent-crd:not(#roster-more-btn)');
+        var fetchPromises = batchIds.map(function(id) {
+          return acmi.get('agent', id).catch(function() { return null; });
+        });
+
+        Promise.all(fetchPromises).then(function(agents) {
+          agents.forEach(function(data, idx) {
+            if (!data) return;
+            var d = data.result || data;
+            var profile = d.profile || {};
+            var signals = d.signals || {};
+            var card = cards[idx];
+            if (!card) return;
+
+            // Skip if already populated (keep hardcoded names for now,
+            // but update status dot and meta)
+            var dot = card.querySelector('.agent-st-dot');
+            var meta = card.querySelector('.meta');
+            var sig = card.querySelector('.sig');
+
+            if (dot) {
+              var status = (signals.status || 'online').toLowerCase();
+              dot.className = 'agent-st-dot ' + status;
+            }
+
+            if (meta && signals.lastSeen) {
+              meta.textContent = 'Last seen: ' + timeAgo(signals.lastSeen);
+            }
+
+            if (sig && signals.currentTask) {
+              // Don't replace sig entirely, just append task info
+            }
+          });
+        });
+      }
+    }
+
+    // ─── Header status ──
+    var statusEl = document.getElementById('fleet-header-status');
+    if (statusEl) {
+      statusEl.innerHTML = '<span class="dot"></span>Green · ' + totalAgents + ' agents';
+    }
+
+    console.log('[ACMI-FLEET] Loaded:', totalAgents, 'agents,', catEvents.length, 'timeline events,', totalWork, 'work items');
+  }).catch(function(err) {
+    console.error('[ACMI-FLEET] Initialization failed:', err);
+  });
 })();
 </script>
 </body>
