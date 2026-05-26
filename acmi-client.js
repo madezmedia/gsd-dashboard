@@ -591,7 +591,8 @@
     var eventsToday = 0;
     var today = new Date().toISOString().slice(0, 10);
     (timeline || []).forEach(function (evt) {
-      if (evt.ts && evt.ts.slice(0, 10) === today) eventsToday++;
+      var ts = String(evt.ts || '');
+      if (ts.slice(0, 10) === today) eventsToday++;
     });
 
     // Pipeline value: sum of profile.revenue (or signals.revenue)

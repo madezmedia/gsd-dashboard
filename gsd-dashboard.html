@@ -3253,6 +3253,24 @@ The three-slot model replaces the traditional "single document" approach — age
       </div>
     </div>
 
+    <!-- Sovereign ACMI Connection -->
+    <div class="settings-group">
+      <div class="settings-group-title">Sovereign ACMI Connection</div>
+      <div class="settings-row">
+        <div class="label">Authorization Token<span class="desc">Enter your user token to synchronize with the team workspace.</span></div>
+        <div class="ctrl" style="display: flex; gap: 8px; align-items: center;">
+          <input type="password" id="acmiTokenInput" placeholder="sk-gsd-..." class="search-input-sm" style="font-family: var(--font-mono); width: 220px;" />
+          <button class="btn btn-sm btn-primary" onclick="saveAcmiToken()" id="acmiConnectBtn">Connect</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div class="label">Connection Status<span class="desc">Active fleet collaboration sync status</span></div>
+        <div class="ctrl">
+          <div id="acmiConnectionStatus" class="key-status" style="font-size: 11px;"><span class="dot red" id="acmiStatusDot"></span> <span id="acmiStatusText">Disconnected</span></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Display -->
     <div class="settings-group">
       <div class="settings-group-title">Display</div>
@@ -4715,8 +4733,77 @@ The three-slot model replaces the traditional "single document" approach — age
     });
   }
 
+  window.saveAcmiToken = function() {
+    var input = document.getElementById('acmiTokenInput');
+    if (!input) return;
+    var token = input.value.trim();
+    if (!token) {
+      alert('Please enter a valid token.');
+      return;
+    }
+    
+    // Save token locally
+    localStorage.setItem('gsd:token', token);
+    
+    // Re-initialize window.acmi
+    if (window.acmi) {
+      window.acmi._config.token = token;
+      // Clear cache to force fresh fetch
+      if (typeof window.acmi.clearCache === 'function') {
+        window.acmi.clearCache();
+      }
+    } else {
+      window.acmi = new ACMIClient({ token: token });
+    }
+    
+    // Attempt dynamic refresh
+    updateSovereignStatus();
+    refreshDashboard(true).then(function() {
+      alert('Sovereign ACMI connection established! Dashboard has been refreshed with live collaborator data.');
+    }).catch(function(err) {
+      console.error('Error refreshing dashboard:', err);
+    });
+  };
+
+  window.updateSovereignStatus = function() {
+    var input = document.getElementById('acmiTokenInput');
+    var dot = document.getElementById('acmiStatusDot');
+    var text = document.getElementById('acmiStatusText');
+    var connectBtn = document.getElementById('acmiConnectBtn');
+    
+    var token = localStorage.getItem('gsd:token') || '';
+    if (input && !input.value && token) {
+      input.value = token;
+    }
+    
+    if (window.acmi && token) {
+      window.acmi.status().then(function(res) {
+        if (res.online) {
+          if (dot) { dot.className = 'dot green'; }
+          if (text) { text.textContent = 'Connected (' + res.agents + ' active team agents)'; }
+          if (connectBtn) { connectBtn.textContent = 'Rotate Token'; }
+        } else {
+          if (dot) { dot.className = 'dot amber'; }
+          if (text) { text.textContent = 'Token Saved (Waiting for response)'; }
+          if (connectBtn) { connectBtn.textContent = 'Reconnect'; }
+        }
+      }).catch(function() {
+        if (dot) { dot.className = 'dot red'; }
+        if (text) { text.textContent = 'Connection Error'; }
+        if (connectBtn) { connectBtn.textContent = 'Reconnect'; }
+      });
+    } else {
+      if (dot) { dot.className = 'dot red'; }
+      if (text) { text.textContent = 'Disconnected'; }
+      if (connectBtn) { connectBtn.textContent = 'Connect'; }
+    }
+  };
+
   function updateACMIStatus() {
     if (!window.acmi) return;
+    if (typeof updateSovereignStatus === 'function') {
+      updateSovereignStatus();
+    }
     window.acmi.status().then(function(res) {
       var dot = document.getElementById('acmiDot');
       var label = document.getElementById('acmiLabel');
@@ -5022,6 +5109,20 @@ The three-slot model replaces the traditional "single document" approach — age
       btn = e.target.closest('[data-action="initACMI"]');
       if (btn) { initACMI(); return; }
     });
+
+    // ─── Refresh animation feedback ────────────────────────────────
+    function simulateRefresh(el) {
+      if (!el) return;
+      var orig = el.innerHTML;
+      el.innerHTML = '⟳';
+      el.style.opacity = '0.5';
+      el.disabled = true;
+      setTimeout(function() {
+        el.innerHTML = orig;
+        el.style.opacity = '1';
+        el.disabled = false;
+      }, 600);
+    }
 
     // --- Collapsible Sidebar Toggle ---
     var navToggle = document.getElementById('navToggle');
