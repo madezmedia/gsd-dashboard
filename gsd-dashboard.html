@@ -1510,6 +1510,15 @@
     .settings-row .ctrl .key-status .dot.red { background: var(--danger); }
     .settings-row .ctrl .key-status .dot.amber { background: var(--warning); }
 
+    @keyframes pulse-green {
+      0% { box-shadow: 0 0 0 0 rgba(45, 74, 62, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(45, 74, 62, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(45, 74, 62, 0); }
+    }
+    .dot.pulse, .status-dot.pulse {
+      animation: pulse-green 2s infinite;
+    }
+
     .toggle-switch {
       width: 32px; height: 18px;
       background: var(--border);
@@ -4169,6 +4178,18 @@ The three-slot model replaces the traditional "single document" approach — age
     updateAgentConsoleKpis(agents);
   }
 
+  // ─── Agent Console KPI update ──────────────────────────────────
+  function updateAgentConsoleKpis(agents) {
+    var active = 0, total = (agents || []).length;
+    (agents || []).forEach(function(a) {
+      var s = (a.signals && a.signals.status) || '';
+      if (s === 'active' || s === 'online' || s === 'idle') active++;
+    });
+    var kpis = document.querySelectorAll('#page-agents .kpi-value');
+    if (kpis[0]) kpis[0].textContent = total > 0 ? Math.round(active/total*100) + '%' : '—';
+    if (kpis[1]) kpis[1].textContent = active + '/' + total;
+  }
+
   // 3. Todo / Kanban & Gantt
   function renderTodoPage(tasks) {
     var cols = document.querySelectorAll('#todoKanbanView .kanban-col');
@@ -4779,8 +4800,9 @@ The three-slot model replaces the traditional "single document" approach — age
     if (window.acmi && token) {
       window.acmi.status().then(function(res) {
         if (res.online) {
-          if (dot) { dot.className = 'dot green'; }
-          if (text) { text.textContent = 'Connected (' + res.agents + ' active team agents)'; }
+          var isStreaming = window.acmi._ws && window.acmi._ws.readyState === 1;
+          if (dot) { dot.className = isStreaming ? 'dot green pulse' : 'dot green'; }
+          if (text) { text.textContent = isStreaming ? 'Connected & Streaming (' + res.agents + ' active team agents)' : 'Connected (' + res.agents + ' active team agents)'; }
           if (connectBtn) { connectBtn.textContent = 'Rotate Token'; }
         } else {
           if (dot) { dot.className = 'dot amber'; }
@@ -4809,8 +4831,9 @@ The three-slot model replaces the traditional "single document" approach — age
       var label = document.getElementById('acmiLabel');
       if (dot && label) {
         if (res.online) {
-          dot.className = 'status-dot online';
-          label.textContent = 'ACMI · ' + res.agents + ' agents online';
+          var isStreaming = window.acmi._ws && window.acmi._ws.readyState === 1;
+          dot.className = isStreaming ? 'status-dot online pulse' : 'status-dot online';
+          label.textContent = isStreaming ? 'ACMI · ' + res.agents + ' agents online (Live)' : 'ACMI · ' + res.agents + ' agents online';
         } else {
           dot.className = 'status-dot offline';
           label.textContent = 'ACMI · Offline';
@@ -4877,6 +4900,36 @@ The three-slot model replaces the traditional "single document" approach — age
       window.acmi.on('change', function(msg) {
         console.log('[ACMI Dashboard] Live change notification received, refreshing dashboard');
         refreshDashboard(true);
+      });
+      window.acmi.on('ws-connected', function() {
+        console.log('[ACMI Dashboard] WebSocket connected! Activating pulse indicators.');
+        var sovereignDot = document.getElementById('acmiStatusDot');
+        if (sovereignDot) sovereignDot.className = 'dot green pulse';
+        var sovereignText = document.getElementById('acmiStatusText');
+        if (sovereignText && sovereignText.textContent.indexOf('Streaming') === -1) {
+          sovereignText.textContent = sovereignText.textContent.replace('Connected', 'Connected & Streaming');
+        }
+        var headerDot = document.getElementById('acmiDot');
+        if (headerDot) headerDot.className = 'status-dot online pulse';
+        var headerLabel = document.getElementById('acmiLabel');
+        if (headerLabel && headerLabel.textContent.indexOf('Live') === -1) {
+          headerLabel.textContent = headerLabel.textContent + ' (Live)';
+        }
+      });
+      window.acmi.on('ws-disconnected', function() {
+        console.log('[ACMI Dashboard] WebSocket disconnected! Deactivating pulse indicators.');
+        var sovereignDot = document.getElementById('acmiStatusDot');
+        if (sovereignDot) sovereignDot.className = 'dot green';
+        var sovereignText = document.getElementById('acmiStatusText');
+        if (sovereignText) {
+          sovereignText.textContent = sovereignText.textContent.replace('Connected & Streaming', 'Connected');
+        }
+        var headerDot = document.getElementById('acmiDot');
+        if (headerDot) headerDot.className = 'status-dot online';
+        var headerLabel = document.getElementById('acmiLabel');
+        if (headerLabel) {
+          headerLabel.textContent = headerLabel.textContent.replace(' (Live)', '');
+        }
       });
     }
   }
