@@ -226,7 +226,28 @@ async function executeAcmiTool(tool, params) {
         signals: workResults[i]?.signals || null
       }));
 
-      // 4. Fetch merged timeline
+      // 4. Batch-fetch tasks, notes, events, and docs
+      const tasks = await Promise.all((taskIds || []).slice(0, 20).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'task', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      const notes = await Promise.all((noteIds || []).slice(0, 20).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'note', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      const events = await Promise.all((eventIds || []).slice(0, 50).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'event', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      const docs = await Promise.all((docIds || []).slice(0, 20).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'doc', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      // 5. Fetch merged timeline
       const timeline = await executeAcmiTool('acmi_cat', {
         keys: ['agent:*', 'thread:*', 'work:*'],
         since: timelineSince,
@@ -237,10 +258,10 @@ async function executeAcmiTool(tool, params) {
         agents,
         workItems,
         config: configData?.profile || configData || {},
-        tasks: taskIds.map(id => ({ id })),
-        notes: noteIds.map(id => ({ id })),
-        events: eventIds.map(id => ({ id })),
-        docs: docIds.map(id => ({ id })),
+        tasks,
+        notes,
+        events,
+        docs,
         timeline,
         summary: {
           totalAgents: (agentIds || []).length,

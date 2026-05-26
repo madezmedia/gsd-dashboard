@@ -3,9 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const acmiContext = new AsyncLocalStorage();
 
 // Ensure process.env is populated
 const PORT = process.env.PORT || 3000;
@@ -98,20 +101,51 @@ async function initDb() {
     `);
 
     await dbQuery(`
-      CREATE TABLE IF NOT EXISTS users_agents (
+      CREATE TABLE IF NOT EXISTS tenants (
           id VARCHAR(100) PRIMARY KEY,
-          type VARCHAR(20) NOT NULL CHECK (type IN ('human', 'agent')),
-          role VARCHAR(50) NOT NULL REFERENCES rbac_roles(role_name),
-          token VARCHAR(255) NOT NULL UNIQUE,
+          name VARCHAR(255) NOT NULL,
+          redis_url VARCHAR(255) NULL,
+          redis_token VARCHAR(255) NULL,
+          stripe_subscription_id VARCHAR(100) NULL,
+          whop_user_id VARCHAR(100) NULL,
+          status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'trial')),
           created_at TIMESTAMP DEFAULT NOW()
       );
     `);
 
     await dbQuery(`
-      INSERT INTO users_agents (id, type, role, token) VALUES
-      ('michaelshaw', 'human', 'admin', 'sk-gsd-mikey-admin-9982'),
-      ('bentley', 'agent', 'agent:read-write', 'sk-gsd-agent-bentley-8812'),
-      ('claude-engineer', 'agent', 'agent:read-write', 'sk-gsd-agent-claude-2294')
+      INSERT INTO tenants (id, name, redis_url, redis_token, status)
+      VALUES (
+          'default_tenant', 
+          'Default Team Space', 
+          'https://loved-platypus-102968.upstash.io', 
+          'gQAAAAAAAZI4AAIgcDJhNDFlNmUwMjQ5ZWI0ZDNmYWUzNDU2NDc4ZWUxMmQwOA', 
+          'active'
+      ) ON CONFLICT (id) DO NOTHING;
+    `);
+
+    await dbQuery(`
+      CREATE TABLE IF NOT EXISTS users_agents (
+          id VARCHAR(100) PRIMARY KEY,
+          type VARCHAR(20) NOT NULL CHECK (type IN ('human', 'agent')),
+          role VARCHAR(50) NOT NULL REFERENCES rbac_roles(role_name),
+          token VARCHAR(255) NOT NULL UNIQUE,
+          tenant_id VARCHAR(100) REFERENCES tenants(id) DEFAULT 'default_tenant',
+          created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    try {
+      await dbQuery(`ALTER TABLE users_agents ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) REFERENCES tenants(id) DEFAULT 'default_tenant'`);
+    } catch (e) {
+      // Ignore if already exists
+    }
+
+    await dbQuery(`
+      INSERT INTO users_agents (id, type, role, token, tenant_id) VALUES
+      ('michaelshaw', 'human', 'admin', 'sk-gsd-mikey-admin-9982', 'default_tenant'),
+      ('bentley', 'agent', 'agent:read-write', 'sk-gsd-agent-bentley-8812', 'default_tenant'),
+      ('claude-engineer', 'agent', 'agent:read-write', 'sk-gsd-agent-claude-2294', 'default_tenant')
       ON CONFLICT (id) DO NOTHING;
     `);
 
@@ -161,20 +195,51 @@ async function initDb() {
     `);
 
     await dbQuery(`
-      CREATE TABLE IF NOT EXISTS users_agents (
+      CREATE TABLE IF NOT EXISTS tenants (
           id TEXT PRIMARY KEY,
-          type TEXT NOT NULL CHECK (type IN ('human', 'agent')),
-          role TEXT NOT NULL REFERENCES rbac_roles(role_name),
-          token TEXT NOT NULL UNIQUE,
+          name TEXT NOT NULL,
+          redis_url TEXT,
+          redis_token TEXT,
+          stripe_subscription_id TEXT,
+          whop_user_id TEXT,
+          status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'trial')),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     await dbQuery(`
-      INSERT OR IGNORE INTO users_agents (id, type, role, token) VALUES
-      ('michaelshaw', 'human', 'admin', 'sk-gsd-mikey-admin-9982'),
-      ('bentley', 'agent', 'agent:read-write', 'sk-gsd-agent-bentley-8812'),
-      ('claude-engineer', 'agent', 'agent:read-write', 'sk-gsd-agent-claude-2294')
+      INSERT OR IGNORE INTO tenants (id, name, redis_url, redis_token, status)
+      VALUES (
+          'default_tenant', 
+          'Default Team Space', 
+          'https://loved-platypus-102968.upstash.io', 
+          'gQAAAAAAAZI4AAIgcDJhNDFlNmUwMjQ5ZWI0ZDNmYWUzNDU2NDc4ZWUxMmQwOA', 
+          'active'
+      );
+    `);
+
+    await dbQuery(`
+      CREATE TABLE IF NOT EXISTS users_agents (
+          id TEXT PRIMARY KEY,
+          type TEXT NOT NULL CHECK (type IN ('human', 'agent')),
+          role TEXT NOT NULL REFERENCES rbac_roles(role_name),
+          token TEXT NOT NULL UNIQUE,
+          tenant_id TEXT REFERENCES tenants(id) DEFAULT 'default_tenant',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    try {
+      await dbQuery(`ALTER TABLE users_agents ADD COLUMN tenant_id TEXT DEFAULT 'default_tenant' REFERENCES tenants(id)`);
+    } catch (e) {
+      // Ignore if already exists
+    }
+
+    await dbQuery(`
+      INSERT OR IGNORE INTO users_agents (id, type, role, token, tenant_id) VALUES
+      ('michaelshaw', 'human', 'admin', 'sk-gsd-mikey-admin-9982', 'default_tenant'),
+      ('bentley', 'agent', 'agent:read-write', 'sk-gsd-agent-bentley-8812', 'default_tenant'),
+      ('claude-engineer', 'agent', 'agent:read-write', 'sk-gsd-agent-claude-2294', 'default_tenant')
       ;
     `);
 
@@ -211,9 +276,10 @@ async function initDb() {
 }
 
 // ─── Upstash Redis KV Proxy Driver ──────────────────────────────────────────
-async function upstashCmd(cmdArray) {
-  const url = process.env.UPSTASH_REDIS_REST_URL || 'https://loved-platypus-102968.upstash.io';
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAZI4AAIgcDJhNDFlNmUwMjQ5ZWI0ZDNmYWUzNDU2NDc4ZWUxMmQwOA';
+async function upstashCmd(cmdArray, overrideUrl = null, overrideToken = null) {
+  const ctx = acmiContext.getStore() || {};
+  const url = overrideUrl || ctx.customUrl || process.env.UPSTASH_REDIS_REST_URL || 'https://loved-platypus-102968.upstash.io';
+  const token = overrideToken || ctx.customToken || process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAZI4AAIgcDJhNDFlNmUwMjQ5ZWI0ZDNmYWUzNDU2NDc4ZWUxMmQwOA';
   
   const res = await fetch(`${url.replace(/\/$/, '')}/`, {
     method: 'POST',
@@ -371,13 +437,18 @@ const appHandler = async (req, res) => {
     const authHeader = req.headers['authorization'];
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const row = await dbQueryRow(
-        `SELECT ua.*, r.permissions 
-         FROM users_agents ua 
-         JOIN rbac_roles r ON ua.role = r.role_name 
-         WHERE ua.token = ?`,
-        [token]
-      );
+      const sql = isPostgres 
+        ? `SELECT ua.*, r.permissions, t.redis_url, t.redis_token, t.status AS tenant_status
+           FROM users_agents ua 
+           JOIN rbac_roles r ON ua.role = r.role_name 
+           LEFT JOIN tenants t ON ua.tenant_id = t.id
+           WHERE ua.token = $1`
+        : `SELECT ua.*, r.permissions, t.redis_url, t.redis_token, t.status AS tenant_status
+           FROM users_agents ua 
+           JOIN rbac_roles r ON ua.role = r.role_name 
+           LEFT JOIN tenants t ON ua.tenant_id = t.id
+           WHERE ua.token = ?`;
+      const row = await dbQueryRow(sql, [token]);
       if (row) {
         let perms = row.permissions;
         if (typeof perms === 'string') {
@@ -387,7 +458,11 @@ const appHandler = async (req, res) => {
           id: row.id,
           type: row.type,
           role: row.role,
-          permissions: perms
+          tenantId: row.tenant_id || 'default_tenant',
+          tenantStatus: row.tenant_status || 'active',
+          permissions: perms,
+          redisUrl: row.redis_url || null,
+          redisToken: row.redis_token || null
         };
       }
     }
@@ -514,14 +589,32 @@ const appHandler = async (req, res) => {
       let executed = false;
       let executionError = null;
 
+      let customUrl = currentUser?.redisUrl || null;
+      let customToken = currentUser?.redisToken || null;
+      let isFallback = false;
+
       if (status === 'approved') {
         try {
           let payload = approval.payload;
           if (typeof payload === 'string') {
             payload = JSON.parse(payload);
           }
+          
+          if (customUrl && customToken) {
+            try {
+              await upstashCmd(['PING'], customUrl, customToken);
+            } catch (pingErr) {
+              console.warn('[Tenant Fallback] Ping failed during HITL approval resolution. Falling back to default Redis.', pingErr.message);
+              customUrl = null;
+              customToken = null;
+              isFallback = true;
+            }
+          }
+
           // Re-execute enqueued payload directly on Upstash Redis!
-          await executeAcmiTool(payload.tool, payload.params);
+          await acmiContext.run({ customUrl, customToken }, () => 
+            executeAcmiTool(payload.tool, payload.params)
+          );
           executed = true;
         } catch (err) {
           executionError = err.message;
@@ -547,16 +640,37 @@ const appHandler = async (req, res) => {
 
       broadcast({ type: 'approval-resolved', id: approvalId, status, executed, error: executionError });
       
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'X-Tenant-Fallback': isFallback ? 'true' : 'false'
+      });
       res.end(JSON.stringify({ success: true, status, executed, error: executionError }));
       return;
     }
 
     // --- POST /api/acmi ---
-    else if (pathname === '/api/acmi' && req.method === 'POST') {
+    else if ((pathname === '/api/acmi' || pathname === '/acmi-proxy') && req.method === 'POST') {
       const payload = await parseJsonBody(req);
-      const tool = payload.tool;
+      let tool = payload.tool;
+      if (typeof tool === 'string') {
+        tool = tool.startsWith('acmi_') ? tool : 'acmi_' + tool;
+      }
       const params = payload.params || {};
+
+      let customUrl = currentUser?.redisUrl || null;
+      let customToken = currentUser?.redisToken || null;
+      let isFallback = false;
+
+      if (customUrl && customToken) {
+        try {
+          await upstashCmd(['PING'], customUrl, customToken);
+        } catch (pingErr) {
+          console.warn(`[Tenant Fallback] Ping to custom Redis for ${currentUser.id} failed. falling back to shared default.`, pingErr.message);
+          customUrl = null;
+          customToken = null;
+          isFallback = true;
+        }
+      }
 
       // 1. Enforce strict write policy, relaxed read policy
       const isWrite = writeTools.includes(tool);
@@ -593,7 +707,10 @@ const appHandler = async (req, res) => {
           console.log(`[HITL] Intercepted write action from agent ${currentUser.id}. Approval enqueued: ${approvalId}`);
           broadcast({ type: 'approval-requested', id: approvalId, agentId: currentUser.id, action: tool });
 
-          res.writeHead(202, { 'Content-Type': 'application/json' });
+          res.writeHead(202, { 
+            'Content-Type': 'application/json',
+            'X-Tenant-Fallback': isFallback ? 'true' : 'false'
+          });
           res.end(JSON.stringify({
             status: "pending_approval",
             approvalId,
@@ -603,9 +720,14 @@ const appHandler = async (req, res) => {
         }
       }
 
-      // Execute live tool action directly on Upstash Redis
-      const result = await executeAcmiTool(tool, params);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      // Execute live tool action directly on Upstash Redis within tenant context
+      const result = await acmiContext.run({ customUrl, customToken }, () => 
+        executeAcmiTool(tool, params)
+      );
+      res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'X-Tenant-Fallback': isFallback ? 'true' : 'false'
+      });
       res.end(JSON.stringify(result));
       return;
     }
@@ -651,7 +773,11 @@ const appHandler = async (req, res) => {
 
 // ─── Live ACMI Tool Router ──────────────────────────────────────────────────
 async function executeAcmiTool(tool, params) {
-  switch (tool) {
+  let normalizedTool = tool;
+  if (typeof tool === 'string') {
+    normalizedTool = tool.startsWith('acmi_') ? tool : 'acmi_' + tool;
+  }
+  switch (normalizedTool) {
     case 'acmi_list': {
       const keys = await upstashCmd(['KEYS', `acmi:${params.namespace}:*:profile`]);
       return (keys || []).map(k => {
@@ -751,7 +877,9 @@ async function executeAcmiTool(tool, params) {
           if (!pat.endsWith(':timeline')) pat = `${pat}:timeline`;
           const matched = await upstashCmd(['KEYS', pat]);
           if (Array.isArray(matched)) {
-            matched.forEach(k => expandedKeys.add(k));
+            // Sane limit of 30 keys per wildcard namespace pattern
+            const capped = matched.slice(0, 30);
+            capped.forEach(k => expandedKeys.add(k));
           }
         } else {
           let fk = key.startsWith('acmi:') ? key : `acmi:${key}`;
@@ -760,7 +888,10 @@ async function executeAcmiTool(tool, params) {
         }
       }
 
-      for (const k of expandedKeys) {
+      // Sane limit of 50 total keys scanned in single query
+      const expandedKeysArray = Array.from(expandedKeys).slice(0, 50);
+
+      for (const k of expandedKeysArray) {
         const min = sinceMs > 0 ? String(sinceMs) : '-inf';
         const raw = await upstashCmd(['ZRANGEBYSCORE', k, min, '+inf']);
         if (Array.isArray(raw)) {
@@ -790,6 +921,95 @@ async function executeAcmiTool(tool, params) {
       }
       broadcast({ type: 'acmi-change', action: 'delete', keys: keysToDelete });
       return { deleted: true, keys: keysToDelete };
+    }
+
+    case 'acmi_dashboard_bootstrap': {
+      const maxAgents = params.maxAgents || 20;
+      const maxWork = params.maxWork || 20;
+      const timelineSince = params.timelineSince || '7d';
+
+      // 1. List all entity types in parallel
+      const [agentIds, workIds, configData, taskIds, noteIds, eventIds, docIds] = await Promise.all([
+        executeAcmiTool('acmi_list', { namespace: 'agent' }),
+        executeAcmiTool('acmi_list', { namespace: 'work' }),
+        executeAcmiTool('acmi_get', { namespace: 'config', id: 'dashboard' }).catch(() => null),
+        executeAcmiTool('acmi_list', { namespace: 'task' }).catch(() => []),
+        executeAcmiTool('acmi_list', { namespace: 'note' }).catch(() => []),
+        executeAcmiTool('acmi_list', { namespace: 'event' }).catch(() => []),
+        executeAcmiTool('acmi_list', { namespace: 'doc' }).catch(() => [])
+      ]);
+
+      // 2. Batch-fetch top N agents
+      const agentSlice = (agentIds || []).slice(0, maxAgents);
+      const agentPromises = agentSlice.map(id =>
+        executeAcmiTool('acmi_get', { namespace: 'agent', id }).catch(() => null)
+      );
+      const agentResults = await Promise.all(agentPromises);
+      const agents = agentSlice.map((id, i) => ({
+        id,
+        profile: agentResults[i]?.profile || null,
+        signals: agentResults[i]?.signals || null
+      }));
+
+      // 3. Batch-fetch top N work items
+      const workSlice = (workIds || []).slice(0, maxWork);
+      const workPromises = workSlice.map(id =>
+        executeAcmiTool('acmi_get', { namespace: 'work', id }).catch(() => null)
+      );
+      const workResults = await Promise.all(workPromises);
+      const workItems = workSlice.map((id, i) => ({
+        id,
+        profile: workResults[i]?.profile || null,
+        signals: workResults[i]?.signals || null
+      }));
+
+      // 4. Batch-fetch tasks, notes, events, and docs
+      const tasks = await Promise.all((taskIds || []).slice(0, 20).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'task', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      const notes = await Promise.all((noteIds || []).slice(0, 20).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'note', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      const events = await Promise.all((eventIds || []).slice(0, 50).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'event', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      const docs = await Promise.all((docIds || []).slice(0, 20).map(async id => {
+        const res = await executeAcmiTool('acmi_get', { namespace: 'doc', id }).catch(() => null);
+        return res ? { id, profile: res.profile, signals: res.signals } : null;
+      })).then(r => r.filter(Boolean));
+
+      // 5. Fetch merged timeline
+      const timeline = await executeAcmiTool('acmi_cat', {
+        keys: ['agent:*', 'thread:*', 'work:*'],
+        since: timelineSince,
+        limit: params.timelineLimit || 100
+      }).catch(() => []);
+
+      return {
+        agents,
+        workItems,
+        config: configData?.profile || configData || {},
+        tasks,
+        notes,
+        events,
+        docs,
+        timeline,
+        summary: {
+          totalAgents: (agentIds || []).length,
+          totalWork: (workIds || []).length,
+          totalTasks: (taskIds || []).length,
+          totalNotes: (noteIds || []).length,
+          totalEvents: (eventIds || []).length,
+          totalDocs: (docIds || []).length,
+          timelineEvents: timeline.length
+        }
+      };
     }
 
     case 'acmi_bootstrap': {
@@ -886,3 +1106,103 @@ if (WebSocketServer) {
 server.listen(PORT, () => {
   console.log(`[HTTP] Server is active at http://localhost:${PORT}`);
 });
+
+// ─── Server-side ACMI Background Poller ──────────────────────────────────────
+let lastPollTs = Date.now();
+const POLL_INTERVAL = 5000; // 5 seconds
+
+async function startBackgroundPoller() {
+  console.log('[ACMI Poller] Server background worker active (5s interval)');
+  setInterval(async () => {
+    try {
+      // 1. Fetch all active tenants
+      const allTenants = await dbQuery("SELECT * FROM tenants WHERE status = 'active'");
+      
+      // Always include a default null tenant if not explicitly in DB
+      const tenantsToPoll = [...allTenants];
+      if (!tenantsToPoll.some(t => t.id === 'default_tenant')) {
+        tenantsToPoll.unshift({
+          id: 'default_tenant',
+          redis_url: process.env.UPSTASH_REDIS_REST_URL,
+          redis_token: process.env.UPSTASH_REDIS_REST_TOKEN
+        });
+      }
+
+      for (const tenant of tenantsToPoll) {
+        let customUrl = tenant.redis_url || null;
+        let customToken = tenant.redis_token || null;
+        
+        // Try connecting. If it fails, fall back to default
+        if (customUrl && customToken) {
+          try {
+            await upstashCmd(['PING'], customUrl, customToken);
+          } catch (e) {
+            console.warn(`[ACMI Poller] Tenant ${tenant.id} Redis failed, falling back to default:`, e.message);
+            customUrl = null;
+            customToken = null;
+          }
+        }
+
+        await acmiContext.run({ customUrl, customToken }, async () => {
+          // Find all timeline keys in this tenant's workspace
+          const keys = await upstashCmd(['KEYS', 'acmi:*:*:timeline']);
+          if (!keys || keys.length === 0) return;
+
+          let hasNewEvents = false;
+          let maxEventTs = lastPollTs;
+
+          for (const key of keys) {
+            const parts = key.split(':');
+            if (parts.length < 4) continue;
+            const namespace = parts[1];
+            const id = parts[2];
+
+            const newEventsRaw = await upstashCmd(['ZRANGEBYSCORE', key, `(${lastPollTs}`, '+inf']);
+            
+            if (newEventsRaw && newEventsRaw.length > 0) {
+              console.log(`[ACMI Poller - Tenant ${tenant.id}] Detected ${newEventsRaw.length} new event(s) in ${key}`);
+              hasNewEvents = true;
+              
+              for (const evStr of newEventsRaw) {
+                try {
+                  const ev = JSON.parse(evStr);
+                  if (ev.ts && ev.ts > maxEventTs) {
+                    maxEventTs = ev.ts;
+                  }
+                  // Broadcast detailed events
+                  broadcast({
+                    type: 'acmi-event',
+                    tenantId: tenant.id,
+                    namespace,
+                    id,
+                    event: ev
+                  });
+                } catch (e) {}
+              }
+
+              // Broadcast general change to trigger client reload
+              broadcast({
+                type: 'acmi-change',
+                tenantId: tenant.id,
+                namespace,
+                id,
+                action: 'event'
+              });
+            }
+          }
+
+          if (hasNewEvents) {
+            lastPollTs = maxEventTs;
+          }
+        });
+      }
+    } catch (err) {
+      // Gracefully log poll error to avoid server crash
+      console.warn('[ACMI Poller] Poll error (retrying):', err.message);
+    }
+  }, POLL_INTERVAL);
+}
+
+// Start poller asynchronously
+startBackgroundPoller();
+

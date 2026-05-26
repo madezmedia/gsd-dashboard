@@ -8,7 +8,10 @@ const PROXY = process.env.PROXY_URL || 'http://127.0.0.1:4999/acmi-proxy';
 async function call(tool, params) {
   const res = await fetch(PROXY, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer sk-gsd-mikey-admin-9982'
+    },
     body: JSON.stringify({ tool, params }),
   });
   return res.json();

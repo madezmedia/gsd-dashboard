@@ -535,6 +535,40 @@ a:hover { color: var(--forest-2); }
   width: 22px; height: 22px;
 }
 .cal-mini td.fade { color: var(--ink-5); }
+/* ─── Loading / Skeleton / Empty States ─── */
+@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+.skeleton {
+  background: linear-gradient(90deg, var(--paper-elev) 25%, var(--paper-shade) 50%, var(--paper-elev) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+.skeleton-line { height: 12px; margin-bottom: 6px; width: 100%; }
+.skeleton-line.short { width: 60%; }
+.skeleton-line.tiny { width: 30%; height: 8px; }
+.skeleton-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+.loading-overlay {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 20px; gap: 12px; color: var(--ink-4); font-size: 12px;
+}
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--ink-1);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state {
+  grid-column: 1 / -1;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-4);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.empty-state .icon { font-size: 24px; margin-bottom: 8px; }
+.empty-state .title { font-weight: 600; color: var(--ink-2); font-size: 13px; }
 </style>
 </head>
 <body>
@@ -588,7 +622,7 @@ a:hover { color: var(--forest-2); }
         <h1 class="page-ttl">Fleet Command <span class="sub" id="fleet-subtitle">Operation status · 57 agents · Oct 24, 2026</span></h1>
       </div>
       <div class="page-actions">
-        <a href="index.html" class="btn">← Launchpad</a>
+        <a href="gsd-dashboard.html" class="btn">← GSD Dashboard</a>
         <a href="gsd-dashboard.html" class="btn btn-primary">GSD Dashboard</a>
       </div>
     </div>
@@ -805,80 +839,22 @@ a:hover { color: var(--forest-2); }
         <span class="panel-badge" id="roster-status-badge">Online: 52 · Idle: 4 · Blocked: 1</span>
       </div>
       <div class="agent-grd" id="agent-grid" style="border-top:0;border-radius:0 0 var(--radius-md) var(--radius-md);">
-        <a class="agent-crd" href="screens/agent-detail.html?id=ops-center" style="display:block">
-          <div class="top">
-            <span class="agent-st-dot online"></span>
-            <span class="nm">Ops Center</span>
-            <span class="role">Fleet Ops</span>
-          </div>
-          <div class="sig">ACMI Fleet Orchestrator · Monitoring health, sync, coordination</div>
-          <div class="meta">Last seen: now · 3 threads</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=gemini-cli">
-          <div class="top">
-            <span class="agent-st-dot online"></span>
-            <span class="nm">Gemini CLI</span>
-            <span class="role">Coding</span>
-          </div>
-          <div class="sig">Auth/RBAC workstream · ACMI client wrapper</div>
-          <div class="meta">Last seen: 2h ago · Focus: auth</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=opencode">
-          <div class="top">
-            <span class="agent-st-dot online"></span>
-            <span class="nm">OpenCode</span>
-            <span class="role">Code Review</span>
-          </div>
-          <div class="sig">Security audit · XSS fixes · Inline onclick migration</div>
-          <div class="meta">Last seen: 4h ago</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=bentley">
-          <div class="top">
-            <span class="agent-st-dot online"></span>
-            <span class="nm">Bentley</span>
-            <span class="role">Design Lead</span>
-          </div>
-          <div class="sig">Fidelity audit · Phase 1 ACMI backend wiring lead</div>
-          <div class="meta">Last seen: 1h ago · Assigned: P0</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=claude-code">
-          <div class="top">
-            <span class="agent-st-dot online"></span>
-            <span class="nm">Claude Code</span>
-            <span class="role">Coding</span>
-          </div>
-          <div class="sig">ACMI data integration · Agent Console live wiring</div>
-          <div class="meta">Last seen: 6h ago</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=ux-architect">
-          <div class="top">
-            <span class="agent-st-dot idle"></span>
-            <span class="nm">UX Architect</span>
-            <span class="role">Design</span>
-          </div>
-          <div class="sig">Accessibility audit completed · 14 ARIA fixes landed</div>
-          <div class="meta">Last seen: 12h ago · Idle</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=brand-guardian">
-          <div class="top">
-            <span class="agent-st-dot online"></span>
-            <span class="nm">Brand Guardian</span>
-            <span class="role">Design</span>
-          </div>
-          <div class="sig">Brand consistency audit · Purple ban enforced</div>
-          <div class="meta">Last seen: 8h ago</div>
-        </a>
-        <a class="agent-crd" href="screens/agent-detail.html?id=fleet-safety-officer">
-          <div class="top">
-            <span class="agent-st-dot blocked"></span>
-            <span class="nm">Fleet Safety Officer</span>
-            <span class="role">Governance</span>
-          </div>
-          <div class="sig">Awaiting archival approval · 8 candidates queued</div>
-          <div class="meta">Blocked: waiting for human</div>
-        </a>
-        <a class="agent-crd" id="roster-more-btn" href="#" style="background:var(--paper-elev);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--ink-4);font-size:12px;">
-          +<span id="roster-remaining">48</span> more agents · View full roster →
+        <!-- Loading skeleton cards (shown while ACMI fetches) -->
+        <div id="agent-grid-loading" class="loading-overlay" style="grid-column:1/-1;">
+          <div class="spinner"></div>
+          <div>Loading agents from ACMI…</div>
+        </div>
+        <!-- Empty state (hidden by default) -->
+        <div id="agent-grid-empty" class="empty-state" style="display:none;">
+          <div class="icon">🤖</div>
+          <div class="title">No Agents Registered</div>
+          <div>The ACMI agent registry returned no results. Deploy an agent to get started.</div>
+        </div>
+        <!-- Agent cards injected by JS here -->
+        <div id="agent-cards-container" style="display:contents;"></div>
+        <!-- More button (hidden until data loads) -->
+        <a class="agent-crd" id="roster-more-btn" href="#" style="display:none;background:var(--paper-elev);border:1px dashed var(--border);align-items:center;justify-content:center;gap:8px;padding:20px;color:var(--ink-4);font-size:12px;">
+          +<span id="roster-remaining">0</span> more agents · View full roster →
         </a>
       </div>
     </div>
@@ -921,214 +897,469 @@ a:hover { color: var(--forest-2); }
 })();
 
 // ══════════════════════════════════════════════════════════
-//  ACMI FLEET OPS — LIVE DATA WIRING
-//  Uses: acmi.list('agent'), acmi.cat(), acmi.workList()
+//  ACMI FLEET OPS — LIVE DATA WIRING  (Phase 0)
+//  Uses: acmi.dashboardBootstrap() → agents, workItems,
+//        tasks, notes, events, docs, config, timeline
 // ══════════════════════════════════════════════════════════
 (function() {
-  var acmi = window.acmi;
+  'use strict';
+
+  var acmi = window.acmi || (window.ACMIClient && new window.ACMIClient());
   if (!acmi) {
     console.warn('[ACMI-FLEET] acmi-client not loaded');
+    document.getElementById('agent-grid-loading').textContent = '⚠ ACMI client unavailable';
     return;
   }
 
+  /* ─── Helpers ────────────────────────────────────────── */
+  function $(id) { return document.getElementById(id); }
+
   function setText(id, val) {
-    var el = document.getElementById(id);
+    var el = $(id);
     if (el && val != null && val !== '') el.textContent = val;
   }
 
   function escapeHtml(str) {
     if (!str) return '';
     var d = document.createElement('div');
-    d.appendChild(document.createTextNode(str));
+    d.appendChild(document.createTextNode(String(str)));
     return d.innerHTML;
   }
 
   function timeAgo(ts) {
     if (!ts) return '';
     var diff = Date.now() - new Date(ts).getTime();
-    var hours = Math.floor(diff / 3600000);
-    if (hours < 1) return Math.floor(diff / 60000) + 'm ago';
+    if (diff < 0) return 'just now';
+    var minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return minutes + 'm ago';
+    var hours = Math.floor(minutes / 60);
     if (hours < 24) return hours + 'h ago';
-    return Math.floor(hours / 24) + 'd ago';
+    var days = Math.floor(hours / 24);
+    return days + 'd ago';
   }
 
-  // ─── Bootstrap: list agents, fetch cat timeline, list work items ──
-  Promise.all([
-    acmi.list('agent').catch(function() { return []; }),
-    acmi.cat(['agent:*', 'thread:*', 'work:*'], { since: '7d', limit: 30 }).catch(function() { return []; }),
-    acmi.workList().catch(function() { return []; })
-  ]).then(function(results) {
-    // Unwrap MCP proxy wrappers
-    function unwrap(v) {
-      if (v && v.result) return v.result;
-      return v;
+  function statusClass(status) {
+    switch ((status || 'online').toLowerCase()) {
+      case 'online': case 'active': case 'green': return 'online';
+      case 'idle': case 'away': return 'idle';
+      case 'blocked': case 'error': case 'red': return 'blocked';
+      case 'offline': case 'inactive': return 'offline';
+      default: return 'online';
+    }
+  }
+
+  function statusDotColor(status) {
+    var s = statusClass(status);
+    if (s === 'online') return 'green';
+    if (s === 'idle') return 'grey';
+    if (s === 'blocked') return 'amber';
+    return 'grey';
+  }
+
+  function eventDotColor(kind) {
+    if (!kind) return 'grey';
+    var k = String(kind).toLowerCase();
+    if (k === 'milestone' || k === 'done' || k === 'shipped' || k === 'pass' || k === 'live' || k === 'fixed') return 'green';
+    if (k === 'alert' || k === 'fail' || k === 'error' || k === 'critical') return 'red';
+    if (k === 'degraded' || k === 'wait' || k === 'pending') return 'amber';
+    return 'grey';
+  }
+
+  function tagClass(kind) {
+    if (!kind) return '';
+    var k = String(kind).toLowerCase();
+    if (k === 'milestone' || k === 'done' || k === 'shipped' || k === 'pass' || k === 'live' || k === 'fixed') return 'done';
+    if (k === 'alert' || k === 'fail' || k === 'error' || k === 'critical') return 'fail';
+    if (k === 'degraded' || k === 'wait' || k === 'pending') return 'wait';
+    return '';
+  }
+
+  /* ─── Show/hide loading UI ──────────────────────────── */
+  function showLoading() {
+    var ld = $('agent-grid-loading');
+    if (ld) ld.style.display = '';
+    var more = $('roster-more-btn');
+    if (more) more.style.display = 'none';
+  }
+
+  function hideLoading() {
+    var ld = $('agent-grid-loading');
+    if (ld) ld.style.display = 'none';
+  }
+
+  function showEmpty() {
+    hideLoading();
+    var empty = $('agent-grid-empty');
+    if (empty) empty.style.display = '';
+  }
+
+  /* ─── Build an agent card ───────────────────────────── */
+  function buildAgentCard(agent) {
+    var profile = agent.profile || {};
+    var signals = agent.signals || {};
+    var agentId = agent.id || '';
+    var name = profile.name || agentId || 'Unknown';
+    var role = profile.role || profile.actor_type || '';
+    var status = statusClass(signals.status);
+    var dotColor = statusDotColor(signals.status);
+    var description = signals.currentTask || profile.description || profile.summary || '';
+    var lastSeen = signals.lastSeen;
+    var sessions = signals.sessionCount || signals.sessions || 0;
+    var threads = signals.activeThreads || signals.threads || 0;
+
+    var metaParts = [];
+    if (lastSeen) metaParts.push('Last seen: ' + timeAgo(lastSeen));
+    if (sessions) metaParts.push(sessions + ' session' + (sessions !== 1 ? 's' : ''));
+    if (threads) metaParts.push(threads + ' thread' + (threads !== 1 ? 's' : ''));
+    if (!metaParts.length) metaParts.push('Status: ' + status);
+
+    var card = document.createElement('a');
+    card.className = 'agent-crd';
+    card.href = 'screens/agent-detail.html?id=' + encodeURIComponent(agentId);
+
+    card.innerHTML =
+      '<div class="top">' +
+        '<span class="agent-st-dot ' + status + '"></span>' +
+        '<span class="nm">' + escapeHtml(name) + '</span>' +
+        (role ? '<span class="role">' + escapeHtml(role) + '</span>' : '') +
+      '</div>' +
+      (description ? '<div class="sig">' + escapeHtml(description) + '</div>' : '') +
+      '<div class="meta">' + escapeHtml(metaParts.join(' · ')) + '</div>';
+
+    return card;
+  }
+
+  /* ─── Render agent cards into grid ──────────────────── */
+  function renderAgentCards(agents) {
+    var container = $('agent-cards-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    var maxVisible = 8;
+
+    agents.slice(0, maxVisible).forEach(function(agent) {
+      var card = buildAgentCard(agent);
+      container.appendChild(card);
+    });
+
+    // Update counts
+    var total = agents.length;
+    var rosterCount = $('roster-count');
+    if (rosterCount) rosterCount.textContent = total;
+
+    var remaining = Math.max(0, total - maxVisible);
+    var rosterRemaining = $('roster-remaining');
+    if (rosterRemaining) rosterRemaining.textContent = remaining;
+
+    var moreBtn = $('roster-more-btn');
+    if (moreBtn) {
+      if (remaining > 0) {
+        moreBtn.style.display = 'flex';
+      } else {
+        moreBtn.style.display = 'none';
+      }
     }
 
-    var agentIds = unwrap(results[0]) || [];
-    var catEvents = unwrap(results[1]) || [];
-    var workIds = unwrap(results[2]) || [];
+    // Update roster status badge
+    var online = 0, idle = 0, blocked = 0, offline = 0;
+    agents.forEach(function(a) {
+      var s = (a.signals && a.signals.status || 'online').toLowerCase();
+      if (s === 'online' || s === 'active' || s === 'green') online++;
+      else if (s === 'idle' || s === 'away') idle++;
+      else if (s === 'blocked' || s === 'error' || s === 'red') blocked++;
+      else offline++;
+    });
+    var badgeParts = [];
+    if (online) badgeParts.push('Online: ' + online);
+    if (idle) badgeParts.push('Idle: ' + idle);
+    if (blocked) badgeParts.push('Blocked: ' + blocked);
+    if (offline) badgeParts.push('Offline: ' + offline);
+    var rosterBadge = $('roster-status-badge');
+    if (rosterBadge) rosterBadge.textContent = badgeParts.join(' · ') || total + ' agents';
+  }
 
-    // Handle case where cat returns an object with events
-    if (catEvents.events) catEvents = catEvents.events;
-
-    var totalAgents = agentIds.length;
-    var totalWork = workIds.length;
-
-    // ─── Date update ──
+  /* ─── Populate fleet health quad ────────────────────── */
+  function populateHealthQuad(agents, timeline, workItems) {
+    var totalAgents = agents.length;
     var now = new Date();
     var dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    // Subtitle
     setText('fleet-subtitle', 'Operation status · ' + totalAgents + ' agents · ' + dateStr);
 
-    // ─── Sidebar counts ──
-    setText('sidebar-agent-count', totalAgents);
-
-    // ─── Fleet Health Quad ──
+    // Quad cells
     setText('quad-agent-count', totalAgents);
-    setText('quad-thread-count', catEvents.length > 0 ? Math.min(catEvents.length, 9) : '—');
-    setText('quad-hitl-count', totalWork > 0 ? Math.min(totalWork, 5) : '0');
+    var activeOnline = agents.filter(function(a) {
+      var s = (a.signals && a.signals.status || '').toLowerCase();
+      return s === 'online' || s === 'active' || s === 'green';
+    }).length;
+    setText('quad-agent-sub', activeOnline + ' online · ' + (totalAgents - activeOnline) + ' other');
+
+    setText('quad-thread-count', (timeline && timeline.length > 0) ? Math.min(timeline.length, 9) : '—');
+    setText('quad-thread-sub', 'Timeline events (7d)');
+
+    var hitlCount = 0;
+    if (workItems && workItems.length) {
+      workItems.forEach(function(w) {
+        var sig = w.signals || {};
+        if (sig.approvalState === 'pending' || sig.status === 'hitl' || sig.status === 'review') {
+          hitlCount++;
+        }
+      });
+    }
+    setText('quad-hitl-count', hitlCount || '0');
+    setText('quad-hitl-sub', hitlCount ? 'Awaiting human approval' : 'No open HITL items');
+
     setText('quad-blocker-count', '0');
+    setText('quad-blocker-sub', 'All systems nominal');
 
-    // ─── Active Threads panel ──
-    var threadsPanel = document.getElementById('active-threads-panel');
-    if (threadsPanel && catEvents.length > 0) {
-      threadsPanel.innerHTML = '';
-      var seen = {};
-      var threadEvents = catEvents.filter(function(e) {
-        var key = e.source || e.id || '';
-        if (seen[key]) return false;
-        seen[key] = true;
-        return true;
-      }).slice(0, 3);
+    // Sidebar counts
+    setText('sidebar-agent-count', totalAgents);
+    setText('sidebar-thread-count', (timeline && timeline.length > 0) ? Math.min(timeline.length, 9) : '0');
 
-      threadEvents.forEach(function(evt) {
-        var row = document.createElement('div');
-        row.className = 'event-row';
-        row.innerHTML =
-          '<span class="event-dot green"></span>' +
-          '<div class="event-main">' +
-            '<div class="title">' + escapeHtml(evt.source || evt.id || 'event') + '</div>' +
-            '<div class="desc">' + escapeHtml(evt.summary || evt.kind || '') + '</div>' +
-            '<div class="meta">Updated ' + timeAgo(evt.ts || evt.timestamp) + '</div>' +
-          '</div>';
-        threadsPanel.appendChild(row);
-      });
-
-      var badge = document.getElementById('panel-badge-threads');
-      if (badge) badge.textContent = threadEvents.length;
-    }
-
-    // ─── Recent Moves (cat events) ──
-    var movesPanel = document.getElementById('recent-moves-panel');
-    if (movesPanel && catEvents.length > 0) {
-      movesPanel.innerHTML = '';
-      catEvents.slice(0, 5).forEach(function(evt) {
-        var row = document.createElement('div');
-        row.className = 'event-row';
-        var statusTag = evt.kind === 'milestone' || evt.kind === 'done'
-          ? 'done' : (evt.kind === 'fail' || evt.kind === 'alert' ? 'fail' : '');
-        row.innerHTML =
-          '<span class="event-dot green"></span>' +
-          '<div class="event-main">' +
-            '<div class="title">' + escapeHtml(evt.summary || evt.source || 'event') + '</div>' +
-            '<div class="desc">' + escapeHtml(evt.source || evt.id || '') + '</div>' +
-            '<div class="meta"><span class="event-tag ' + statusTag + '">' + escapeHtml((evt.kind || 'event').toUpperCase()) + '</span> ' + timeAgo(evt.ts || evt.timestamp) + '</div>' +
-          '</div>';
-        movesPanel.appendChild(row);
-      });
-
-      var movesBadge = document.getElementById('panel-badge-moves');
-      if (movesBadge) movesBadge.textContent = Math.min(catEvents.length, 5) + ' events';
-    }
-
-    // ─── Health Signals ──
-    var healthPanel = document.getElementById('health-signals-panel');
-    if (healthPanel) {
-      // Populate with agent signal indicators if possible
-      var healthEls = healthPanel.querySelectorAll('.event-row');
-      var healthBadge = document.getElementById('panel-badge-health');
-      if (healthBadge) healthBadge.textContent = totalAgents + ' agents';
-    }
-
-    // ─── Stalled Work Items (from workList) ──
-    var stalledPanel = document.getElementById('stalled-items-panel');
-    if (stalledPanel) {
-      var stalledBadge = document.getElementById('panel-badge-stalled');
-      if (stalledBadge) stalledBadge.textContent = totalWork + ' items';
-      // Update the "more" line
-      var moreLine = stalledPanel.querySelector('.stall-item:last-child');
-      if (moreLine && totalWork > 5) {
-        moreLine.textContent = '+ ' + (totalWork - 5) + ' more stalled items over 72h';
-      }
-    }
-
-    // ─── Archival Candidates ──
-    var archiveBody = document.getElementById('archival-table-body');
-    var archiveBadge = document.getElementById('panel-badge-archive');
-    if (archiveBadge && totalWork > 0) {
-      archiveBadge.textContent = Math.min(totalWork, 8) + ' items';
-    }
-
-    // ─── Fleet Roster (fetch details for agent grid) ──
-    var rosterCount = document.getElementById('roster-count');
-    var rosterRemaining = document.getElementById('roster-remaining');
-    var rosterBadge = document.getElementById('roster-status-badge');
-    if (rosterCount) rosterCount.textContent = totalAgents;
-    if (rosterRemaining) rosterRemaining.textContent = Math.max(0, totalAgents - 8);
-    if (rosterBadge) rosterBadge.textContent = 'Total: ' + totalAgents + ' agents';
-
-    // ─── Agent grid enrichment ──
-    // Fetch details for first 8 agents and update grid cards
-    var batchIds = agentIds.slice(0, 8);
-    if (batchIds.length > 0) {
-      var grid = document.getElementById('agent-grid');
-      if (grid) {
-        var cards = grid.querySelectorAll('.agent-crd:not(#roster-more-btn)');
-        var fetchPromises = batchIds.map(function(id) {
-          return acmi.get('agent', id).catch(function() { return null; });
-        });
-
-        Promise.all(fetchPromises).then(function(agents) {
-          agents.forEach(function(data, idx) {
-            if (!data) return;
-            var d = data.result || data;
-            var profile = d.profile || {};
-            var signals = d.signals || {};
-            var card = cards[idx];
-            if (!card) return;
-
-            // Skip if already populated (keep hardcoded names for now,
-            // but update status dot and meta)
-            var dot = card.querySelector('.agent-st-dot');
-            var meta = card.querySelector('.meta');
-            var sig = card.querySelector('.sig');
-
-            if (dot) {
-              var status = (signals.status || 'online').toLowerCase();
-              dot.className = 'agent-st-dot ' + status;
-            }
-
-            if (meta && signals.lastSeen) {
-              meta.textContent = 'Last seen: ' + timeAgo(signals.lastSeen);
-            }
-
-            if (sig && signals.currentTask) {
-              // Don't replace sig entirely, just append task info
-            }
-          });
-        });
-      }
-    }
-
-    // ─── Header status ──
-    var statusEl = document.getElementById('fleet-header-status');
+    // Header status
+    var statusEl = $('fleet-header-status');
     if (statusEl) {
       statusEl.innerHTML = '<span class="dot"></span>Green · ' + totalAgents + ' agents';
     }
+  }
 
-    console.log('[ACMI-FLEET] Loaded:', totalAgents, 'agents,', catEvents.length, 'timeline events,', totalWork, 'work items');
-  }).catch(function(err) {
-    console.error('[ACMI-FLEET] Initialization failed:', err);
-  });
+  /* ─── Populate Active Threads panel ─────────────────── */
+  function populateActiveThreads(timeline) {
+    var panel = $('active-threads-panel');
+    var badge = $('panel-badge-threads');
+    if (!panel) return;
+
+    panel.innerHTML = '';
+
+    if (!timeline || timeline.length === 0) {
+      panel.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:20px;"><div class="title">No Thread Activity</div><div>No timeline events in the last 7 days.</div></div>';
+      if (badge) badge.textContent = '0';
+      return;
+    }
+
+    // Deduplicate by source/id and show top 3
+    var seen = {};
+    var threadEvents = timeline.filter(function(e) {
+      var key = e.source || e.id || '';
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    }).slice(0, 3);
+
+    threadEvents.forEach(function(evt) {
+      var row = document.createElement('div');
+      row.className = 'event-row';
+      row.innerHTML =
+        '<span class="event-dot green"></span>' +
+        '<div class="event-main">' +
+          '<div class="title">' + escapeHtml(evt.source || evt.id || 'event') + '</div>' +
+          '<div class="desc">' + escapeHtml(evt.summary || evt.kind || '') + '</div>' +
+          '<div class="meta">Updated ' + timeAgo(evt.ts || evt.timestamp) + '</div>' +
+        '</div>';
+      panel.appendChild(row);
+    });
+
+    if (badge) badge.textContent = threadEvents.length;
+  }
+
+  /* ─── Populate Recent Moves panel ───────────────────── */
+  function populateRecentMoves(timeline) {
+    var panel = $('recent-moves-panel');
+    var badge = $('panel-badge-moves');
+    if (!panel) return;
+
+    panel.innerHTML = '';
+
+    if (!timeline || timeline.length === 0) {
+      panel.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:20px;"><div class="title">No Recent Events</div><div>No timeline events recorded in the last 7 days.</div></div>';
+      if (badge) badge.textContent = '0 events';
+      return;
+    }
+
+    timeline.slice(0, 5).forEach(function(evt) {
+      var row = document.createElement('div');
+      row.className = 'event-row';
+      var kind = evt.kind || '';
+      var dotColor = eventDotColor(kind);
+      var tagKlass = tagClass(kind);
+      row.innerHTML =
+        '<span class="event-dot ' + dotColor + '"></span>' +
+        '<div class="event-main">' +
+          '<div class="title">' + escapeHtml(evt.summary || evt.source || 'event') + '</div>' +
+          '<div class="desc">' + escapeHtml(evt.source || evt.id || '') + '</div>' +
+          '<div class="meta">' +
+            (kind ? '<span class="event-tag ' + tagKlass + '">' + escapeHtml(kind.toUpperCase()) + '</span> ' : '') +
+            timeAgo(evt.ts || evt.timestamp) +
+          '</div>' +
+        '</div>';
+      panel.appendChild(row);
+    });
+
+    if (badge) badge.textContent = Math.min(timeline.length, 5) + ' events';
+  }
+
+  /* ─── Populate Health Signals panel ─────────────────── */
+  function populateHealthSignals(agents) {
+    var panel = $('health-signals-panel');
+    var badge = $('panel-badge-health');
+    if (!panel) return;
+
+    panel.innerHTML = '';
+    if (!agents || agents.length === 0) {
+      panel.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:20px;"><div class="title">No Health Signals</div><div>No agent data available.</div></div>';
+      if (badge) badge.textContent = '0 checks';
+      return;
+    }
+
+    // Show first 3 agents as health indicators
+    var count = Math.min(agents.length, 3);
+    for (var i = 0; i < count; i++) {
+      var agent = agents[i];
+      var sig = agent.signals || {};
+      var profile = agent.profile || {};
+      var name = profile.name || agent.id || 'Agent';
+      var status = (sig.status || 'online').toLowerCase();
+      var dotColor = statusDotColor(sig.status);
+      var desc = sig.currentTask || sig.summary || 'Status: ' + status;
+      var lastSeen = sig.lastSeen ? timeAgo(sig.lastSeen) : '';
+
+      var row = document.createElement('div');
+      row.className = 'event-row';
+      var statusColor = (status === 'online' || status === 'active')
+        ? 'var(--forest)' : (status === 'blocked' || status === 'error')
+        ? 'var(--danger)' : 'var(--warning)';
+      row.innerHTML =
+        '<span class="event-dot ' + dotColor + '"></span>' +
+        '<div class="event-main">' +
+          '<div class="title">' + escapeHtml(name) + ': <strong style="color:' + statusColor + '">' + escapeHtml(status) + '</strong></div>' +
+          '<div class="desc">' + escapeHtml(desc) + '</div>' +
+          (lastSeen ? '<div class="meta">' + escapeHtml(lastSeen) + '</div>' : '') +
+        '</div>';
+      panel.appendChild(row);
+    }
+
+    if (badge) badge.textContent = count + ' agent' + (count !== 1 ? 's' : '');
+  }
+
+  /* ─── Populate Stalled Work Items ───────────────────── */
+  function populateStalledItems(workItems) {
+    var panel = $('stalled-items-panel');
+    var badge = $('panel-badge-stalled');
+    if (!panel) return;
+
+    panel.innerHTML = '';
+    if (!workItems || workItems.length === 0) {
+      panel.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:20px;"><div class="title">No Stalled Items</div><div>All work items are active.</div></div>';
+      if (badge) badge.textContent = '0 items';
+      return;
+    }
+
+    var count = Math.min(workItems.length, 5);
+    for (var i = 0; i < count; i++) {
+      var item = workItems[i];
+      var profile = item.profile || {};
+      var signals = item.signals || {};
+      var name = profile.title || profile.name || item.id || 'Item';
+      var stallAge = signals.stallAge || signals.age || '';
+      var ageClass = '';
+      if (stallAge) {
+        var hours = parseInt(stallAge, 10);
+        if (hours >= 200) ageClass = 'old';
+        else if (hours >= 96) ageClass = 'warn';
+      }
+
+      var div = document.createElement('div');
+      div.className = 'stall-item';
+      div.innerHTML =
+        '<span class="stall-name">' + escapeHtml(name) + '</span>' +
+        (stallAge ? '<span class="stall-age ' + ageClass + '">+' + escapeHtml(stallAge) + 'h</span>' : '');
+      panel.appendChild(div);
+    }
+
+    if (workItems.length > 5) {
+      var moreDiv = document.createElement('div');
+      moreDiv.className = 'stall-item';
+      moreDiv.style.cssText = 'border-bottom:none;padding-bottom:0;color:var(--ink-4);font-size:11px;';
+      moreDiv.textContent = '+ ' + (workItems.length - 5) + ' more stalled items';
+      panel.appendChild(moreDiv);
+    }
+
+    if (badge) badge.textContent = workItems.length + ' items';
+  }
+
+  /* ─── Populate Archival Candidates ──────────────────── */
+  function populateArchival(workItems) {
+    var body = $('archival-table-body');
+    var badge = $('panel-badge-archive');
+    if (!body) return;
+
+    body.innerHTML = '';
+    if (!workItems || workItems.length === 0) {
+      var row = document.createElement('tr');
+      row.innerHTML = '<td colspan="3" style="text-align:center;padding:20px;color:var(--ink-4);">No archival candidates</td>';
+      body.appendChild(row);
+      if (badge) badge.textContent = '0 items';
+      return;
+    }
+
+    var count = Math.min(workItems.length, 8);
+    for (var i = 0; i < count; i++) {
+      var item = workItems[i];
+      var profile = item.profile || {};
+      var signals = item.signals || {};
+      var name = profile.title || profile.name || item.id || 'Item';
+      var age = signals.stallAge || signals.age || '';
+      var status = signals.approvalState || profile.status || 'pending';
+      var tagClass = (status === 'approve' || status === 'done') ? 'approve' : 'pending';
+      var tagText = (status === 'approve') ? 'Approve' : (status === 'done' ? 'Done' : 'Pending');
+
+      var row = document.createElement('tr');
+      row.innerHTML = '<td>' + escapeHtml(name) + '</td><td>' + (age ? '+' + escapeHtml(age) + 'h' : '—') + '</td><td><span class="tag ' + tagClass + '">' + escapeHtml(tagText) + '</span></td>';
+      body.appendChild(row);
+    }
+
+    if (badge) badge.textContent = count + ' items';
+  }
+
+  /* ─── Main: Fetch ACMI data and populate everything ── */
+  showLoading();
+
+  acmi.dashboardBootstrap({ maxAgents: 20, maxWork: 20, timelineSince: '7d', timelineLimit: 100 })
+    .then(function(data) {
+      if (!data) data = { agents: [], workItems: [], tasks: [], notes: [], events: [], docs: [], config: {}, timeline: [], summary: {} };
+
+      var agents = data.agents || [];
+      var workItems = data.workItems || [];
+      var timeline = data.timeline || [];
+
+      hideLoading();
+
+      if (agents.length === 0) {
+        showEmpty();
+      } else {
+        renderAgentCards(agents);
+      }
+
+      // Populate all panels
+      populateHealthQuad(agents, timeline, workItems);
+      populateActiveThreads(timeline);
+      populateRecentMoves(timeline);
+      populateHealthSignals(agents);
+      populateStalledItems(workItems);
+      populateArchival(workItems);
+
+      console.log('[ACMI-FLEET] dashboardBootstrap loaded:', agents.length, 'agents,', workItems.length, 'work items,', timeline.length, 'timeline events');
+    })
+    .catch(function(err) {
+      hideLoading();
+      var ld = $('agent-grid-loading');
+      if (ld) {
+        ld.innerHTML = '<div class="spinner" style="border-top-color:var(--danger);"></div><div style="color:var(--danger);">Failed to load ACMI data</div><div style="font-size:11px;color:var(--ink-5);">' + escapeHtml(err.message || 'Unknown error') + '</div>';
+      }
+      console.error('[ACMI-FLEET] dashboardBootstrap failed:', err);
+    });
 })();
 </script>
 </body>
