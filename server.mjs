@@ -73,20 +73,19 @@ async function redis(...cmd) {
 async function handleTool(tool, params) {
   switch (tool) {
     // ── Entity listing ──────────────────────────────────────────
-    case 'list': {
+    case 'list':
+    case 'acmi_list': {
       const ns = params.namespace;
-      if (ns === 'agent') return await redis('SMEMBERS', 'acmi:agent:list');
-      if (ns === 'thread') return await redis('SMEMBERS', 'acmi:thread:list');
-      if (ns === 'work')   return await redis('SMEMBERS', 'acmi:work:list');
-      if (ns === 'task')   return await redis('SMEMBERS', 'acmi:task:list');
-      if (ns === 'note')   return await redis('SMEMBERS', 'acmi:note:list');
-      if (ns === 'event')  return await redis('SMEMBERS', 'acmi:event:list');
-      if (ns === 'doc')    return await redis('SMEMBERS', 'acmi:doc:list');
-      return [];
+      const keys = await redis('KEYS', `acmi:${ns}:*:profile`);
+      return (keys || []).map(k => {
+        const prefix = `acmi:${ns}:`;
+        return k.slice(prefix.length, k.length - ':profile'.length);
+      });
     }
 
     // ── Entity get (profile + signals + timeline) ───────────────
-    case 'get': {
+    case 'get':
+    case 'acmi_get': {
       const { namespace: ns2, id } = params;
       const prefix = `acmi:${ns2}:${id}`;
       let profile = {}, signals = {}, timeline = [];
@@ -124,7 +123,8 @@ async function handleTool(tool, params) {
     }
 
     // ── Multi-stream merge ──────────────────────────────────────
-    case 'cat': {
+    case 'cat':
+    case 'acmi_cat': {
       const keys = params.keys || [];
       const since = params.since || '24h';
       const limit = params.limit || 50;
@@ -152,16 +152,17 @@ async function handleTool(tool, params) {
     }
 
     // ── Profile write ───────────────────────────────────────────
-    case 'profile': {
+    case 'profile':
+    case 'acmi_profile': {
       const { namespace: ns3, id: id3, data } = params;
       const key = `acmi:${ns3}:${id3}:profile`;
       await redis('SET', key, JSON.stringify(data || {}));
-      await redis('SADD', `acmi:${ns3}:list`, id3);
       return { ok: true };
     }
 
     // ── Signal write ────────────────────────────────────────────
-    case 'signal': {
+    case 'signal':
+    case 'acmi_signal': {
       const { namespace: ns4, id: id4, data: data4 } = params;
       const key2 = `acmi:${ns4}:${id4}:signals`;
       // Merge with existing if present
@@ -179,7 +180,8 @@ async function handleTool(tool, params) {
     }
 
     // ── Event append ────────────────────────────────────────────
-    case 'event': {
+    case 'event':
+    case 'acmi_event': {
       const { namespace: ns5, id: id5, source, summary, kind, correlationId } = params;
       const ts = Date.now();
       const event = JSON.stringify({ ts, source, kind, correlationId, summary });
@@ -188,18 +190,21 @@ async function handleTool(tool, params) {
     }
 
     // ── Delete ──────────────────────────────────────────────────
-    case 'delete': {
+    case 'delete':
+    case 'acmi_delete': {
       // Handled by the daemon's ACMI delete tool — pass through for now
       return { ok: false, error: 'delete not supported via proxy' };
     }
 
     // ── Work item operations ────────────────────────────────────
-    case 'workList': {
-      const ids = await redis('SMEMBERS', 'acmi:work:list');
-      return ids || [];
+    case 'workList':
+    case 'acmi_work_list': {
+      const keys = await redis('KEYS', 'acmi:work:*:profile');
+      return (keys || []).map(k => k.slice('acmi:work:'.length, k.length - ':profile'.length));
     }
 
-    case 'workGet': {
+    case 'workGet':
+    case 'acmi_work_get': {
       const wid = params.id;
       const prefix2 = `acmi:work:${wid}`;
       let profile2 = {}, signals2 = {}, timeline2 = [];
@@ -230,26 +235,31 @@ async function handleTool(tool, params) {
       return { profile: profile2, signals: signals2, timeline: timeline2 };
     }
 
-    case 'workCreate': {
+    case 'workCreate':
+    case 'acmi_work_create': {
       const { id: wid2, profile: data6 } = params;
       await redis('SET', `acmi:work:${wid2}:profile`, JSON.stringify(data6 || {}));
-      await redis('SADD', 'acmi:work:list', wid2);
       return { ok: true };
     }
 
-    case 'workSignal': {
-      const { id: wid3, data: data7 } = params;
+    case 'work_signal':
+    case 'workSignal':
+    case 'acmi_work_signal': {
+      const { id: wid3, data: data7, signals: sigs } = params;
       const key3 = `acmi:work:${wid3}:signals`;
       let existing2 = {};
       try {
         const t = await redis('TYPE', key3);
         if (t === 'string') { const raw = await redis('GET', key3); existing2 = raw ? JSON.parse(raw) : {}; }
       } catch {}
-      await redis('SET', key3, JSON.stringify({ ...existing2, ...(data7 || {}) }));
+      const incoming = data7 || (sigs ? JSON.parse(sigs) : {});
+      await redis('SET', key3, JSON.stringify({ ...existing2, ...incoming }));
       return { ok: true };
     }
 
-    case 'workEvent': {
+    case 'work_event':
+    case 'workEvent':
+    case 'acmi_work_event': {
       const { id: wid4, source: src, summary: sum, kind: knd, correlationId: cid } = params;
       const ts2 = Date.now();
       const ev2 = JSON.stringify({ ts: ts2, source: src, kind: knd, correlationId: cid, summary: sum });
@@ -258,7 +268,8 @@ async function handleTool(tool, params) {
     }
 
     // ── Bootstrap ───────────────────────────────────────────────
-    case 'bootstrap': {
+    case 'bootstrap':
+    case 'acmi_bootstrap': {
       const aid = params.agentId;
       try {
         const ctx = await handleTool('get', { namespace: 'agent', id: aid });
@@ -269,8 +280,9 @@ async function handleTool(tool, params) {
         } catch {}
         const all = [];
         try {
-          const ids = await redis('SMEMBERS', 'acmi:agent:list');
-          for (const a of ids || []) {
+          const keys = await redis('KEYS', 'acmi:agent:*:profile');
+          const ids = (keys || []).map(k => k.slice('acmi:agent:'.length, k.length - ':profile'.length));
+          for (const a of ids) {
             try { all.push({ id: a, data: await handleTool('get', { namespace: 'agent', id: a }) }); } catch {}
           }
         } catch {}
@@ -281,7 +293,8 @@ async function handleTool(tool, params) {
     }
 
     // ── Dashboard bootstrap (aggregate) ─────────────────────────
-    case 'dashboardBootstrap': {
+    case 'dashboardBootstrap':
+    case 'acmi_dashboard_bootstrap': {
       const agentIds = await handleTool('list', { namespace: 'agent' }) || [];
       const workIds = await handleTool('workList', {}) || [];
       let config = {};
@@ -298,12 +311,34 @@ async function handleTool(tool, params) {
         handleTool('workGet', { id }).catch(() => null)
       )).then(r => r.filter(Boolean));
 
+      // List and batch-fetch other entities to prevent empty client page renders
+      const taskIds = await handleTool('list', { namespace: 'task' }).catch(() => []) || [];
+      const noteIds = await handleTool('list', { namespace: 'note' }).catch(() => []) || [];
+      const eventIds = await handleTool('list', { namespace: 'event' }).catch(() => []) || [];
+      const docIds = await handleTool('list', { namespace: 'doc' }).catch(() => []) || [];
+
+      const tasks = await Promise.all((taskIds || []).slice(0, 20).map(id =>
+        handleTool('get', { namespace: 'task', id }).then(res => ({ id, ...res })).catch(() => null)
+      )).then(r => r.filter(Boolean));
+
+      const notes = await Promise.all((noteIds || []).slice(0, 20).map(id =>
+        handleTool('get', { namespace: 'note', id }).then(res => ({ id, ...res })).catch(() => null)
+      )).then(r => r.filter(Boolean));
+
+      const events = await Promise.all((eventIds || []).slice(0, 50).map(id =>
+        handleTool('get', { namespace: 'event', id }).then(res => ({ id, ...res })).catch(() => null)
+      )).then(r => r.filter(Boolean));
+
+      const docs = await Promise.all((docIds || []).slice(0, 20).map(id =>
+        handleTool('get', { namespace: 'doc', id }).then(res => ({ id, ...res })).catch(() => null)
+      )).then(r => r.filter(Boolean));
+
       let timeline = [];
       try {
         timeline = await handleTool('cat', { keys: ['acmi:thread:agent-coordination:timeline'], since: '6h', limit: 20 });
       } catch {}
 
-      return { agents, workItems, config, timeline, events: [], docs: [], notes: [], tasks: [] };
+      return { agents, workItems, config, timeline, events, docs, notes, tasks };
     }
 
     default:
@@ -320,7 +355,7 @@ const server = createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   // ACMI proxy endpoint
-  if (req.url === '/acmi-proxy' && req.method === 'POST') {
+  if ((req.url === '/acmi-proxy' || req.url === '/api/acmi') && req.method === 'POST') {
     let body = [];
     req.on('data', c => body.push(c));
     req.on('end', async () => {
@@ -371,3 +406,49 @@ server.listen(PORT, () => {
   console.log(`  📡 ACMI proxy    — http://127.0.0.1:${PORT}/acmi-proxy`);
   console.log(`  🟢 Health check  — http://127.0.0.1:${PORT}/health\n`);
 });
+
+// ─── Server-side ACMI Background Poller ──────────────────────────────────────
+let lastPollTs = Date.now();
+const POLL_INTERVAL = 5000; // 5 seconds
+
+async function startBackgroundPoller() {
+  console.log('[ACMI Poller] Server background worker active (5s interval)');
+  setInterval(async () => {
+    try {
+      const keys = await redis('KEYS', 'acmi:*:*:timeline');
+      if (!keys || keys.length === 0) return;
+
+      let hasNewEvents = false;
+      let maxEventTs = lastPollTs;
+
+      for (const key of keys) {
+        const parts = key.split(':');
+        if (parts.length < 4) continue;
+
+        const newEventsRaw = await redis('ZRANGEBYSCORE', key, `(${lastPollTs}`, '+inf');
+        if (newEventsRaw && newEventsRaw.length > 0) {
+          console.log(`[ACMI Poller] Detected ${newEventsRaw.length} new event(s) in ${key}`);
+          hasNewEvents = true;
+          
+          for (const evStr of newEventsRaw) {
+            try {
+              const ev = JSON.parse(evStr);
+              if (ev.ts && ev.ts > maxEventTs) {
+                maxEventTs = ev.ts;
+              }
+            } catch (e) {}
+          }
+        }
+      }
+
+      if (hasNewEvents) {
+        lastPollTs = maxEventTs;
+      }
+    } catch (err) {
+      console.warn('[ACMI Poller] Poll error (retrying):', err.message);
+    }
+  }, POLL_INTERVAL);
+}
+
+startBackgroundPoller();
+
