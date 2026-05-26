@@ -409,10 +409,15 @@ document.querySelectorAll('.approval-banner .btn-primary').forEach(function(btn)
   btn.addEventListener('click', function() {
     var banner = btn.closest('.approval-banner');
     if (banner) {
+      var params = new URLSearchParams(window.location.search);
+      var taskId = params.get('id') || window._currentTaskId || 'unknown';
       banner.className = 'approval-banner approved';
       var strong = banner.querySelector('strong');
       var itemName = strong ? strong.textContent : 'item';
       banner.innerHTML = '<span style="font-weight:600">✓ Approved</span><span style="flex:1;font-size:12px">' + itemName + ' approved by you</span>';
+      window.acmi.workSignal(taskId, { approvalStatus: 'approved', approvedAt: new Date().toISOString() }).catch(function(err) {
+        console.error('[ACMI] approval signal failed:', err);
+      });
     }
   });
 });
@@ -420,10 +425,15 @@ document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) 
   btn.addEventListener('click', function() {
     var banner = btn.closest('.approval-banner');
     if (banner) {
+      var params = new URLSearchParams(window.location.search);
+      var taskId = params.get('id') || window._currentTaskId || 'unknown';
       banner.className = 'approval-banner rejected';
       var strong = banner.querySelector('strong');
       var itemName = strong ? strong.textContent : 'item';
       banner.innerHTML = '<span style="font-weight:600">✗ Rejected</span><span style="flex:1;font-size:12px">' + itemName + ' rejected. Reason required.</span><button class="btn btn-sm" onclick="alert(\'Please provide a reason\')">Add reason</button>';
+      window.acmi.workSignal(taskId, { approvalStatus: 'rejected', rejectedAt: new Date().toISOString() }).catch(function(err) {
+        console.error('[ACMI] rejection signal failed:', err);
+      });
     }
   });
 });
@@ -435,8 +445,22 @@ document.querySelectorAll('.composer').forEach(function(comp) {
   if (btn) {
     btn.addEventListener('click', function() {
       if (ta && ta.value.trim()) {
-        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
-        ta.value = '';
+        var params = new URLSearchParams(window.location.search);
+        var taskId = params.get('id') || window._currentTaskId || 'unknown';
+        var msg = ta.value.trim();
+        var correlationId = 'taskComment-' + Date.now();
+        window.acmi.workEvent(taskId, {
+          source: 'agent:opencode',
+          kind: 'comment-added',
+          correlationId: correlationId,
+          summary: '[comment-added] ' + msg.substring(0, 80)
+        }).then(function() {
+          ta.value = '';
+        }).catch(function(err) {
+          console.error('[ACMI] comment failed:', err);
+          alert('Message sent: "' + msg.substring(0, 60) + (msg.length > 60 ? '…' : '') + '"');
+          ta.value = '';
+        });
       }
     });
   }
@@ -445,8 +469,22 @@ document.querySelectorAll('.composer').forEach(function(comp) {
       if (e.key === 'Enter' && e.shiftKey) {
         e.preventDefault();
         if (ta.value.trim()) {
-          alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
-          ta.value = '';
+          var params = new URLSearchParams(window.location.search);
+          var taskId = params.get('id') || window._currentTaskId || 'unknown';
+          var msg = ta.value.trim();
+          var correlationId = 'taskComment-' + Date.now();
+          window.acmi.workEvent(taskId, {
+            source: 'agent:opencode',
+            kind: 'comment-added',
+            correlationId: correlationId,
+            summary: '[comment-added] ' + msg.substring(0, 80)
+          }).then(function() {
+            ta.value = '';
+          }).catch(function(err) {
+            console.error('[ACMI] comment failed:', err);
+            alert('Message sent: "' + msg.substring(0, 60) + (msg.length > 60 ? '…' : '') + '"');
+            ta.value = '';
+          });
         }
       }
     });

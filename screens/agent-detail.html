@@ -316,7 +316,52 @@ Acknowledged handoff. Vessels 4-6 checkpoints received. Running baseline sync au
 </div>
 
 <script>
-// ─── Collab Actions ────────────────────────────
+// ─── Comm Box Send ─────────────────────────────
+(function() {
+  var commBox = document.querySelector('.comm-box');
+  if (!commBox) return;
+  var ta = commBox.querySelector('textarea');
+  var btn = commBox.querySelector('.btn');
+  if (!btn || !ta) return;
+
+  function getAgentIdFromPage() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get('id') || window._currentAgentId || 'unknown';
+  }
+
+  function doSend() {
+    var msg = ta.value.trim();
+    if (!msg) return;
+    var agentId = getAgentIdFromPage();
+    btn.disabled = true;
+    ta.disabled = true;
+    var correlationId = 'commSend-' + Date.now();
+    window.acmi.event('thread', 'agent-comm-' + agentId, {
+      source: 'agent:opencode',
+      kind: 'comm-message',
+      correlationId: correlationId,
+      summary: '[comm-message @' + agentId + '] ' + msg.substring(0, 80)
+    }).then(function() {
+      ta.value = '';
+      ta.placeholder = 'Message sent ✓';
+      setTimeout(function() {
+        ta.placeholder = 'Send a message to ' + agentId + '…';
+        ta.disabled = false;
+        btn.disabled = false;
+      }, 2000);
+    }).catch(function(err) {
+      console.error('[ACMI] comm send failed:', err);
+      ta.placeholder = 'Send failed: ' + (err.message || 'error');
+      ta.disabled = false;
+      btn.disabled = false;
+    });
+  }
+
+  btn.addEventListener('click', doSend);
+  ta.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+  });
+})();
 document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
   btn.addEventListener('click', function() {
     if (btn.textContent.trim().startsWith('👍') || btn.textContent.trim().startsWith('🎉') || btn.textContent.trim().startsWith('❤️')) {

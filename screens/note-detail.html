@@ -243,13 +243,68 @@ function updateWordCount() {
 editor.addEventListener('input', updateWordCount);
 updateWordCount();
 
-// Auto-save indicator
-function saveNow() {
-  document.getElementById('saveIndicator').textContent = 'Saving…';
-  setTimeout(() => { document.getElementById('saveIndicator').textContent = 'Saved · just now'; }, 600);
-}
-editor.addEventListener('blur', saveNow);
-document.querySelector('.title-input').addEventListener('blur', saveNow);
+// Save note to ACMI
+(function() {
+  var noteId = null;
+  var saveTimer = null;
+
+  function getNoteId() {
+    if (noteId) return noteId;
+    var params = new URLSearchParams(window.location.search);
+    noteId = params.get('id') || 'note-' + Date.now();
+    return noteId;
+  }
+
+  function saveNote() {
+    var titleEl = document.querySelector('.title-input');
+    var editor = document.querySelector('.editor');
+    if (!titleEl || !editor) return;
+    var title = titleEl.value.trim() || 'Untitled';
+    var body = editor.innerHTML || '';
+    var tags = [];
+    document.querySelectorAll('.tag-chip').forEach(function(chip) {
+      var txt = chip.textContent.replace(/\×$/, '').trim();
+      if (txt) tags.push(txt);
+    });
+    var indicator = document.getElementById('saveIndicator');
+    if (indicator) indicator.textContent = 'Saving…';
+    window.acmi.profile('note', getNoteId(), {
+      title: title,
+      body: body,
+      tags: tags,
+      savedAt: new Date().toISOString()
+    }).then(function() {
+      var wc = document.getElementById('wordCount');
+      var words = 0;
+      if (editor) {
+        var text = editor.innerText || '';
+        words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      }
+      if (indicator) indicator.textContent = 'Saved · just now';
+      if (wc) wc.textContent = words + ' words';
+    }).catch(function(err) {
+      console.error('[ACMI] note save failed:', err);
+      if (indicator) indicator.textContent = 'Save failed';
+    });
+  }
+
+  window.saveNoteToACMI = saveNote;
+
+  var editor = document.querySelector('.editor');
+  var titleInput = document.querySelector('.title-input');
+  if (editor) {
+    editor.addEventListener('blur', function() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveNote, 500);
+    });
+  }
+  if (titleInput) {
+    titleInput.addEventListener('blur', function() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveNote, 500);
+    });
+  }
+})();
 </script>
 
 <!-- ═══════════════════════════════════════════════
@@ -424,23 +479,33 @@ document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) 
 document.querySelectorAll('.composer').forEach(function(comp) {
   var ta = comp.querySelector('textarea');
   var btn = comp.querySelector('.btn-primary');
-  if (btn) {
-    btn.addEventListener('click', function() {
-      if (ta && ta.value.trim()) {
-        alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
-        ta.value = '';
-      }
-    });
+  function getNoteId() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get('id') || window._currentNoteId || 'note-' + Date.now();
   }
+  function doSend() {
+    if (ta && ta.value.trim()) {
+      var noteId = getNoteId();
+      var msg = ta.value.trim();
+      var correlationId = 'noteComment-' + Date.now();
+      window.acmi.event('thread', 'note-collab-' + noteId, {
+        source: 'agent:opencode',
+        kind: 'comment-added',
+        correlationId: correlationId,
+        summary: '[comment-added @note:' + noteId + '] ' + msg.substring(0, 80)
+      }).then(function() {
+        ta.value = '';
+      }).catch(function(err) {
+        console.error('[ACMI] comment failed:', err);
+        alert('Message sent: "' + msg.substring(0, 60) + (msg.length > 60 ? '…' : '') + '"');
+        ta.value = '';
+      });
+    }
+  }
+  if (btn) { btn.addEventListener('click', doSend); }
   if (ta) {
     ta.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && e.shiftKey) {
-        e.preventDefault();
-        if (ta.value.trim()) {
-          alert('💬 Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '…' : '') + '"');
-          ta.value = '';
-        }
-      }
+      if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); doSend(); }
     });
   }
 });
