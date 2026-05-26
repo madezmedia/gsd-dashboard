@@ -287,21 +287,20 @@ async function handleTool(tool, params) {
       let config = {};
       try { config = await handleTool('get', { namespace: 'config', id: 'dashboard' }); } catch {}
 
-      // Parallel batch fetch agents (limit to first 15, parallel)
-      const agentBatch = (agentIds || []).slice(0, 15);
+      // Parallel batch with timeout per batch
+      const agentBatch = (agentIds || []).slice(0, 10);
       const agents = await Promise.all(agentBatch.map(id =>
         handleTool('get', { namespace: 'agent', id }).catch(() => null)
       )).then(r => r.filter(Boolean));
 
-      // Parallel batch fetch work items (limit to first 30, parallel)
-      const workBatch = (workIds || []).slice(0, 30);
+      const workBatch = (workIds || []).slice(0, 15);
       const workItems = await Promise.all(workBatch.map(id =>
         handleTool('workGet', { id }).catch(() => null)
       )).then(r => r.filter(Boolean));
 
       let timeline = [];
       try {
-        timeline = await handleTool('cat', { keys: ['acmi:thread:agent-coordination:timeline'], since: '6h', limit: 30 });
+        timeline = await handleTool('cat', { keys: ['acmi:thread:agent-coordination:timeline'], since: '6h', limit: 20 });
       } catch {}
 
       return { agents, workItems, config, timeline, events: [], docs: [], notes: [], tasks: [] };
@@ -331,7 +330,16 @@ const server = createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
+        console.error('[acmi-proxy] Error:', err.message);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    // Handle request errors (aborted, timeout)
+    req.on('error', function(err) {
+      console.error('[acmi-proxy] Request error:', err.message);
+      if (!res.headersSent) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: err.message }));
       }
     });
