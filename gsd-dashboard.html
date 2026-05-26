@@ -4569,7 +4569,8 @@ The three-slot model replaces the traditional "single document" approach — age
     var eventsToday = 0;
     var todayStr = new Date().toISOString().slice(0, 10);
     (data ? data.timeline : []).forEach(function(evt) {
-      if (evt.ts && evt.ts.slice(0, 10) === todayStr) eventsToday++;
+      var ts = String(evt.ts || '');
+      if (ts.slice(0, 10) === todayStr) eventsToday++;
     });
     _updateKpiAt(3, eventsToday, 'Events Today', '', 'last 24 hours', eventsToday > 0 ? 'up' : '');
 
