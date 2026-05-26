@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Montserrat:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="design-system.css" />
   <style>
     /* ================================================================
        GSD DASHBOARD — Design System
@@ -875,7 +876,8 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
     }
-    .kanban-col { }
+    .kanban-col { transition: background var(--d-fast) var(--ease), border var(--d-fast) var(--ease); border-radius: var(--radius-md); padding: 4px; }
+    .kanban-col.drag-over { background: var(--paper-shade); border: 1px dashed var(--forest); }
     .kanban-col-hdr {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -4046,6 +4048,7 @@ The three-slot model replaces the traditional "single document" approach — age
       renderNotesPage(data.notes);
       renderCalendarPage(data.events, data.timeline);
       renderDocsPage(data.docs);
+      renderProjectsPage(data.workItems);
       renderSettingsPage(data.config);
       
       // Update Main KPI strip
@@ -4509,6 +4512,137 @@ The three-slot model replaces the traditional "single document" approach — age
     }
   }
 
+  // ─── Project Tracker Dynamically Hydrated ───────────────────────
+  function renderProjectsPage(workItems) {
+    var grid = document.querySelector('#page-projects .project-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    if (!workItems || workItems.length === 0) {
+      grid.innerHTML = '<div style="grid-column: 1 / -1; font-family:\'Raleway\', sans-serif; font-size:12px; color:var(--ink-4); padding:24px; text-align:center; background:#faf9f5; border:1px dashed var(--border); border-radius:var(--radius-md); width:100%; margin:3px;">' +
+        'No projects found in ACMI workspace.' +
+      '</div>';
+      return;
+    }
+
+    workItems.forEach(function(item) {
+      var p = item.profile || {};
+      var s = item.signals || {};
+      var id = item.id;
+      
+      var title = p.title || id;
+      var rawStatus = (s.status || p.status || 'active').toLowerCase();
+      var statusClass = 'live';
+      var statusText = 'Live';
+
+      if (rawStatus === 'stalled' || rawStatus === 'blocked') {
+        statusClass = 'stalled';
+        statusText = 'Stalled';
+      } else if (rawStatus === 'draft' || rawStatus === 'idea' || rawStatus === 'planned') {
+        statusClass = 'draft';
+        statusText = 'Draft';
+      } else if (rawStatus === 'completed' || rawStatus === 'deployed' || rawStatus === 'live') {
+        statusClass = 'live';
+        statusText = 'Live';
+      } else {
+        statusClass = 'live';
+        statusText = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+      }
+
+      var progress = Math.min(Math.max(parseInt(s.progress || p.progress || 0, 10), 0), 100);
+      var lead = p.lead || '@operator';
+      var desc = p.description || 'Active pipeline';
+      
+      // Build metadata text cleanly
+      var metaText = 'Pipeline ' + progress + '% · ' + desc + '<br/>Lead: <span class="agent">' + _esc(lead) + '</span>';
+      if (p.members) {
+        metaText += ' · ' + _esc(p.members) + ' members';
+      }
+      if (p.revenue || p.budget) {
+        metaText += ' · ' + _esc(p.revenue || p.budget);
+      }
+
+      var card = document.createElement('a');
+      card.className = 'project-card';
+      card.href = 'screens/project-detail.html#project=' + encodeURIComponent(id);
+      card.style.textDecoration = 'none';
+      card.style.color = 'inherit';
+      card.style.display = 'block';
+      card.setAttribute('data-project-id', id);
+
+      card.innerHTML = '<div class="top">' +
+        '<span class="name">' + _esc(title) + ' <span style="font-size:10px;color:var(--ink-4)">→</span></span>' +
+        '<span class="status ' + statusClass + '">' + _esc(statusText) + '</span>' +
+      '</div>' +
+      '<div class="progress"><div class="fill" style="width:' + progress + '%"></div></div>' +
+      '<div class="meta">' + metaText + '</div>';
+
+      grid.appendChild(card);
+    });
+
+    // Update completions pipeline funnel
+    var ideas = 0;
+    var inProgress = 0;
+    var review = 0;
+    var deployed = 0;
+    var totalRevenue = 0;
+
+    workItems.forEach(function(item) {
+      var p = item.profile || {};
+      var s = item.signals || {};
+      var st = (s.status || p.status || 'active').toLowerCase();
+      
+      if (st === 'draft' || st === 'idea' || st === 'planned') {
+        ideas++;
+      } else if (st === 'review' || st === 'pending_approval') {
+        review++;
+      } else if (st === 'completed' || st === 'deployed' || st === 'live') {
+        deployed++;
+      } else {
+        inProgress++;
+      }
+
+      var rev = p.revenue || p.budget || s.revenue || s.budget;
+      if (rev) {
+        if (typeof rev === 'number') {
+          totalRevenue += rev;
+        } else if (typeof rev === 'string') {
+          var num = parseFloat(rev.replace(/[^0-9.]/g, ''));
+          if (!isNaN(num)) {
+            if (rev.toLowerCase().indexOf('k') !== -1) num *= 1000;
+            totalRevenue += num;
+          }
+        }
+      }
+    });
+
+    var funnelRows = document.querySelectorAll('#page-projects .pipeline-funnel-new .funnel-row');
+    if (funnelRows.length >= 5) {
+      var maxVal = Math.max(ideas, inProgress, review, deployed, 1);
+      
+      _setFunnelRow(funnelRows[0], 'Ideas', ideas, Math.round(ideas / maxVal * 100));
+      _setFunnelRow(funnelRows[1], 'In Progress', inProgress, Math.round(inProgress / maxVal * 100));
+      _setFunnelRow(funnelRows[2], 'Review', review, Math.round(review / maxVal * 100));
+      _setFunnelRow(funnelRows[3], 'Deployed', deployed, Math.round(deployed / maxVal * 100));
+      
+      var revStr = totalRevenue > 0 ? '$' + (totalRevenue >= 1000 ? (totalRevenue / 1000).toFixed(1) + 'k' : totalRevenue) : '$0';
+      _setFunnelRow(funnelRows[4], 'Revenue', revStr, totalRevenue > 0 ? 100 : 0);
+    }
+
+    var sub = document.querySelector('#page-projects .page-hdr-sub');
+    if (sub) sub.textContent = workItems.length + ' projects · synchronized';
+  }
+
+  function _setFunnelRow(row, label, count, percentage) {
+    var lblEl = row.querySelector('.stage-label');
+    var barFill = row.querySelector('.stage-bar .fill');
+    var cntEl = row.querySelector('.stage-count');
+    if (lblEl) lblEl.textContent = label;
+    if (barFill) barFill.style.width = percentage + '%';
+    if (cntEl) cntEl.textContent = count;
+  }
+
   // ─── Add Task Live Write-back ───────────────────────────────────
   function addTask() {
     var inp = document.getElementById('taskInput');
@@ -4799,7 +4933,19 @@ The three-slot model replaces the traditional "single document" approach — age
     }
     
     if (window.acmi && token) {
+      if (window.acmi.tenantFallback) {
+        if (dot) { dot.className = 'dot amber pulse'; }
+        if (text) { text.textContent = '[!] Shared Mode Fallback'; }
+        if (connectBtn) { connectBtn.textContent = 'Rotate Token'; }
+        return;
+      }
       window.acmi.status().then(function(res) {
+        if (window.acmi.tenantFallback) {
+          if (dot) { dot.className = 'dot amber pulse'; }
+          if (text) { text.textContent = '[!] Shared Mode Fallback'; }
+          if (connectBtn) { connectBtn.textContent = 'Rotate Token'; }
+          return;
+        }
         if (res.online) {
           var isStreaming = window.acmi._ws && window.acmi._ws.readyState === 1;
           if (dot) { dot.className = isStreaming ? 'dot green pulse' : 'dot green'; }
@@ -4811,6 +4957,12 @@ The three-slot model replaces the traditional "single document" approach — age
           if (connectBtn) { connectBtn.textContent = 'Reconnect'; }
         }
       }).catch(function() {
+        if (window.acmi.tenantFallback) {
+          if (dot) { dot.className = 'dot amber pulse'; }
+          if (text) { text.textContent = '[!] Shared Mode Fallback'; }
+          if (connectBtn) { connectBtn.textContent = 'Rotate Token'; }
+          return;
+        }
         if (dot) { dot.className = 'dot red'; }
         if (text) { text.textContent = 'Connection Error'; }
         if (connectBtn) { connectBtn.textContent = 'Reconnect'; }
@@ -4827,9 +4979,19 @@ The three-slot model replaces the traditional "single document" approach — age
     if (typeof updateSovereignStatus === 'function') {
       updateSovereignStatus();
     }
+    var dot = document.getElementById('acmiDot');
+    var label = document.getElementById('acmiLabel');
+    if (window.acmi.tenantFallback) {
+      if (dot) dot.className = 'status-dot warn pulse';
+      if (label) label.textContent = '[!] Shared Mode Fallback';
+      return;
+    }
     window.acmi.status().then(function(res) {
-      var dot = document.getElementById('acmiDot');
-      var label = document.getElementById('acmiLabel');
+      if (window.acmi.tenantFallback) {
+        if (dot) dot.className = 'status-dot warn pulse';
+        if (label) label.textContent = '[!] Shared Mode Fallback';
+        return;
+      }
       if (dot && label) {
         if (res.online) {
           var isStreaming = window.acmi._ws && window.acmi._ws.readyState === 1;
@@ -4841,6 +5003,11 @@ The three-slot model replaces the traditional "single document" approach — age
         }
       }
     }).catch(function() {
+      if (window.acmi.tenantFallback) {
+        if (dot) dot.className = 'status-dot warn pulse';
+        if (label) label.textContent = '[!] Shared Mode Fallback';
+        return;
+      }
       var dot = document.getElementById('acmiDot');
       var label = document.getElementById('acmiLabel');
       if (dot) dot.className = 'status-dot offline';
@@ -4902,8 +5069,17 @@ The three-slot model replaces the traditional "single document" approach — age
         console.log('[ACMI Dashboard] Live change notification received, refreshing dashboard');
         refreshDashboard(true);
       });
+      window.acmi.on('tenant-fallback', function(evt) {
+        console.log('[ACMI Dashboard] Tenant connection state changed: fallback =', evt.fallback);
+        updateACMIStatus();
+      });
       window.acmi.on('ws-connected', function() {
         console.log('[ACMI Dashboard] WebSocket connected! Activating pulse indicators.');
+        refreshDashboard(true); // Case A - Option 1: Clean bootstrap refresh on socket connection
+        if (window.acmi.tenantFallback) {
+          updateACMIStatus();
+          return;
+        }
         var sovereignDot = document.getElementById('acmiStatusDot');
         if (sovereignDot) sovereignDot.className = 'dot green pulse';
         var sovereignText = document.getElementById('acmiStatusText');
@@ -4919,6 +5095,10 @@ The three-slot model replaces the traditional "single document" approach — age
       });
       window.acmi.on('ws-disconnected', function() {
         console.log('[ACMI Dashboard] WebSocket disconnected! Deactivating pulse indicators.');
+        if (window.acmi.tenantFallback) {
+          updateACMIStatus();
+          return;
+        }
         var sovereignDot = document.getElementById('acmiStatusDot');
         if (sovereignDot) sovereignDot.className = 'dot green';
         var sovereignText = document.getElementById('acmiStatusText');
@@ -4974,36 +5154,293 @@ The three-slot model replaces the traditional "single document" approach — age
     });
   });
 
-  // ─── Drag handle styling for kanban ──────────────────────────────
-  document.querySelectorAll('.kanban-item[draggable]').forEach(function(item) {
-    item.addEventListener('dragstart', function(e) {
-      this.style.opacity = '0.5';
-    });
-    item.addEventListener('dragend', function(e) {
-      this.style.opacity = '1';
-      // Re-check empty states after drag reorder
-      updateKanbanEmptyState();
-    });
-  });
+  // ─── Kanban Drag-and-Drop Event Delegation ───────────────────────
+  var kanbanView = document.getElementById('todoKanbanView');
+  if (kanbanView) {
+    var draggedItem = null;
 
-  // ─── Task Enter key ──────────────────────────────────────────────
-  document.getElementById('taskInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') addTask();
-  });
+    kanbanView.addEventListener('dragstart', function(e) {
+      var item = e.target.closest('.kanban-item');
+      if (item) {
+        draggedItem = item;
+        item.style.opacity = '0.5';
+        e.dataTransfer.setData('text/plain', item.getAttribute('data-task-id'));
+        e.dataTransfer.effectAllowed = 'move';
+      }
+    });
 
-  // ─── Note editor auto-save indicator ────────────────────────────
+    kanbanView.addEventListener('dragend', function(e) {
+      var item = e.target.closest('.kanban-item');
+      if (item) {
+        item.style.opacity = '1';
+      }
+      document.querySelectorAll('#todoKanbanView .kanban-col').forEach(function(col) {
+        col.classList.remove('drag-over');
+      });
+      draggedItem = null;
+    });
+
+    kanbanView.addEventListener('dragover', function(e) {
+      var col = e.target.closest('.kanban-col');
+      if (col) {
+        e.preventDefault();
+        col.classList.add('drag-over');
+      }
+    });
+
+    kanbanView.addEventListener('dragleave', function(e) {
+      var col = e.target.closest('.kanban-col');
+      if (col && !col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+      }
+    });
+
+    kanbanView.addEventListener('drop', function(e) {
+      var col = e.target.closest('.kanban-col');
+      if (col && draggedItem) {
+        e.preventDefault();
+        col.classList.remove('drag-over');
+
+        var taskId = draggedItem.getAttribute('data-task-id');
+        var colHeader = col.querySelector('.kanban-col-hdr');
+        var colText = colHeader ? colHeader.textContent.trim().toLowerCase() : '';
+        var status = 'today';
+        if (colText.indexOf('today') !== -1) status = 'today';
+        else if (colText.indexOf('week') !== -1) status = 'this-week';
+        else if (colText.indexOf('month') !== -1) status = 'this-month';
+        else if (colText.indexOf('backlog') !== -1) status = 'backlog';
+
+        if (taskId && window.acmi) {
+          window.acmi.profile('task', taskId, {
+            status: status
+          }).then(function() {
+            return window.acmi.event('thread', 'agent-coordination', 'gsd-dashboard-operator', 'task-update', 
+              'Moved task ' + taskId + ' to ' + status, 'taskMove-' + Date.now());
+          }).then(function() {
+            return refreshDashboard(true);
+          }).catch(function(err) {
+            console.error('[Kanban Drag-Drop] Drop save failed:', err);
+            alert('Failed to update task status in ACMI: ' + err.message);
+          });
+        }
+      }
+    });
+  }
+
+  // ─── Note List selection Event Delegation ────────────────────────
+  var notesList = document.getElementById('notesList');
+  if (notesList) {
+    notesList.addEventListener('click', function(e) {
+      var item = e.target.closest('.note-item');
+      if (item) {
+        var noteId = item.getAttribute('data-note-id');
+        if (noteId) {
+          selectNote(noteId);
+        }
+      }
+    });
+  }
+
+  // ─── Note editor auto-save live write-back ───────────────────────
   var noteTimer = null;
-  document.querySelector('.note-editor textarea').addEventListener('input', function() {
-    var hdr = document.querySelector('#page-notes .page-hdr-sub');
-    if (hdr) hdr.textContent = '9 notes · 3 tags · auto-saving…';
-    clearTimeout(noteTimer);
-    noteTimer = setTimeout(function() {
-      if (hdr) hdr.textContent = '9 notes · 3 tags · auto-saved';
-      setTimeout(function() {
-        if (hdr) hdr.textContent = '9 notes · 3 tags · last edited just now';
-      }, 2000);
-    }, 500);
+  var noteTextarea = document.querySelector('.note-editor textarea');
+  if (noteTextarea) {
+    noteTextarea.addEventListener('input', function() {
+      var hdr = document.querySelector('#page-notes .page-hdr-sub');
+      if (hdr) hdr.textContent = 'Saving changes to ACMI Redis...';
+      
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(function() {
+        var activeId = _activeNoteId;
+        if (!activeId || !window.acmi) return;
+        var text = noteTextarea.value;
+        
+        // Parse title from first line matching "# Title"
+        var title = 'Untitled Note';
+        var lines = text.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (line.startsWith('# ')) {
+            title = line.substring(2).trim();
+            break;
+          } else if (line.length > 0) {
+            title = line;
+            break;
+          }
+        }
+        
+        // Parse tags
+        var tags = [];
+        var tagMatches = text.match(/#[a-zA-Z0-9_-]+/g);
+        if (tagMatches) {
+          tagMatches.forEach(function(m) {
+            var t = m.substring(1).trim();
+            if (t && tags.indexOf(t) === -1) tags.push(t);
+          });
+        }
+        
+        // Compute preview
+        var preview = text.replace(/[#*`_-]/g, '').trim().substring(0, 100);
+        if (text.length > 100) preview += '...';
+        
+        window.acmi.profile('note', activeId, {
+          title: title,
+          content: text,
+          preview: preview,
+          tags: tags,
+          modified: new Date().toISOString()
+        }).then(function() {
+          return window.acmi.signal('note', activeId, {
+            lastModified: new Date().toISOString()
+          });
+        }).then(function() {
+          // Update sidebar DOM nodes in-place so focus is not lost!
+          var itemEl = document.querySelector('#notesList .note-item[data-note-id="' + activeId + '"]');
+          if (itemEl) {
+            var titleEl = itemEl.querySelector('.title');
+            if (titleEl) titleEl.textContent = title;
+            var prevEl = itemEl.querySelector('.preview');
+            if (prevEl) prevEl.textContent = preview;
+            var tagsEl = itemEl.querySelector('.tags');
+            if (tagsEl) {
+              tagsEl.innerHTML = tags.map(function(t) { return '<span class="tag">' + _esc(t) + '</span>'; }).join('');
+            }
+            var tsEl = itemEl.querySelector('.ts');
+            if (tsEl) tsEl.textContent = 'Modified just now';
+          }
+          
+          // Update cache
+          if (_lastBootstrapData && _lastBootstrapData.notes) {
+            var cachedNote = _lastBootstrapData.notes.find(function(n) { return n.id === activeId; });
+            if (cachedNote) {
+              cachedNote.profile = cachedNote.profile || {};
+              cachedNote.profile.title = title;
+              cachedNote.profile.content = text;
+              cachedNote.profile.preview = preview;
+              cachedNote.profile.tags = tags;
+              cachedNote.profile.modified = new Date().toISOString();
+              cachedNote.signals = cachedNote.signals || {};
+              cachedNote.signals.lastModified = new Date().toISOString();
+            }
+          }
+          
+          if (hdr) hdr.textContent = 'Auto-saved to Redis';
+          setTimeout(function() {
+            if (hdr && _activeNoteId === activeId) {
+              hdr.textContent = 'Last edited just now';
+            }
+          }, 2000);
+        }).catch(function(err) {
+          console.error('[Notes Auto-save] Error:', err);
+          if (hdr) hdr.textContent = 'Auto-save failed';
+        });
+      }, 500);
+    });
+  }
+
+  // ─── Calendar click-to-create event integration ──────────────────
+  var calGrid = document.querySelector('#page-calendar .cal-grid');
+  if (calGrid) {
+    calGrid.addEventListener('click', function(e) {
+      var day = e.target.closest('.cal-day:not(.other-month)');
+      if (day) {
+        if (e.target.closest('.event')) return;
+
+        var numEl = day.querySelector('.num');
+        if (numEl) {
+          var dayNum = parseInt(numEl.textContent.trim(), 10);
+          if (isNaN(dayNum)) return;
+          
+          var dayStr = (dayNum < 10 ? '0' : '') + dayNum;
+          var dateStr = '2026-05-' + dayStr;
+
+          var title = prompt('Create ACMI Event for May ' + dayNum + ', 2026:\nEnter Event Title:');
+          if (!title || !title.trim()) return;
+          title = title.trim();
+
+          var type = prompt('Enter Event Type (milestone, deadline, task):', 'task');
+          if (!type) return;
+          type = type.trim().toLowerCase();
+          if (['milestone', 'deadline', 'task'].indexOf(type) === -1) type = 'task';
+
+          if (window.acmi) {
+            var uuid = 'event-' + Math.random().toString(36).substring(2, 11);
+            
+            window.acmi.profile('event', uuid, {
+              title: title,
+              start: dateStr,
+              end: dateStr,
+              kind: type,
+              allDay: true
+            }).then(function() {
+              return window.acmi.event('event', uuid, 'gsd-dashboard-operator', type, 
+                'Created event ' + title + ' (' + type + ') for May ' + dayNum, 'calEvent-' + Date.now());
+            }).then(function() {
+              return refreshDashboard(true);
+            }).catch(function(err) {
+              console.error('[Calendar Create Event] Error:', err);
+              alert('Failed to save calendar event to ACMI: ' + err.message);
+            });
+          }
+        }
+      }
+    });
+  }
+
+  // ─── Docs Tree search and item selection integration ──────────────
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'docTreeSearch') {
+      var val = e.target.value.toLowerCase().trim();
+      var items = document.querySelectorAll('.docs-tree .doc-tree-item');
+      items.forEach(function(item) {
+        var text = item.textContent.toLowerCase();
+        if (text.indexOf(val) !== -1 || val === '') {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
   });
+
+  var docsTree = document.querySelector('.docs-tree');
+  if (docsTree) {
+    docsTree.addEventListener('click', function(e) {
+      var item = e.target.closest('.doc-tree-item');
+      if (item) {
+        var docId = item.getAttribute('data-doc-id');
+        if (docId) {
+          _activeDocId = docId;
+          docsTree.querySelectorAll('.doc-tree-item').forEach(function(el) {
+            if (el.getAttribute('data-doc-id') === docId) {
+              el.classList.add('active');
+            } else {
+              el.classList.remove('active');
+            }
+          });
+          
+          if (_lastBootstrapData && _lastBootstrapData.docs) {
+            var doc = _lastBootstrapData.docs.find(function(d) { return d.id === docId; });
+            if (doc) {
+              var p = doc.profile || {};
+              var title = p.title || doc.id;
+              var type = p.type || 'Doc';
+              var lastModified = doc.signals?.lastModified || doc.signals?.lastActive || '';
+              
+              var vt = document.querySelector('.docs-viewer .doc-title');
+              var vm = document.querySelector('.docs-viewer .doc-meta');
+              var vb = document.querySelector('.docs-viewer .doc-body');
+              if (vt && vm && vb) {
+                vt.textContent = title;
+                vm.textContent = type + ' · Updated ' + _timeAgo(lastModified);
+                vb.innerHTML = renderMarkdown(p.content || doc.content || '');
+              }
+            }
+          }
+        }
+      }
+    });
+  }
 
   // ─── Init: wire up all event listeners (replace inline onclick) ─
   document.addEventListener('DOMContentLoaded', function() {

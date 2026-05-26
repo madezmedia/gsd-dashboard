@@ -192,6 +192,7 @@ async function handleTool(tool, params) {
     // ── Delete ──────────────────────────────────────────────────
     case 'delete':
     case 'acmi_delete': {
+      // Handled by the daemon's ACMI delete tool — pass through for now
       return { ok: false, error: 'delete not supported via proxy' };
     }
 
@@ -240,7 +241,6 @@ async function handleTool(tool, params) {
       const keys = await redis('KEYS', 'acmi:work:*:profile');
       return (keys || []).map(k => k.slice('acmi:work:'.length, k.length - ':profile'.length));
     }
-
     case 'workGet':
     case 'acmi_work_get': {
       const wid = params.id;

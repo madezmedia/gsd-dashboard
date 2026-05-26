@@ -118,6 +118,17 @@
           signal: controller.signal
         }).then(function (response) {
           clearTimeout(timer);
+          
+          // Check for X-Tenant-Fallback header
+          var fallbackHeader = response.headers.get('X-Tenant-Fallback');
+          if (fallbackHeader === 'true') {
+            self.tenantFallback = true;
+            self._emit('tenant-fallback', { fallback: true });
+          } else if (fallbackHeader === 'false' || (response.ok && fallbackHeader === null)) {
+            self.tenantFallback = false;
+            self._emit('tenant-fallback', { fallback: false });
+          }
+
           if (!response.ok) {
             return response.text().then(function (text) {
               var errMsg = 'ACMI HTTP ' + response.status;
@@ -708,8 +719,6 @@
    * Falls back to polling if WebSocket fails.
    */
   ACMIClient.prototype.connectWebSocket = function (wsUrl) {
-    // WebSocket not supported in proxy/vercel mode
-    return;
     var self = this;
     if (this._ws) {
       try { this._ws.close(); } catch (e) {}

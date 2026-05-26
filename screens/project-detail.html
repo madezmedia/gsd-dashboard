@@ -6,66 +6,9 @@
 <title>ACMI · Project Workspace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../design-system.css">
 <style>
 /* ─── MZM Design System · Project Detail ──────────────────── */
-:root {
-  --paper:         #faf9f5;
-  --paper-elev:    #f4f2eb;
-  --paper-deep:    #efece2;
-  --paper-shade:   #e8e4d8;
-  --paper-inverse: #ffffff;
-  --divider:       #ebe8de;
-  --ink-1: #1a1a1a; --ink-2: #2c2c2a; --ink-3: #4a4a48;
-  --ink-4: #7a7a76; --ink-5: #9a9a96; --border: #d4d2cc;
-  --forest:        #2d4a3e;
-  --forest-2:      #5a7d6f;
-  --forest-3:      #7fa090;
-  --forest-deep:   #1c3027;
-  --forest-glow:   rgba(45,74,62,0.1);
-  --danger:        #c75050;
-  --danger-bg:     #fdf2f2;
-  --warning:       #c4903a;
-  --warning-bg:    #fdf8f0;
-  --success:       var(--forest-2);
-  --font-serif: 'Source Serif 4', Georgia, Palatino, serif;
-  --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-mono:  'JetBrains Mono', 'SF Mono', Consolas, monospace;
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --ease: cubic-bezier(0.16,1,0.3,1);
-  --d-fast: 150ms;
-  --d-norm: 280ms;
-}
-.theme-deep {
-  --paper:         #121418;
-  --paper-elev:    #1c1e24;
-  --paper-deep:    #262830;
-  --paper-shade:   #2e3038;
-  --divider:       #2a2c34;
-  --ink-1: #e8e6e0; --ink-2: #c8c6c0; --ink-3: #989690;
-  --ink-4: #686660; --ink-5: #484640; --border: #3a3c42;
-  --forest:        #7fa090;
-  --forest-2:      #5a7d6f;
-  --forest-3:      #4a6d5f;
-  --forest-deep:   #9cc0b0;
-  --forest-glow:   rgba(127,160,144,0.12);
-  --danger:        #e07070;
-  --danger-bg:     #2a1a1a;
-  --warning:       #d4a050;
-  --warning-bg:    #2a2210;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{font-size:14px;scroll-behavior:smooth}
-body{
-  background:var(--paper);color:var(--ink-1);
-  font-family:var(--font-sans);font-weight:400;line-height:1.6;
-  -webkit-font-smoothing:antialiased;min-height:100vh;
-}
-::selection{background:var(--ink-1);color:var(--paper)}
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:var(--paper)}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 a{color:var(--forest);text-decoration:none}
 a:hover{text-decoration:underline}
 
@@ -489,6 +432,52 @@ a:hover{text-decoration:underline}
 }
 .composer .composer-tools button:hover{background:var(--paper-elev);color:var(--ink-1)}
 
+/* ─── Empty State ──────────────────────────────── */
+.empty-state{
+  text-align:center;padding:32px 16px;color:var(--ink-4);
+  font-size:13px;line-height:1.6;
+}
+.empty-state .empty-icon{font-size:32px;margin-bottom:8px;display:block}
+.empty-state .empty-title{font-weight:600;color:var(--ink-2);margin-bottom:4px}
+
+/* ─── Skeleton loading states ────────────────────────── */
+.state-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 48px 16px; text-align: center;
+}
+.state-placeholder .icon { width: 32px; height: 32px; opacity: 0.3; }
+.state-placeholder .icon svg { width: 100%; height: 100%; fill: var(--ink-4); }
+.state-placeholder .msg { font-size: 13px; color: var(--ink-4); max-width: 260px; }
+.state-placeholder .msg strong { color: var(--ink-3); }
+.state-placeholder .action { margin-top: 4px; }
+.state-placeholder.loading .pulse {
+  width: 60%; height: 8px; background: var(--border);
+  border-radius: 2px; animation: pulse 1.5s ease-in-out infinite;
+}
+.state-placeholder.loading .pulse:nth-child(2) { width: 80%; animation-delay: 0.2s; }
+.state-placeholder.loading .pulse:nth-child(3) { width: 45%; animation-delay: 0.4s; }
+.state-placeholder.error .icon svg { stroke: var(--danger); fill: none; }
+.state-placeholder.error .msg { color: var(--danger); }
+.state-placeholder.error .msg strong { color: var(--danger); }
+
+.skeleton {
+  background: var(--paper-shade);
+  border-radius: var(--radius-sm);
+  animation: pulse 1.5s ease-in-out infinite;
+  display: inline-block;
+}
+.skeleton.h4 { width: 40px; height: 18px; }
+.skeleton.h2 { width: 60px; height: 22px; }
+.skeleton.h1 { width: 80px; height: 26px; }
+.skeleton.text { width: 100%; height: 12px; margin: 4px 0; display: block; }
+.skeleton.text.w60 { width: 60%; }
+.skeleton.text.w40 { width: 40%; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
 /* ─── Responsive ────────────────────────────────── */
 @media(max-width:860px){
   .step-label{display:none}
@@ -514,13 +503,21 @@ a:hover{text-decoration:underline}
 
 <div class="app-wrap">
 
+<div id="loading-skeleton" class="state-placeholder loading" style="padding:64px 16px">
+  <div class="pulse"></div>
+  <div class="pulse"></div>
+  <div class="pulse"></div>
+  <div style="height:24px"></div>
+  <div class="pulse" style="width:35%"></div>
+</div>
+
 <!-- ─── Top Bar ──────────────────────────────── -->
 <div class="top-bar">
   <div class="top-bar-left">
     <a href="../gsd-dashboard.html#page-projects" class="back-link">← Dashboard</a>
     <span style="color:var(--ink-5);font-size:12px">|</span>
     <a href="../gsd-dashboard.html#page-projects" class="back-link">Projects</a>
-    <span class="badge-inline active" style="margin-left:4px">Active</span>
+    <span class="badge-inline active" id="projectStatusBadge" style="margin-left:4px">Active</span>
   </div>
   <div class="top-bar-right">
     <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5);letter-spacing:.08em;text-transform:uppercase" id="themeToggleProj" style="cursor:pointer;">☾ Dark</span>
@@ -532,8 +529,8 @@ a:hover{text-decoration:underline}
 <!-- ─── Project Header ────────────────────────── -->
 <div class="project-hdr">
   <div class="project-hdr-left">
-    <div class="project-hdr-title">ACMI Fleet Ops — Edge Computing Rollout</div>
-    <div class="project-hdr-desc">Phase 2 of fleet-wide edge compute deployment. Migrating model inference from cloud to vessel-based ACMI agents across 12 ships. Multi-agent orchestration with real-time Upstash Redis sync.</div>
+    <div class="project-hdr-title">Loading…</div>
+    <div class="project-hdr-desc"></div>
   </div>
   <div class="project-hdr-right">
     <button class="btn btn-primary btn-sm">✎ Edit</button>
@@ -543,19 +540,7 @@ a:hover{text-decoration:underline}
 </div>
 
 <!-- ─── Step Progress ─────────────────────────── -->
-<div class="step-progress">
-  <div class="step completed"><div class="step-circle">✓</div><div class="step-label">Concept</div></div>
-  <div class="step-connector"></div>
-  <div class="step completed"><div class="step-circle">✓</div><div class="step-label">Planning</div></div>
-  <div class="step-connector"></div>
-  <div class="step current"><div class="step-circle">3</div><div class="step-label">Development</div></div>
-  <div class="step-connector"></div>
-  <div class="step"><div class="step-circle">4</div><div class="step-label">Validation</div></div>
-  <div class="step-connector"></div>
-  <div class="step"><div class="step-circle">5</div><div class="step-label">Launch</div></div>
-  <div class="step-connector"></div>
-  <div class="step"><div class="step-circle">6</div><div class="step-label">Retro</div></div>
-</div>
+<div class="step-progress" id="stepProgress" style="display:none"></div>
 
 <!-- ─── Layer Tabs ────────────────────────────── -->
 <div class="layer-tabs" id="layerTabs">
@@ -566,7 +551,6 @@ a:hover{text-decoration:underline}
   <button class="layer-tab" data-layer="budget"><span class="tab-icon">💰</span>Budget &amp; Risks</button>
   <button class="layer-tab" data-layer="files"><span class="tab-icon">📄</span>Files &amp; Docs</button>
   <button class="layer-tab" data-layer="activity"><span class="tab-icon">📋</span>Activity</button>
-  <button class="layer-tab" data-layer="collab"><span class="tab-icon">💬</span>Collab</button>
 </div>
 
 <!-- ═══════════════════════════════════════════════
@@ -574,14 +558,7 @@ a:hover{text-decoration:underline}
      ═══════════════════════════════════════════════ -->
 <div class="layer-pane active" id="layer-overview">
   <!-- KPIs -->
-  <div class="kpi-strip">
-    <div class="kpi-card"><div class="kpi-val green">62%</div><div class="kpi-label">Progress</div></div>
-    <div class="kpi-card"><div class="kpi-val">$184K</div><div class="kpi-label">Budget</div></div>
-    <div class="kpi-card"><div class="kpi-val green">$112K</div><div class="kpi-label">Spent</div></div>
-    <div class="kpi-card"><div class="kpi-val">4</div><div class="kpi-label">Team Members</div></div>
-    <div class="kpi-card"><div class="kpi-val green">12</div><div class="kpi-label">Vessels</div></div>
-    <div class="kpi-card"><div class="kpi-val amber">8 / 12</div><div class="kpi-label">Nodes Deployed</div></div>
-  </div>
+  <div class="kpi-strip" id="kpiStrip" style="display:none"></div>
 
   <!-- Quick Actions -->
   <div class="card">
@@ -596,30 +573,24 @@ a:hover{text-decoration:underline}
   </div>
 
   <!-- Progress Overview + Recent Activity 2-col -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="overviewTwoCol">
+    <div class="card" id="overviewMilestonesCard">
       <div class="card-title">Milestone Progress</div>
-      <div class="milestone-list">
-        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot done"></div><div class="milestone-content"><div class="milestone-name">Vessel assessment</div><div class="milestone-desc">All 12 vessels surveyed</div></div><span class="tag-complete" style="font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:2px">Complete</span></div>
-        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot done"></div><div class="milestone-content"><div class="milestone-name">Edge hardware install</div><div class="milestone-desc">8 of 12 nodes deployed</div></div><span class="tag-complete">Complete</span></div>
-        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot current"></div><div class="milestone-content"><div class="milestone-name">ACMI payload rollout</div><div class="milestone-desc">5 vessels live; 7 remaining</div></div><span class="tag-in-progress">In Progress</span></div>
-        <div class="milestone-item" style="border:0;padding:8px 0"><div class="milestone-dot" style="border-color:var(--border)"></div><div class="milestone-content"><div class="milestone-name">Model sync validation</div><div class="milestone-desc">Planned Jun 10</div></div><span class="tag-pending">Pending</span></div>
+      <div class="milestone-list" id="overviewMilestoneList">
+        <div class="empty-state" style="padding:16px 0">
+          <span class="empty-icon">📌</span>
+          <div class="empty-title">No milestones yet</div>
+          <div>Milestones will appear here when defined</div>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">Recent Activity <span class="action-link">View all →</span></div>
-      <div class="activity-feed">
-        <div class="activity-item" style="border:0;padding:8px 0">
-          <div class="activity-avatar">MR</div>
-          <div class="activity-body"><div class="activity-text"><strong>Maya Reyes</strong> deployed hotfix v2.4.1 to staging fleet</div><div class="activity-time">2h ago</div></div>
-        </div>
-        <div class="activity-item" style="border:0;padding:8px 0">
-          <div class="activity-avatar" style="background:var(--ink-4)">LL7</div>
-          <div class="activity-body"><div class="activity-text"><strong>Agent LL-7</strong> detected sync anomaly on vessel 7 · <span class="mention">@maya</span></div><div class="activity-time">5h ago</div></div>
-        </div>
-        <div class="activity-item" style="border:0;padding:8px 0">
-          <div class="activity-avatar">JK</div>
-          <div class="activity-body"><div class="activity-text"><strong>James Kwon</strong> completed edge node install on vessels 9 &amp; 11</div><div class="activity-time">1d ago</div></div>
+    <div class="card" id="overviewActivityCard">
+      <div class="card-title">Recent Activity</div>
+      <div class="activity-feed" id="overviewActivityFeed">
+        <div class="empty-state" style="padding:16px 0">
+          <span class="empty-icon">📋</span>
+          <div class="empty-title">No recent activity</div>
+          <div>Events will appear here from the timeline</div>
         </div>
       </div>
     </div>
@@ -631,84 +602,32 @@ a:hover{text-decoration:underline}
      ═══════════════════════════════════════════════ -->
 <div class="layer-pane" id="layer-team">
   <div class="card">
-    <div class="card-title">Team Roster <span class="action-link">+ Invite Member</span></div>
-    <div class="team-grid">
-      <div class="team-card">
-        <div class="avatar">MR</div>
-        <div class="info">
-          <div class="name">Maya Reyes</div>
-          <div class="role">Lead Engineer</div>
-          <div class="avail"><span class="dot green"></span>Available · 4 tasks</div>
-        </div>
-        <div class="actions"><button class="btn btn-sm">💬</button></div>
-      </div>
-      <div class="team-card">
-        <div class="avatar">JK</div>
-        <div class="info">
-          <div class="name">James Kwon</div>
-          <div class="role">Edge Deploy</div>
-          <div class="avail"><span class="dot green"></span>Available · 2 tasks</div>
-        </div>
-        <div class="actions"><button class="btn btn-sm">💬</button></div>
-      </div>
-      <div class="team-card">
-        <div class="avatar" style="background:var(--ink-4)">LL7</div>
-        <div class="info">
-          <div class="name">Agent LL-7</div>
-          <div class="role">Fleet Monitor</div>
-          <div class="avail"><span class="dot green"></span>Online · Auto-watch</div>
-        </div>
-        <div class="actions"><button class="btn btn-sm">💬</button></div>
-      </div>
-      <div class="team-card">
-        <div class="avatar">TR</div>
-        <div class="info">
-          <div class="name">Tessa Rivera</div>
-          <div class="role">QA &amp; Validation</div>
-          <div class="avail"><span class="dot amber"></span>In meeting · 3 tasks</div>
-        </div>
-        <div class="actions"><button class="btn btn-sm">💬</button></div>
-      </div>
-      <div class="team-card">
-        <div class="avatar" style="background:var(--warning)">✧</div>
-        <div class="info">
-          <div class="name">Bentley</div>
-          <div class="role">Design Lead</div>
-          <div class="avail"><span class="dot green"></span>Available · Design review</div>
-        </div>
-        <div class="actions"><button class="btn btn-sm">💬</button></div>
-      </div>
-      <div class="team-card">
-        <div class="avatar" style="background:#4a6fa5">FO</div>
-        <div class="info">
-          <div class="name">Fleet Ops Center</div>
-          <div class="role">Orchestration</div>
-          <div class="avail"><span class="dot green"></span>Monitoring fleet</div>
-        </div>
-        <div class="actions"><button class="btn btn-sm">💬</button></div>
+    <div class="card-title">Team Roster</div>
+    <div class="team-grid" id="teamGrid">
+      <div class="empty-state" style="padding:16px 0">
+        <span class="empty-icon">👥</span>
+        <div class="empty-title">Loading team…</div>
       </div>
     </div>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="card">
+    <div class="card" id="workloadCard">
       <div class="card-title">Workload Distribution</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>Maya Reyes</span><span style="font-family:var(--font-mono);color:var(--ink-4)">4 tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:67%;height:100%;background:var(--forest);border-radius:3px"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>James Kwon</span><span style="font-family:var(--font-mono);color:var(--ink-4)">2 tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:33%;height:100%;background:var(--forest-2);border-radius:3px"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>Tessa Rivera</span><span style="font-family:var(--font-mono);color:var(--ink-4)">3 tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:50%;height:100%;background:var(--forest-3);border-radius:3px"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>Agent LL-7</span><span style="font-family:var(--font-mono);color:var(--ink-4)">Auto</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:20%;height:100%;background:var(--ink-4);border-radius:3px"></div></div></div>
+      <div id="workloadContent">
+        <div class="empty-state" style="padding:16px 0">
+          <span class="empty-icon">📊</span>
+          <div class="empty-title">No workload data</div>
+        </div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="availabilityCard">
       <div class="card-title">Availability</div>
-      <div style="font-size:13px;color:var(--ink-2);line-height:1.8">
-        <div>🟢 Maya Reyes · Available until 6:00 PM</div>
-        <div>🟢 James Kwon · Available</div>
-        <div>🟢 Agent LL-7 · Online 24/7</div>
-        <div>🟡 Tessa Rivera · In review (ends 3:30 PM)</div>
-        <div>🟢 Bentley · Available</div>
-        <div>🟢 Fleet Ops Center · Monitoring</div>
+      <div id="availabilityContent" style="font-size:13px;color:var(--ink-2);line-height:1.8">
+        <div class="empty-state" style="padding:16px 0">
+          <span class="empty-icon">🟢</span>
+          <div class="empty-title">Loading availability…</div>
+        </div>
       </div>
     </div>
   </div>
@@ -719,22 +638,19 @@ a:hover{text-decoration:underline}
      ═══════════════════════════════════════════════ -->
 <div class="layer-pane" id="layer-tasks">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <div style="font-size:13px;color:var(--ink-3)"><strong style="color:var(--ink-1)">14 tasks</strong> · 4 open · 3 in progress · 7 completed</div>
+    <div style="font-size:13px;color:var(--ink-3)" id="taskSummary"><strong>0 tasks</strong></div>
     <div style="display:flex;gap:6px">
       <input type="text" placeholder="Filter tasks…" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--paper);color:var(--ink-1);width:160px;outline:none">
       <button class="btn btn-sm btn-primary">+ Add Task</button>
     </div>
   </div>
 
-  <div class="task-list">
-    <div class="task-item"><input type="checkbox" checked><div class="task-info"><div class="task-name done">Vessel assessment completion report</div><div class="task-meta">Maya Reyes · Due May 12</div></div><span class="task-priority p2">P2</span><span class="task-assignee">@maya</span></div>
-    <div class="task-item"><input type="checkbox" checked><div class="task-info"><div class="task-name done">Edge node hardware procurement</div><div class="task-meta">James Kwon · Due May 20</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@james</span></div>
-    <div class="task-item"><input type="checkbox" checked><div class="task-info"><div class="task-name done">Staging environment setup on vessels 1-4</div><div class="task-meta">Maya Reyes · Due May 25</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@maya</span></div>
-    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Deploy ACMI payload agent on vessels 5-8</div><div class="task-meta">James Kwon · Due Jun 5 · <span style="color:var(--danger)">⚠ 2 days overdue</span></div></div><span class="task-priority p0">P0</span><span class="task-assignee">@james</span></div>
-    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Validate model sync across deployed nodes</div><div class="task-meta">Tessa Rivera · Due Jun 10</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@tessa</span></div>
-    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Regression test edge model inference</div><div class="task-meta">Tessa Rivera · Due Jun 12</div></div><span class="task-priority p2">P2</span><span class="task-assignee">@tessa</span></div>
-    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Write runbook for fleet edge operations</div><div class="task-meta">Maya Reyes · Due Jun 15</div></div><span class="task-priority p2">P2</span><span class="task-assignee">@maya</span></div>
-    <div class="task-item"><input type="checkbox"><div class="task-info"><div class="task-name">Final go-live sign-off from fleet safety</div><div class="task-meta">Maya Reyes · Due Jun 25</div></div><span class="task-priority p1">P1</span><span class="task-assignee">@maya</span></div>
+  <div class="task-list" id="taskList">
+    <div class="empty-state">
+      <span class="empty-icon">✅</span>
+      <div class="empty-title">No tasks yet</div>
+      <div>Tasks will appear here when defined in the work item</div>
+    </div>
   </div>
 </div>
 
@@ -744,62 +660,13 @@ a:hover{text-decoration:underline}
 <div class="layer-pane" id="layer-timeline">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
     <div class="card-title" style="margin:0">Project Milestones</div>
-    <div style="display:flex;gap:6px">
-      <button class="filter-chip active">All</button>
-      <button class="filter-chip">Complete</button>
-      <button class="filter-chip">In Progress</button>
-      <button class="filter-chip">At Risk</button>
-    </div>
   </div>
 
-  <div class="milestone-list">
-    <div class="milestone-item">
-      <div class="milestone-dot done"></div>
-      <div class="milestone-content">
-        <div class="milestone-name">Vessel Assessment</div>
-        <div class="milestone-desc">Complete structural and connectivity survey of all 12 target vessels. Includes power draw, network latency, and physical mounting points.</div>
-        <div class="milestone-date"><span class="tag tag-complete">Complete</span> May 12 · Maya Reyes</div>
-      </div>
-    </div>
-    <div class="milestone-item">
-      <div class="milestone-dot done"></div>
-      <div class="milestone-content">
-        <div class="milestone-name">Edge Hardware Installation</div>
-        <div class="milestone-desc">Install NVIDIA Jetson Orin edge nodes on all vessels. Configure network isolation, power redundancy, and physical security.</div>
-        <div class="milestone-date"><span class="tag tag-complete">Complete · 8/12</span> May 12–28 · James Kwon</div>
-      </div>
-    </div>
-    <div class="milestone-item">
-      <div class="milestone-dot current"></div>
-      <div class="milestone-content">
-        <div class="milestone-name">ACMI Payload Agent Rollout</div>
-        <div class="milestone-desc">Deploy ACMI payload agent on each edge node. Configure model distribution pipeline, health checks, and automatic rollback on sync failure.</div>
-        <div class="milestone-date"><span class="tag tag-in-progress">In Progress</span> May 28 – Jun 15 · Maya Reyes + James</div>
-      </div>
-    </div>
-    <div class="milestone-item">
-      <div class="milestone-dot atrisk"></div>
-      <div class="milestone-content">
-        <div class="milestone-name">Model Sync Validation</div>
-        <div class="milestone-desc">Validate that model inference results match cloud baseline within 99.5% confidence across all 12 vessels. Run 48h continuous test.</div>
-        <div class="milestone-date"><span class="tag tag-in-progress">At Risk</span> Jun 10–20 · Tessa Rivera · <span style="color:var(--danger)">⚠ Depends on payload rollout</span></div>
-      </div>
-    </div>
-    <div class="milestone-item">
-      <div class="milestone-dot" style="border-color:var(--border)"></div>
-      <div class="milestone-content">
-        <div class="milestone-name">Full Fleet Go-Live</div>
-        <div class="milestone-desc">Cut over all 12 vessels to edge inference. Retire cloud inference dependency for non-training workloads. Monitoring period begins.</div>
-        <div class="milestone-date"><span class="tag tag-pending">Target</span> Jun 30 · Maya Reyes</div>
-      </div>
-    </div>
-    <div class="milestone-item">
-      <div class="milestone-dot" style="border-color:var(--border)"></div>
-      <div class="milestone-content">
-        <div class="milestone-name">Post-Launch Review</div>
-        <div class="milestone-desc">Performance review, latency benchmarks, cost analysis vs cloud baseline, knowledge base capture, and retro.</div>
-        <div class="milestone-date"><span class="tag tag-pending">Planned</span> Jul 7–11 · Full Team</div>
-      </div>
+  <div class="milestone-list" id="timelineMilestoneList">
+    <div class="empty-state">
+      <span class="empty-icon">📊</span>
+      <div class="empty-title">No milestones defined</div>
+      <div>Milestones will appear here when added to the work item</div>
     </div>
   </div>
 </div>
@@ -809,42 +676,35 @@ a:hover{text-decoration:underline}
      ═══════════════════════════════════════════════ -->
 <div class="layer-pane" id="layer-budget">
   <div class="budget-grid">
-    <div class="card">
+    <div class="card" id="budgetChartCard">
       <div class="card-title">Budget Breakdown</div>
-      <div class="budget-chart">
-        <div class="budget-row"><span class="budget-label">Hardware</span><div class="budget-track"><div class="budget-fill" style="width:42%">$48K</div></div></div>
-        <div class="budget-row"><span class="budget-label">Software Dev</span><div class="budget-track"><div class="budget-fill" style="width:28%">$32K</div></div></div>
-        <div class="budget-row"><span class="budget-label">Installation</span><div class="budget-track"><div class="budget-fill" style="width:18%">$21K</div></div></div>
-        <div class="budget-row"><span class="budget-label">Testing &amp; QA</span><div class="budget-track"><div class="budget-fill warn" style="width:12%">$14K</div></div></div>
-        <div class="budget-row"><span class="budget-label">Contingency</span><div class="budget-track"><div class="budget-fill" style="width:0%"></div></div></div>
-      </div>
-      <div class="budget-note">Total spent: $112,000 of $184,000 budget (60.8%) · $72,000 remaining</div>
+      <div class="budget-chart" id="budgetChart"></div>
+      <div class="budget-note" id="budgetNote"></div>
     </div>
-    <div class="card">
+    <div class="card" id="spendChartCard">
       <div class="card-title">Spend by Month</div>
-      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:16px">
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:40px;background:var(--forest);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Mar</span></div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:65px;background:var(--forest-2);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Apr</span></div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:85px;background:var(--forest);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">May</span></div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:55px;background:var(--forest-3);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Jun</span></div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;height:25px;background:var(--ink-4);border-radius:2px 2px 0 0"></div><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-4);margin-top:4px">Jul</span></div>
+      <div id="spendChart">
+        <div class="empty-state" style="padding:16px 0">
+          <span class="empty-icon">💰</span>
+          <div class="empty-title">No spend data</div>
+          <div>Monthly spend chart unavailable</div>
+        </div>
       </div>
-      <div class="budget-note" style="margin-top:8px">Estimated: Mar $18K · Apr $32K · May $42K · Jun $28K · Jul $12K</div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Risk Register <span class="action-link">+ Add Risk</span></div>
+  <div class="card" id="riskRegisterCard">
+    <div class="card-title">Risk Register</div>
     <table class="risk-table">
       <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Level</th><th>Mitigation</th><th>Owner</th></tr></thead>
-      <tbody>
-        <tr><td>Edge node hardware failure</td><td>Low</td><td>Critical</td><td><span class="risk-level risk-med">Medium</span></td><td>Redundant nodes on vessels 1-4</td><td style="font-family:var(--font-mono);font-size:11px">@james</td></tr>
-        <tr><td>ACMI sync protocol mismatch</td><td>Medium</td><td>High</td><td><span class="risk-level risk-high">High</span></td><td>Rolling hotfix + manifest checksum</td><td style="font-family:var(--font-mono);font-size:11px">@maya</td></tr>
-        <tr><td>Vessel network latency spikes</td><td>Medium</td><td>Medium</td><td><span class="risk-level risk-med">Medium</span></td><td>Async queue + backpressure buffer</td><td style="font-family:var(--font-mono);font-size:11px">@james</td></tr>
-        <tr><td>Model accuracy drift on edge</td><td>Low</td><td>High</td><td><span class="risk-level risk-low">Low</span></td><td>48h continuous validation suite</td><td style="font-family:var(--font-mono);font-size:11px">@tessa</td></tr>
-        <tr><td>Supply chain delay - replacement nodes</td><td>Low</td><td>Medium</td><td><span class="risk-level risk-low">Low</span></td><td>3 spare nodes in inventory</td><td style="font-family:var(--font-mono);font-size:11px">@maya</td></tr>
+      <tbody id="riskBody">
       </tbody>
     </table>
+    <div class="empty-state" id="riskEmpty" style="display:none">
+      <span class="empty-icon">🛡️</span>
+      <div class="empty-title">No risks registered</div>
+      <div>Risks will appear here when defined</div>
+    </div>
   </div>
 </div>
 
@@ -853,21 +713,19 @@ a:hover{text-decoration:underline}
      ═══════════════════════════════════════════════ -->
 <div class="layer-pane" id="layer-files">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <div style="font-size:13px;color:var(--ink-3)"><strong style="color:var(--ink-1)">18 files</strong> · 4.2 GB total</div>
+    <div style="font-size:13px;color:var(--ink-3)"><strong id="fileCount">0 files</strong></div>
     <div style="display:flex;gap:6px">
       <button class="btn btn-sm">+ Upload</button>
       <button class="btn btn-sm">+ New Folder</button>
     </div>
   </div>
 
-  <div class="file-list">
-    <div class="file-item"><span class="file-icon">📁</span><div class="file-info"><div class="file-name">Architecture Diagrams</div><div class="file-meta">Folder · 6 files</div></div><span class="file-size">24 MB</span><div class="file-actions"><span class="action-link">Open</span></div></div>
-    <div class="file-item"><span class="file-icon">📁</span><div class="file-info"><div class="file-name">Vessel Survey Reports</div><div class="file-meta">Folder · 12 files</div></div><span class="file-size">18 MB</span><div class="file-actions"><span class="action-link">Open</span></div></div>
-    <div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">Edge-Compute-Architecture-v2.pdf</div><div class="file-meta">PDF · Updated May 22</div></div><span class="file-size">3.2 MB</span><div class="file-actions"><span class="action-link">Download</span></div></div>
-    <div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">ACMI-Payload-Agent-Spec.md</div><div class="file-meta">Markdown · Updated May 24</div></div><span class="file-size">48 KB</span><div class="file-actions"><span class="action-link">View</span></div></div>
-    <div class="file-item"><span class="file-icon">📊</span><div class="file-info"><div class="file-name">Fleet-Metrics-Dashboard.sb3</div><div class="file-meta">Tableau · Updated May 20</div></div><span class="file-size">12 MB</span><div class="file-actions"><span class="action-link">Download</span></div></div>
-    <div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">Edge-Rollout-Runbook-v1.md</div><div class="file-meta">Markdown · Updated May 18</div></div><span class="file-size">36 KB</span><div class="file-actions"><span class="action-link">View</span></div></div>
-    <div class="file-item"><span class="file-icon">📁</span><div class="file-info"><div class="file-name">Validation Reports</div><div class="file-meta">Folder · 8 files</div></div><span class="file-size">340 MB</span><div class="file-actions"><span class="action-link">Open</span></div></div>
+  <div class="file-list" id="fileList">
+    <div class="empty-state">
+      <span class="empty-icon">📄</span>
+      <div class="empty-title">No files yet</div>
+      <div>Files will appear here when uploaded or linked</div>
+    </div>
   </div>
 
   <div class="upload-zone">
@@ -882,222 +740,19 @@ a:hover{text-decoration:underline}
      ═══════════════════════════════════════════════ -->
 <div class="layer-pane" id="layer-activity">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <div style="font-size:13px;color:var(--ink-3)"><strong style="color:var(--ink-1)">24 events</strong> this week</div>
+    <div style="font-size:13px;color:var(--ink-3)"><strong id="activityCount">0 events</strong></div>
     <div class="activity-filter">
       <button class="filter-chip active">All</button>
-      <button class="filter-chip">Deploys</button>
-      <button class="filter-chip">Tasks</button>
-      <button class="filter-chip">Comments</button>
       <button class="filter-chip">System</button>
+      <button class="filter-chip">Decisions</button>
     </div>
   </div>
 
-  <div class="activity-feed">
-    <div class="activity-item">
-      <div class="activity-avatar">MR</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>Maya Reyes</strong> deployed <strong>hotfix v2.4.1</strong> to staging fleet · <span class="mention">@james</span> <span class="mention">@tessa</span></div>
-        <div class="activity-time">2 hours ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">👍 3</button><button class="act-btn">🔗 Copy link</button></div>
-      </div>
-    </div>
-    <div class="activity-item">
-      <div class="activity-avatar" style="background:var(--ink-4)">LL7</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>Agent LL-7</strong> detected sync anomaly on vessel 7 · Created task <span class="mention">#ota-12</span></div>
-        <div class="activity-time">5 hours ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">🔗 View task</button></div>
-      </div>
-    </div>
-    <div class="activity-item">
-      <div class="activity-avatar" style="background:var(--ink-4)">LL7</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>Agent LL-7</strong> auto-resolved task <span class="mention">#ota-12</span> after hotfix deployment confirmed</div>
-        <div class="activity-time">1 hour ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button></div>
-      </div>
-    </div>
-    <div class="activity-item">
-      <div class="activity-avatar">JK</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>James Kwon</strong> completed edge node install on vessels 9 and 11</div>
-        <div class="activity-time">1 day ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">👍 5</button></div>
-      </div>
-    </div>
-    <div class="activity-item">
-      <div class="activity-avatar">TR</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>Tessa Rivera</strong> passed validation suite for payload agent v2.4 · <span class="mention">@maya</span> ready for review</div>
-        <div class="activity-time">2 days ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">✅ Approve</button></div>
-      </div>
-    </div>
-    <div class="activity-item">
-      <div class="activity-avatar">MR</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>Maya Reyes</strong> merged PR <span class="mention">#142</span> — ACMI manifest checksum fix</div>
-        <div class="activity-time">3 days ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">🔗 View PR</button></div>
-      </div>
-    </div>
-    <div class="activity-item">
-      <div class="activity-avatar" style="background:var(--warning)">✧</div>
-      <div class="activity-body">
-        <div class="activity-text"><strong>Bentley</strong> left design review feedback on edge-compute-architecture-v2 PDF</div>
-        <div class="activity-time">3 days ago</div>
-        <div class="activity-actions"><button class="act-btn">💬 Reply</button><button class="act-btn">📄 View doc</button></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
-     LAYER 8: COLLABORATION
-     ═══════════════════════════════════════════════ -->
-<div class="layer-pane" id="layer-collab">
-  <!-- Thread 1 -->
-  <div class="collab-thread">
-    <div class="collab-thread-hdr">
-      <span># Hotfix v2.4.1 Rollout Discussion</span>
-      <span class="thread-meta">3 replies · Last reply 1h ago</span>
-    </div>
-
-    <div class="collab-msg">
-      <div class="collab-msg-hdr">
-        <div class="collab-avatar" style="background:var(--ink-4)">LL7</div>
-        <span class="collab-name">Agent LL-7</span>
-        <span class="collab-role">Fleet Monitor</span>
-        <span class="collab-time">2h ago</span>
-      </div>
-      <div class="collab-body">
-        Sync anomaly detected on vessel 7 at 03:14Z. Payload agent logs show checksum mismatch in manifest header — OTA writes v2.3 format but edge agent expects v2.4. <span class="tag-ref">Correlation ID: sync-fail-20260522</span>
-      </div>
-      <div class="collab-actions">
-        <button class="act">💬 Reply</button>
-        <button class="act">👍 2</button>
-        <button class="act">🔗 Copy ID</button>
-      </div>
-    </div>
-
-    <div class="collab-msg">
-      <div class="collab-msg-hdr">
-        <div class="collab-avatar" style="background:var(--forest)">MR</div>
-        <span class="collab-name">Maya Reyes</span>
-        <span class="collab-role">Lead Engineer</span>
-        <span class="collab-time">2h ago</span>
-      </div>
-      <div class="collab-body">
-        Confirmed the same pattern on vessels 7 and 11. Root cause is in <span class="mention">@acmi-payload-agent</span>'s <code>verify()</code> function. Pushed hotfix to <span class="mention">#branch-hotfix-v2.4.1</span>. <span class="mention">@james</span> can you deploy to staging?
-      </div>
-      <div class="collab-actions">
-        <button class="act">💬 Reply</button>
-        <button class="act">👍 5</button>
-        <button class="act active">✅ Approved</button>
-      </div>
-    </div>
-
-    <div class="collab-msg">
-      <div class="collab-msg-hdr">
-        <div class="collab-avatar">JK</div>
-        <span class="collab-name">James Kwon</span>
-        <span class="collab-role">Edge Deploy</span>
-        <span class="collab-time">1h ago</span>
-      </div>
-      <div class="collab-body">
-        Deployed to staging fleet (vessels 1-4). Running 2h validation window — will report back. Also added a rollback script just in case: <span class="mention">./scripts/rollback-edge.sh</span>
-      </div>
-      <div class="collab-actions">
-        <button class="act">💬 Reply</button>
-        <button class="act">👍 3</button>
-        <button class="act">🔗 View script</button>
-      </div>
-    </div>
-
-    <div class="collab-msg">
-      <div class="collab-msg-hdr">
-        <div class="collab-avatar" style="background:var(--ink-4)">LL7</div>
-        <span class="collab-name">Agent LL-7</span>
-        <span class="collab-role">Fleet Monitor</span>
-        <span class="collab-time">45m ago</span>
-      </div>
-      <div class="collab-body">
-        Validation window complete. Sync success rate on staging fleet: <strong>100%</strong> (48/48 attempts). Auto-resolved <span class="mention">#ota-12</span>. Ready for production rollout.
-      </div>
-      <div class="collab-actions">
-        <button class="act">💬 Reply</button>
-        <button class="act">🎉 8</button>
-        <button class="act active">✅ Auto-approved</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Approval Request -->
-  <div class="approval-banner pending">
-    <span style="font-weight:600">⏳ Approval Required</span>
-    <span style="flex:1;font-size:12px">Maya Reyes requested approval for <strong>Production rollout of hotfix v2.4.1</strong></span>
-    <div class="btn-group">
-      <button class="btn btn-sm btn-primary">✓ Approve</button>
-      <button class="btn btn-sm btn-danger">✗ Reject</button>
-    </div>
-  </div>
-
-  <!-- Thread 2 -->
-  <div class="collab-thread">
-    <div class="collab-thread-hdr">
-      <span># Edge Node Installation — Vessel 10 Access Issue</span>
-      <span class="thread-meta">2 replies · Resolved</span>
-    </div>
-
-    <div class="collab-msg">
-      <div class="collab-msg-hdr">
-        <div class="collab-avatar">JK</div>
-        <span class="collab-name">James Kwon</span>
-        <span class="collab-role">Edge Deploy</span>
-        <span class="collab-time">3d ago</span>
-      </div>
-      <div class="collab-body">
-        Vessel 10 has restricted access due to dry-dock maintenance schedule. Can't install until Jun 5 at earliest. <span class="mention">@maya</span> can we swap order with vessel 12?
-      </div>
-      <div class="collab-actions">
-        <button class="act">💬 Reply</button>
-        <button class="act">👍 1</button>
-      </div>
-    </div>
-
-    <div class="collab-msg">
-      <div class="collab-msg-hdr">
-        <div class="collab-avatar" style="background:var(--forest)">MR</div>
-        <span class="collab-name">Maya Reyes</span>
-        <span class="collab-role">Lead Engineer</span>
-        <span class="collab-time">3d ago</span>
-      </div>
-      <div class="collab-body">
-        Good call. Swap to vessel 12 — it's already cleared. I'll update the milestone tracker. <span class="mention">@agent-ll7</span> please re-scan vessel 12 connectivity profile.
-      </div>
-      <div class="collab-actions">
-        <button class="act">💬 Reply</button>
-        <button class="act active">✅ Resolved</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Comment Composer -->
-  <div class="composer">
-    <textarea placeholder="Write a message… Use @ to mention someone, # to reference a task or PR."></textarea>
-    <div class="composer-bar">
-      <div class="composer-tools">
-        <button title="Bold"><strong>B</strong></button>
-        <button title="Italic"><em>I</em></button>
-        <button title="Code">{ }</button>
-        <button title="Link">🔗</button>
-        <button title="Mention">@</button>
-        <button title="Emoji">😊</button>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5)">Shift + Enter to send</span>
-        <button class="btn btn-sm btn-primary">Send</button>
-      </div>
+  <div class="activity-feed" id="activityFeed">
+    <div class="empty-state">
+      <span class="empty-icon">📋</span>
+      <div class="empty-title">No activity recorded</div>
+      <div>Timeline events will appear here as they occur</div>
     </div>
   </div>
 </div>
@@ -1111,28 +766,7 @@ a:hover{text-decoration:underline}
   // ─── Read URL Param ────────────────────────────
   var urlParams = new URLSearchParams(window.location.search);
   var projectId = urlParams.get('id');
-  if (!projectId) {
-    // Auto-fallback: load first work item
-    window.acmi.workList().then(function(ids) {
-      if (ids && ids.length > 0) {
-        projectId = ids[0];
-        // Update URL without reload
-        var u = new URL(window.location);
-        u.searchParams.set('id', projectId);
-        window.history.replaceState({}, '', u);
-        initACMI();
-      }
-    }).catch(function() {});
-    // Don't proceed yet — wait for fallback
-    var checkInterval = setInterval(function() {
-      if (projectId && projectId !== urlParams.get('id')) {
-        clearInterval(checkInterval);
-      }
-    }, 200);
-  }
-  if (!projectId) projectId = 'fleet-ops-edge-rollout'; // ultimate fallback
 
-  // ─── ACMI Init ─────────────────────────────────
   function initACMI() {
     if (typeof ACMIClient === 'undefined') {
       setTimeout(initACMI, 500);
@@ -1142,11 +776,32 @@ a:hover{text-decoration:underline}
     loadProjectData();
   }
 
+  // ─── Fallback: load first work item ────────────
+  if (!projectId) {
+    window.acmi.workList().then(function(ids) {
+      if (ids && ids.length > 0) {
+        projectId = ids[0];
+        var u = new URL(window.location);
+        u.searchParams.set('id', projectId);
+        window.history.replaceState({}, '', u);
+        initACMI();
+      }
+    }).catch(function() {});
+    var checkInterval = setInterval(function() {
+      if (projectId) {
+        clearInterval(checkInterval);
+        initACMI();
+      }
+    }, 200);
+  } else {
+    initACMI();
+  }
+
+  // ─── Data Loading ──────────────────────────────
   function loadProjectData() {
     var titleEl = document.querySelector('.project-hdr-title');
-    if (titleEl) titleEl.textContent = 'Loading ' + projectId + '\u2026';
-
-    setACMIMessage('Connecting\u2026');
+    if (titleEl) titleEl.textContent = 'Loading ' + projectId + '…';
+    setACMIMessage('Connecting…');
 
     Promise.all([
       window.acmi.workGet(projectId),
@@ -1156,24 +811,33 @@ a:hover{text-decoration:underline}
       var project = results[0];
       var timelineEvents = results[1] || [];
       var agentIds = results[2] || [];
-      populateProject(project);
-      populateTimeline(project, timelineEvents);
+      populateProject(project, timelineEvents);
       populateTeam(agentIds);
-      populateActivity(project.timeline || timelineEvents || []);
       setACMIMessage('Online');
+      // Hide loading skeleton
+      var skel = document.getElementById('loading-skeleton');
+      if (skel) skel.style.display = 'none';
     }).catch(function(err) {
       console.error('ACMI load failed:', err);
       setACMIMessage('Offline');
+      var titleEl = document.querySelector('.project-hdr-title');
       if (titleEl) titleEl.textContent = projectId + ' (offline)';
+      // Show error state in skeleton placeholder
+      var skel = document.getElementById('loading-skeleton');
+      if (skel) {
+        skel.className = 'state-placeholder error';
+        skel.innerHTML = '<div class="icon"><svg viewBox="0 0 24 24" width="32" height="32"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="12" y1="8" x2="12" y2="13" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg></div><div class="msg"><strong>Failed to load</strong><br>' + (err.message || 'Connection error') + '</div>';
+      }
     });
   }
 
   function setACMIMessage(msg) {
     var el = document.getElementById('acmiStatus');
-    if (el) el.innerHTML = 'ACMI \u00B7 <span style="color:var(--forest)">' + msg + '</span>';
+    if (el) el.innerHTML = 'ACMI · <span style="color:var(--forest)">' + msg + '</span>';
   }
 
-  function populateProject(project) {
+  // ─── Populate Project ──────────────────────────
+  function populateProject(project, timelineEvents) {
     var profile = project.profile || {};
     var signals = project.signals || {};
 
@@ -1182,242 +846,338 @@ a:hover{text-decoration:underline}
     if (titleEl) titleEl.textContent = profile.title || projectId;
 
     var descEl = document.querySelector('.project-hdr-desc');
-    if (descEl) descEl.textContent = profile.description || 'No description available.';
+    if (descEl) descEl.textContent = profile.description || '';
 
     // ── Status Badge ──
-    var badge = document.querySelector('.badge-inline');
+    var badge = document.getElementById('projectStatusBadge');
     if (badge) {
       var status = signals.status || profile.status || 'active';
       badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
       badge.className = 'badge-inline ' + status;
     }
 
-    // ── Lifecycle Stepper (6 phases) ──
-    var phases = profile.phases || [
-      { name: 'Concept',    status: 'completed' },
-      { name: 'Planning',   status: 'completed' },
-      { name: 'Development',status: 'current' },
-      { name: 'Validation', status: '' },
-      { name: 'Launch',     status: '' },
-      { name: 'Retro',      status: '' }
-    ];
-    var stepProg = document.querySelector('.step-progress');
+    // ── Lifecycle Stepper (phases) ──
+    var phases = profile.phases || signals.phases;
+    var stepProg = document.getElementById('stepProgress');
     if (stepProg) {
-      stepProg.innerHTML = '';
-      phases.forEach(function(ph, i) {
-        var step = document.createElement('div');
-        step.className = 'step' + (ph.status ? ' ' + ph.status : '');
-        var circle = document.createElement('div');
-        circle.className = 'step-circle';
-        circle.textContent = ph.status === 'completed' ? '\u2713' : (i + 1);
-        step.appendChild(circle);
-        var label = document.createElement('div');
-        label.className = 'step-label';
-        label.textContent = ph.name;
-        step.appendChild(label);
-        stepProg.appendChild(step);
-        if (i < phases.length - 1) {
-          var conn = document.createElement('div');
-          conn.className = 'step-connector';
-          stepProg.appendChild(conn);
-        }
-      });
+      if (Array.isArray(phases) && phases.length > 0) {
+        stepProg.innerHTML = '';
+        stepProg.style.display = 'flex';
+        phases.forEach(function(ph, i) {
+          var step = document.createElement('div');
+          step.className = 'step' + (ph.status ? ' ' + ph.status : '');
+          var circle = document.createElement('div');
+          circle.className = 'step-circle';
+          circle.textContent = ph.status === 'completed' ? '✓' : (i + 1);
+          step.appendChild(circle);
+          var label = document.createElement('div');
+          label.className = 'step-label';
+          label.textContent = ph.name;
+          step.appendChild(label);
+          stepProg.appendChild(step);
+          if (i < phases.length - 1) {
+            var conn = document.createElement('div');
+            conn.className = 'step-connector';
+            stepProg.appendChild(conn);
+          }
+        });
+      } else {
+        stepProg.style.display = 'none';
+      }
     }
 
     // ── KPI Strip ──
-    var kpis = signals.kpis || profile.kpis || {};
-    var kpiData = [
-      { val: kpis.progress || '62%', label: 'Progress', color: 'green' },
-      { val: kpis.budget || '$184K', label: 'Budget' },
-      { val: kpis.spent || '$112K', label: 'Spent', color: 'green' },
-      { val: kpis.team || '4', label: 'Team Members' },
-      { val: kpis.vessels || '12', label: 'Vessels', color: 'green' },
-      { val: kpis.nodes || '8/12', label: 'Nodes Deployed', color: 'amber' }
-    ];
-    document.querySelectorAll('.kpi-card').forEach(function(card, i) {
-      if (kpiData[i]) {
-        var valEl = card.querySelector('.kpi-val');
-        var labEl = card.querySelector('.kpi-label');
-        if (valEl) {
-          valEl.textContent = kpiData[i].val;
-          valEl.className = 'kpi-val' + (kpiData[i].color ? ' ' + kpiData[i].color : '');
-        }
-        if (labEl) labEl.textContent = kpiData[i].label;
+    var kpis = signals.kpis || profile.kpis;
+    var kpiStrip = document.getElementById('kpiStrip');
+    if (kpiStrip) {
+      if (kpis && typeof kpis === 'object' && Object.keys(kpis).length > 0) {
+        kpiStrip.innerHTML = '';
+        kpiStrip.style.display = 'grid';
+        Object.keys(kpis).forEach(function(key) {
+          var val = kpis[key];
+          var card = document.createElement('div');
+          card.className = 'kpi-card';
+          var label = key.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); });
+          var valEl = document.createElement('div');
+          valEl.className = 'kpi-val';
+          if (typeof val === 'object') {
+            valEl.textContent = String(val.value || val.val || '');
+            if (val.color) valEl.classList.add(val.color);
+          } else {
+            valEl.textContent = String(val);
+          }
+          card.appendChild(valEl);
+          var labEl = document.createElement('div');
+          labEl.className = 'kpi-label';
+          labEl.textContent = typeof kpis[key] === 'object' && kpis[key].label ? kpis[key].label : label;
+          card.appendChild(labEl);
+          kpiStrip.appendChild(card);
+        });
+      } else {
+        kpiStrip.style.display = 'none';
       }
-    });
+    }
 
     // ── Overview Milestones ──
-    var milestones = signals.milestones || profile.milestones || [
-      { name: 'Vessel assessment',   desc: 'All 12 vessels surveyed',            status: 'done' },
-      { name: 'Edge hardware install',desc: '8 of 12 nodes deployed',            status: 'done' },
-      { name: 'ACMI payload rollout', desc: '5 vessels live; 7 remaining',       status: 'current' },
-      { name: 'Model sync validation',desc: 'Planned Jun 10',                    status: '' }
-    ];
-    var msOverview = document.querySelector('#layer-overview .milestone-list');
+    var milestones = signals.milestones || profile.milestones;
+    var msOverview = document.getElementById('overviewMilestoneList');
     if (msOverview) {
-      msOverview.innerHTML = '';
-      milestones.forEach(function(m) {
-        var item = document.createElement('div');
-        item.className = 'milestone-item';
-        item.style.cssText = 'border:0;padding:8px 0';
-        var dot = document.createElement('div');
-        dot.className = 'milestone-dot' + (m.status === 'done' ? ' done' : m.status === 'current' ? ' current' : '');
-        item.appendChild(dot);
-        var content = document.createElement('div');
-        content.className = 'milestone-content';
-        var name = document.createElement('div');
-        name.className = 'milestone-name';
-        name.textContent = m.name;
-        content.appendChild(name);
-        var desc = document.createElement('div');
-        desc.className = 'milestone-desc';
-        desc.textContent = m.desc || '';
-        content.appendChild(desc);
-        item.appendChild(content);
-        var tag = document.createElement('span');
-        var tagCls = m.status === 'done' ? 'tag tag-complete' : m.status === 'current' ? 'tag tag-in-progress' : 'tag tag-pending';
-        tag.className = tagCls;
-        tag.style.cssText = 'font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:2px';
-        tag.textContent = m.status === 'done' ? 'Complete' : m.status === 'current' ? 'In Progress' : 'Pending';
-        item.appendChild(tag);
-        msOverview.appendChild(item);
-      });
+      if (Array.isArray(milestones) && milestones.length > 0) {
+        msOverview.innerHTML = '';
+        milestones.forEach(function(m) {
+          var item = document.createElement('div');
+          item.className = 'milestone-item';
+          item.style.cssText = 'border:0;padding:8px 0';
+          var dot = document.createElement('div');
+          dot.className = 'milestone-dot' + (m.status === 'done' || m.status === 'completed' ? ' done' : m.status === 'current' || m.status === 'in-progress' ? ' current' : '');
+          item.appendChild(dot);
+          var content = document.createElement('div');
+          content.className = 'milestone-content';
+          var name = document.createElement('div');
+          name.className = 'milestone-name';
+          name.textContent = m.name || m.title || '';
+          content.appendChild(name);
+          var desc = document.createElement('div');
+          desc.className = 'milestone-desc';
+          desc.textContent = m.desc || m.description || '';
+          content.appendChild(desc);
+          item.appendChild(content);
+          var tag = document.createElement('span');
+          var st = m.status === 'done' || m.status === 'completed' ? 'done' : m.status === 'current' || m.status === 'in-progress' ? 'current' : '';
+          var tagText = st === 'done' ? 'Complete' : st === 'current' ? 'In Progress' : 'Pending';
+          tag.className = st === 'done' ? 'tag tag-complete' : st === 'current' ? 'tag tag-in-progress' : 'tag tag-pending';
+          tag.style.cssText = 'font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:2px';
+          tag.textContent = tagText;
+          item.appendChild(tag);
+          msOverview.appendChild(item);
+        });
+      }
+      // else keep the empty state already in HTML
+    }
+
+    // ── Overview Activity Feed ──
+    var timeline = project.timeline;
+    if (!Array.isArray(timeline) || timeline.length === 0) {
+      timeline = timelineEvents || [];
+    }
+    var overviewFeed = document.getElementById('overviewActivityFeed');
+    if (overviewFeed) {
+      if (Array.isArray(timeline) && timeline.length > 0) {
+        overviewFeed.innerHTML = '';
+        var items = timeline.slice(0, 3);
+        items.forEach(function(ev) {
+          var actor = ev.source || ev.actor || 'System';
+          var initials = actor.substring(0, 2).toUpperCase();
+          var summary = ev.summary || ev.text || '';
+          var ts = ev.ts || ev.timestamp || ev.time || '';
+          var timeStr = '';
+          if (ts) {
+            var d = new Date(ts);
+            if (!isNaN(d.getTime())) {
+              timeStr = timeAgo(d);
+            } else {
+              timeStr = String(ts);
+            }
+          }
+          var item = document.createElement('div');
+          item.className = 'activity-item';
+          item.style.cssText = 'border:0;padding:8px 0';
+          item.innerHTML = '<div class="activity-avatar">' + esc(initials) + '</div><div class="activity-body"><div class="activity-text">' + esc(summary) + '</div><div class="activity-time">' + esc(timeStr) + '</div></div>';
+          overviewFeed.appendChild(item);
+        });
+      }
     }
 
     // ── Budget Chart ──
-    var budgetData = signals.budget || profile.budget || [
-      { label: 'Hardware',     val: '$48K',  pct: 42, cls: '' },
-      { label: 'Software Dev', val: '$32K',  pct: 28, cls: '' },
-      { label: 'Installation',  val: '$21K',  pct: 18, cls: '' },
-      { label: 'Testing & QA', val: '$14K',  pct: 12, cls: 'warn' },
-      { label: 'Contingency',  val: '$0',    pct: 0,  cls: '' }
-    ];
-    document.querySelectorAll('.budget-chart .budget-row').forEach(function(row, i) {
-      if (budgetData[i]) {
-        var label = row.querySelector('.budget-label');
-        var fill = row.querySelector('.budget-fill');
-        if (label) label.textContent = budgetData[i].label;
-        if (fill) {
-          fill.textContent = budgetData[i].val;
-          fill.style.width = budgetData[i].pct + '%';
-          fill.className = 'budget-fill' + (budgetData[i].cls ? ' ' + budgetData[i].cls : '');
+    var budgetData = signals.budget || profile.budget;
+    var budgetChart = document.getElementById('budgetChart');
+    var budgetNote = document.getElementById('budgetNote');
+    if (budgetChart && Array.isArray(budgetData) && budgetData.length > 0) {
+      budgetChart.innerHTML = '';
+      budgetData.forEach(function(b) {
+        var row = document.createElement('div');
+        row.className = 'budget-row';
+        var label = document.createElement('span');
+        label.className = 'budget-label';
+        label.textContent = b.label || b.name || '';
+        row.appendChild(label);
+        var track = document.createElement('div');
+        track.className = 'budget-track';
+        var fill = document.createElement('div');
+        fill.className = 'budget-fill' + (b.cls ? ' ' + b.cls : '');
+        fill.style.width = (b.pct || 0) + '%';
+        fill.textContent = b.val || '';
+        track.appendChild(fill);
+        row.appendChild(track);
+        budgetChart.appendChild(row);
+      });
+      if (budgetNote) {
+        var totalB = signals.totalBudget || profile.totalBudget || 0;
+        var totalS = signals.totalSpent || profile.totalSpent || 0;
+        if (totalB > 0) {
+          var pctU = Math.round((totalS / totalB) * 1000) / 10;
+          var rem = totalB - totalS;
+          budgetNote.textContent = 'Total spent: $' + (totalS / 1000).toFixed(0) + 'K of $' + (totalB / 1000).toFixed(0) + 'K budget (' + pctU + '%) · $' + (rem / 1000).toFixed(0) + 'K remaining';
+        } else {
+          budgetNote.textContent = '';
         }
       }
-    });
-    var totalB = signals.totalBudget || profile.totalBudget || 184000;
-    var totalS = signals.totalSpent || profile.totalSpent || 112000;
-    var pctU = totalB > 0 ? Math.round((totalS / totalB) * 1000) / 10 : 0;
-    var rem = totalB - totalS;
-    var bn = document.querySelector('.budget-note');
-    if (bn) bn.textContent = 'Total spent: $' + (totalS / 1000).toFixed(0) + 'K of $' + (totalB / 1000).toFixed(0) + 'K budget (' + pctU + '%) \u00B7 $' + (rem / 1000).toFixed(0) + 'K remaining';
+    } else if (budgetChart) {
+      budgetChart.innerHTML = '<div class="empty-state" style="padding:16px 0"><span class="empty-icon">💰</span><div class="empty-title">No budget data</div><div>Budget breakdown unavailable</div></div>';
+      if (budgetNote) budgetNote.textContent = '';
+    }
 
     // ── Risk Register ──
-    var risks = signals.risks || profile.risks || [];
-    var riskBody = document.querySelector('.risk-table tbody');
-    if (riskBody && risks.length > 0) {
-      riskBody.innerHTML = '';
-      risks.forEach(function(r) {
-        var tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + esc(r.risk) + '</td><td>' + esc(r.likelihood) + '</td><td>' + esc(r.impact) + '</td><td><span class="risk-level ' + (r.levelCls || 'risk-med') + '">' + esc(r.level || 'Medium') + '</span></td><td>' + esc(r.mitigation) + '</td><td style="font-family:var(--font-mono);font-size:11px">' + esc(r.owner) + '</td>';
-        riskBody.appendChild(tr);
-      });
+    var risks = signals.risks || profile.risks;
+    var riskBody = document.getElementById('riskBody');
+    var riskEmpty = document.getElementById('riskEmpty');
+    if (riskBody) {
+      if (Array.isArray(risks) && risks.length > 0) {
+        riskBody.innerHTML = '';
+        risks.forEach(function(r) {
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + esc(r.risk || r.name || '') + '</td><td>' + esc(r.likelihood || '') + '</td><td>' + esc(r.impact || '') + '</td><td><span class="risk-level ' + (r.levelCls || getRiskLevelCls(r.level || '')) + '">' + esc(r.level || 'Medium') + '</span></td><td>' + esc(r.mitigation || '') + '</td><td style="font-family:var(--font-mono);font-size:11px">' + esc(r.owner || '') + '</td>';
+          riskBody.appendChild(tr);
+        });
+        if (riskEmpty) riskEmpty.style.display = 'none';
+      } else {
+        if (riskEmpty) riskEmpty.style.display = 'block';
+      }
     }
 
     // ── Files ──
-    var files = signals.files || profile.files || [];
-    var fileList = document.querySelector('.file-list');
-    if (fileList && files.length > 0) {
+    var files = signals.files || profile.files;
+    var fileList = document.getElementById('fileList');
+    var fileCountEl = document.getElementById('fileCount');
+    if (fileList && Array.isArray(files) && files.length > 0) {
       fileList.innerHTML = '';
       files.forEach(function(f) {
         var item = document.createElement('div');
         item.className = 'file-item';
-        item.innerHTML = '<span class="file-icon">' + (f.icon || '\uD83D\uDCC4') + '</span><div class="file-info"><div class="file-name">' + esc(f.name) + '</div><div class="file-meta">' + esc(f.meta || '') + '</div></div><span class="file-size">' + esc(f.size || '') + '</span><div class="file-actions"><span class="action-link">' + (f.icon === '\uD83D\uDCC1' ? 'Open' : 'Download') + '</span></div>';
+        var icon = f.icon || '📄';
+        item.innerHTML = '<span class="file-icon">' + icon + '</span><div class="file-info"><div class="file-name">' + esc(f.name || '') + '</div><div class="file-meta">' + esc(f.meta || f.type || '') + '</div></div><span class="file-size">' + esc(f.size || '') + '</span><div class="file-actions"><span class="action-link">' + (icon === '📁' ? 'Open' : 'Download') + '</span></div>';
         fileList.appendChild(item);
       });
+      if (fileCountEl) fileCountEl.textContent = files.length + ' files';
+    } else if (fileList) {
+      if (fileCountEl) fileCountEl.textContent = '0 files';
     }
-    var fileCount = document.querySelector('#layer-files strong');
-    if (fileCount) fileCount.textContent = (files.length || 7) + ' files';
 
     // ── Tasks ──
-    var tasks = signals.tasks || profile.tasks || [];
-    var taskHdr = document.querySelector('#layer-tasks strong');
-    if (taskHdr && tasks.length > 0) {
-      var done = tasks.filter(function(t) { return t.done; }).length;
-      var inProg = tasks.filter(function(t) { return t.status === 'in-progress'; }).length;
-      var open = tasks.length - done - inProg;
-      taskHdr.parentElement.textContent = tasks.length + ' tasks \u00B7 ' + open + ' open \u00B7 ' + inProg + ' in progress \u00B7 ' + done + ' completed';
-    }
-    var taskList = document.querySelector('.task-list');
-    if (taskList && tasks.length > 0) {
-      taskList.innerHTML = '';
-      tasks.forEach(function(t) {
-        var item = document.createElement('div');
-        item.className = 'task-item';
-        var chk = t.done ? 'checked' : '';
-        var doneCls = t.done ? 'done' : '';
-        var pCls = 'p' + (t.priority || 2);
-        var overDue = t.overdue ? ' \u00B7 <span style="color:var(--danger)">\u26A0 ' + t.overdue + '</span>' : '';
-        item.innerHTML = '<input type="checkbox" ' + chk + '><div class="task-info"><div class="task-name ' + doneCls + '">' + esc(t.name) + '</div><div class="task-meta">' + esc(t.assignee || '') + ' \u00B7 Due ' + esc(t.due || '') + overDue + '</div></div><span class="task-priority ' + pCls + '">P' + (t.priority || 2) + '</span><span class="task-assignee">' + esc(t.tag || '@' + (t.assignee || '').toLowerCase().replace(/ .*/, '')) + '</span>';
-        taskList.appendChild(item);
-      });
-      taskList.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
-        cb.addEventListener('change', function() {
-          var nm = cb.closest('.task-item').querySelector('.task-name');
-          if (nm) nm.classList.toggle('done', cb.checked);
+    var tasks = signals.tasks || profile.tasks;
+    var taskSummary = document.getElementById('taskSummary');
+    var taskList = document.getElementById('taskList');
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      if (taskSummary) {
+        var done = tasks.filter(function(t) { return t.done || t.status === 'done' || t.status === 'completed'; }).length;
+        var inProg = tasks.filter(function(t) { return t.status === 'in-progress' || t.status === 'current'; }).length;
+        var open = tasks.length - done - inProg;
+        taskSummary.innerHTML = '<strong>' + tasks.length + ' tasks</strong> · ' + open + ' open · ' + inProg + ' in progress · ' + done + ' completed';
+      }
+      if (taskList) {
+        taskList.innerHTML = '';
+        tasks.forEach(function(t) {
+          var item = document.createElement('div');
+          item.className = 'task-item';
+          var chk = (t.done || t.status === 'done' || t.status === 'completed') ? 'checked' : '';
+          var doneCls = (t.done || t.status === 'done' || t.status === 'completed') ? 'done' : '';
+          var pCls = 'p' + (t.priority || t.priority === 0 ? t.priority : 2);
+          var overDue = t.overdue ? ' · <span style="color:var(--danger)">⚠ ' + esc(t.overdue) + '</span>' : '';
+          var assigneeName = t.assignee || '';
+          var tagName = t.tag || (assigneeName ? '@' + assigneeName.toLowerCase().replace(/ .*/, '') : '');
+          item.innerHTML = '<input type="checkbox" ' + chk + '><div class="task-info"><div class="task-name ' + doneCls + '">' + esc(t.name || '') + '</div><div class="task-meta">' + esc(assigneeName) + (t.due ? ' · Due ' + esc(t.due) : '') + overDue + '</div></div><span class="task-priority ' + pCls + '">P' + (t.priority || t.priority === 0 ? t.priority : 2) + '</span><span class="task-assignee">' + esc(tagName) + '</span>';
+          taskList.appendChild(item);
         });
-      });
+        taskList.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            var nm = cb.closest('.task-item').querySelector('.task-name');
+            if (nm) nm.classList.toggle('done', cb.checked);
+          });
+        });
+      }
+    } else {
+      if (taskSummary) taskSummary.innerHTML = '<strong>0 tasks</strong>';
     }
-  }
 
-  function populateTimeline(project, events) {
-    var signals = project.signals || {};
-    var profile = project.profile || {};
-    var milestones = signals.milestones || profile.milestones || [
-      { name: 'Vessel Assessment',          desc: 'Complete survey of all 12 target vessels.',                       date: 'May 12 \u00B7 Maya Reyes',      status: 'done' },
-      { name: 'Edge Hardware Installation', desc: 'Install NVIDIA Jetson Orin edge nodes.',                           date: 'May 12\u201328 \u00B7 James Kwon',  status: 'done' },
-      { name: 'ACMI Payload Agent Rollout', desc: 'Deploy ACMI payload agent on each edge node.',                     date: 'May 28 \u2013 Jun 15 \u00B7 Maya+James', status: 'current' },
-      { name: 'Model Sync Validation',      desc: 'Validate inference matches cloud baseline >99.5%.',                date: 'Jun 10\u201320 \u00B7 Tessa Rivera', status: 'atrisk' },
-      { name: 'Full Fleet Go-Live',         desc: 'Cut over all 12 vessels to edge inference.',                       date: 'Jun 30 \u00B7 Maya Reyes',       status: '' },
-      { name: 'Post-Launch Review',         desc: 'Performance review, benchmarks, cost analysis.',                   date: 'Jul 7\u201311 \u00B7 Full Team',    status: '' }
-    ];
-    var msList = document.querySelector('#layer-timeline .milestone-list');
+    // ── Timeline Milestones (Layer 4) ──
+    var msList = document.getElementById('timelineMilestoneList');
     if (msList) {
-      msList.innerHTML = '';
-      milestones.forEach(function(m) {
+      if (Array.isArray(milestones) && milestones.length > 0) {
+        msList.innerHTML = '';
+        milestones.forEach(function(m) {
+          var item = document.createElement('div');
+          item.className = 'milestone-item';
+          var dot = document.createElement('div');
+          dot.className = 'milestone-dot' + (m.status === 'done' || m.status === 'completed' ? ' done' : m.status === 'current' || m.status === 'in-progress' ? ' current' : m.status === 'atrisk' ? ' atrisk' : '');
+          item.appendChild(dot);
+          var content = document.createElement('div');
+          content.className = 'milestone-content';
+          var name = document.createElement('div');
+          name.className = 'milestone-name';
+          name.textContent = m.name || m.title || '';
+          content.appendChild(name);
+          var desc = document.createElement('div');
+          desc.className = 'milestone-desc';
+          desc.textContent = m.desc || m.description || '';
+          content.appendChild(desc);
+          var md = document.createElement('div');
+          md.className = 'milestone-date';
+          var statusMap = { done: 'Complete', completed: 'Complete', current: 'In Progress', 'in-progress': 'In Progress', atrisk: 'At Risk' };
+          var tagClsMap = { done: 'tag-complete', completed: 'tag-complete', current: 'tag-in-progress', 'in-progress': 'tag-in-progress', atrisk: 'tag-in-progress' };
+          var st = m.status || '';
+          var tag = document.createElement('span');
+          tag.className = 'tag ' + (tagClsMap[st] || 'tag-pending');
+          tag.textContent = statusMap[st] || 'Pending';
+          md.appendChild(tag);
+          var dateStr = m.date || m.due || '';
+          if (dateStr) md.appendChild(document.createTextNode(' ' + dateStr));
+          content.appendChild(md);
+          item.appendChild(content);
+          msList.appendChild(item);
+        });
+      }
+    }
+
+    // ── Activity Feed (Layer 7) ──
+    var fullFeed = document.getElementById('activityFeed');
+    var activityCount = document.getElementById('activityCount');
+    if (fullFeed && Array.isArray(timeline) && timeline.length > 0) {
+      fullFeed.innerHTML = '';
+      if (activityCount) activityCount.textContent = timeline.length + ' events';
+      timeline.slice(0, 50).forEach(function(ev) {
+        var actor = ev.source || ev.actor || 'System';
+        var initials = actor.substring(0, 2).toUpperCase();
+        var summary = ev.summary || ev.text || '';
+        var ts = ev.ts || ev.timestamp || ev.time || '';
+        var timeStr = '';
+        if (ts) {
+          var d = new Date(ts);
+          if (!isNaN(d.getTime())) {
+            timeStr = timeAgo(d);
+          } else {
+            timeStr = String(ts);
+          }
+        }
+        var avatarColor = actor === 'System' ? 'var(--ink-4)' : '';
         var item = document.createElement('div');
-        item.className = 'milestone-item';
-        var dot = document.createElement('div');
-        dot.className = 'milestone-dot' + (m.status === 'done' ? ' done' : m.status === 'current' ? ' current' : m.status === 'atrisk' ? ' atrisk' : '');
-        item.appendChild(dot);
-        var content = document.createElement('div');
-        content.className = 'milestone-content';
-        var name = document.createElement('div');
-        name.className = 'milestone-name';
-        name.textContent = m.name;
-        content.appendChild(name);
-        var desc = document.createElement('div');
-        desc.className = 'milestone-desc';
-        desc.textContent = m.desc || '';
-        content.appendChild(desc);
-        var md = document.createElement('div');
-        md.className = 'milestone-date';
-        var statusMap = { done: 'Complete', current: 'In Progress', atrisk: 'At Risk' };
-        var tagCls = { done: 'tag-complete', current: 'tag-in-progress', atrisk: 'tag-in-progress' };
-        var tag = document.createElement('span');
-        tag.className = 'tag ' + (tagCls[m.status] || 'tag-pending');
-        tag.textContent = statusMap[m.status] || 'Pending';
-        md.appendChild(tag);
-        md.appendChild(document.createTextNode(' ' + (m.date || '')));
-        content.appendChild(md);
-        item.appendChild(content);
-        msList.appendChild(item);
+        item.className = 'activity-item';
+        item.innerHTML = '<div class="activity-avatar"' + (avatarColor ? ' style="background:' + avatarColor + '"' : '') + '>' + esc(initials) + '</div><div class="activity-body"><div class="activity-text"><strong>' + esc(actor) + '</strong> ' + esc(summary) + '</div><div class="activity-time">' + esc(timeStr) + '</div><div class="activity-actions"><button class="act-btn">💬 Reply</button></div></div>';
+        fullFeed.appendChild(item);
       });
+    } else if (fullFeed) {
+      if (activityCount) activityCount.textContent = '0 events';
     }
   }
 
+  // ─── Populate Team ──────────────────────────────
   function populateTeam(agentIds) {
-    var grid = document.querySelector('.team-grid');
-    if (!grid || !agentIds || agentIds.length === 0) return;
+    var grid = document.getElementById('teamGrid');
+    if (!grid) return;
+
+    if (!agentIds || agentIds.length === 0) {
+      grid.innerHTML = '<div class="empty-state" style="padding:16px 0"><span class="empty-icon">👥</span><div class="empty-title">No agents found</div><div>Register agents in ACMI to see them here</div></div>';
+      return;
+    }
 
     Promise.all(agentIds.map(function(id) {
       return window.acmi.get('agent', id).then(function(ctx) {
@@ -1441,85 +1201,65 @@ a:hover{text-decoration:underline}
         var statusText = a.status === 'available' || a.status === 'active' ? 'Available' : a.status === 'busy' ? 'In meeting' : 'Offline';
         var card = document.createElement('div');
         card.className = 'team-card';
-        card.innerHTML = '<div class="avatar">' + esc(a.initials) + '</div><div class="info"><div class="name">' + esc(a.name) + '</div><div class="role">' + esc(a.role) + '</div><div class="avail"><span class="dot ' + dotCls + '"></span>' + statusText + ' \u00B7 ' + a.tasks + ' tasks</div></div><div class="actions"><button class="btn btn-sm">\uD83D\uDCAC</button></div>';
+        card.innerHTML = '<div class="avatar">' + esc(a.initials) + '</div><div class="info"><div class="name">' + esc(a.name) + '</div><div class="role">' + esc(a.role) + '</div><div class="avail"><span class="dot ' + dotCls + '"></span>' + statusText + ' · ' + a.tasks + ' tasks</div></div><div class="actions"><button class="btn btn-sm">💬</button></div>';
         grid.appendChild(card);
-      });
-      grid.querySelectorAll('.team-card .btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          var nm = btn.closest('.team-card').querySelector('.name');
-          if (nm) alert('\uD83D\uDCAC DM to ' + nm.textContent + ' opened');
-        });
       });
 
       // Workload bars
       var maxT = 1;
       agents.forEach(function(a) { if (a.tasks > maxT) maxT = a.tasks; });
-      var wlDivs = document.querySelectorAll('#layer-team [style*=\"flex-direction:column\"]');
-      if (wlDivs.length > 0) {
-        var wl = wlDivs[0];
+      var wl = document.getElementById('workloadContent');
+      if (wl) {
         wl.innerHTML = '';
-        agents.forEach(function(a) {
-          var pct = maxT > 0 ? Math.round((a.tasks / maxT) * 100) : 0;
-          var bar = pct > 66 ? 'forest' : pct > 33 ? 'forest-2' : 'forest-3';
-          var d = document.createElement('div');
-          d.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>' + esc(a.name) + '</span><span style="font-family:var(--font-mono);color:var(--ink-4)">' + a.tasks + ' tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:var(--' + bar + ');border-radius:3px"></div></div>';
-          wl.appendChild(d);
-        });
+        if (agents.length > 0) {
+          wl.style.display = 'flex';
+          wl.style.flexDirection = 'column';
+          wl.style.gap = '8px';
+          agents.forEach(function(a) {
+            var pct = maxT > 0 ? Math.round((a.tasks / maxT) * 100) : 0;
+            var bar = pct > 66 ? 'forest' : pct > 33 ? 'forest-2' : 'forest-3';
+            var d = document.createElement('div');
+            d.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>' + esc(a.name) + '</span><span style="font-family:var(--font-mono);color:var(--ink-4)">' + a.tasks + ' tasks</span></div><div style="height:6px;background:var(--divider);border-radius:3px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:var(--' + bar + ');border-radius:3px"></div></div>';
+            wl.appendChild(d);
+          });
+        }
       }
 
       // Availability
-      var avDivs = document.querySelectorAll('#layer-team [style*=\"line-height:1.8\"]');
-      if (avDivs.length > 0) {
-        var av = avDivs[0];
+      var av = document.getElementById('availabilityContent');
+      if (av) {
         av.innerHTML = '';
         agents.forEach(function(a) {
-          var dot = a.status === 'available' || a.status === 'active' ? '\uD83D\uDFE2' : a.status === 'busy' ? '\uD83D\uDFE1' : '\uD83D\uDD34';
+          var dot = a.status === 'available' || a.status === 'active' ? '🟢' : a.status === 'busy' ? '🟡' : '🔴';
           var st = a.status === 'available' || a.status === 'active' ? 'Available' : a.status === 'busy' ? 'In review' : 'Offline';
           var d = document.createElement('div');
-          d.textContent = dot + ' ' + a.name + ' \u00B7 ' + st;
+          d.textContent = dot + ' ' + a.name + ' · ' + st;
           av.appendChild(d);
         });
       }
     });
   }
 
-  function populateActivity(timeline) {
-    if (!Array.isArray(timeline) || timeline.length === 0) return;
-    var items = timeline.slice(0, 3);
-    var feed = document.querySelector('#layer-overview .activity-feed');
-    if (feed) {
-      feed.innerHTML = '';
-      items.forEach(function(ev) {
-        var actor = ev.source || ev.actor || 'System';
-        var initials = actor.substring(0, 2).toUpperCase();
-        var summary = ev.summary || ev.text || '';
-        var timeStr = ev.time || ev.timestamp || '';
-        var item = document.createElement('div');
-        item.className = 'activity-item';
-        item.style.cssText = 'border:0;padding:8px 0';
-        item.innerHTML = '<div class="activity-avatar">' + esc(initials) + '</div><div class="activity-body"><div class="activity-text">' + esc(summary) + '</div><div class="activity-time">' + esc(timeStr) + '</div></div>';
-        feed.appendChild(item);
-      });
-    }
+  // ─── Helpers ────────────────────────────────────
+  function getRiskLevelCls(level) {
+    var l = (level || '').toLowerCase();
+    if (l === 'high') return 'risk-high';
+    if (l === 'low') return 'risk-low';
+    return 'risk-med';
+  }
 
-    // Full activity layer (layer 7)
-    var fullFeed = document.querySelector('#layer-activity .activity-feed');
-    if (fullFeed && timeline.length > 0) {
-      fullFeed.innerHTML = '';
-      var count = document.querySelector('#layer-activity strong');
-      if (count) count.textContent = timeline.length + ' events';
-      timeline.slice(0, 10).forEach(function(ev) {
-        var actor = ev.source || ev.actor || 'System';
-        var initials = actor.substring(0, 2).toUpperCase();
-        var summary = ev.summary || ev.text || '';
-        var timeStr = ev.time || ev.timestamp || '';
-        var item = document.createElement('div');
-        item.className = 'activity-item';
-        item.innerHTML = '<div class="activity-avatar">' + esc(initials) + '</div><div class="activity-body"><div class="activity-text">' + esc(summary) + '</div><div class="activity-time">' + esc(timeStr) + '</div><div class="activity-actions"><button class="act-btn">\uD83D\uDCAC Reply</button></div></div>';
-        fullFeed.appendChild(item);
-      });
-    }
+  function timeAgo(date) {
+    var now = new Date();
+    var diffMs = now - date;
+    var diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'just now';
+    var diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return diffMin + 'm ago';
+    var diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return diffHour + 'h ago';
+    var diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 30) return diffDay + 'd ago';
+    return date.toLocaleDateString();
   }
 
   function esc(str) {
@@ -1572,64 +1312,21 @@ a:hover{text-decoration:underline}
     });
   });
 
-  // ─── Collab Actions ────────────────────────────
-  document.querySelectorAll('.collab-actions .act').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      if (btn.textContent.trim().startsWith('\uD83D\uDC4D') || btn.textContent.trim().startsWith('\uD83C\uDF89')) {
-        var m = btn.textContent.match(/(\d+)/);
-        var count = m ? parseInt(m[1]) : 0;
-        btn.textContent = btn.textContent.replace(/\d+/, count + 1);
-      } else if (btn.textContent.includes('Approved') || btn.textContent.includes('Resolved')) {
-        btn.classList.toggle('active');
-      }
-    });
-  });
-
-  // ─── Approval Buttons ──────────────────────────
-  document.querySelectorAll('.approval-banner .btn-primary').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var banner = btn.closest('.approval-banner');
-      if (banner) {
-        banner.className = 'approval-banner approved';
-        banner.innerHTML = '<span style="font-weight:600">\u2713 Approved</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout approved by you</span>';
-      }
-    });
-  });
-  document.querySelectorAll('.approval-banner .btn-danger').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var banner = btn.closest('.approval-banner');
-      if (banner) {
-        banner.className = 'approval-banner rejected';
-        banner.innerHTML = '<span style="font-weight:600">\u2717 Rejected</span><span style="flex:1;font-size:12px">Hotfix v2.4.1 production rollout rejected. Reason required.</span><button class="btn btn-sm">Add reason</button>';
-      }
-    });
-  });
-
   // ─── Upload Zone ───────────────────────────────
   var uploadZone = document.querySelector('.upload-zone');
   if (uploadZone) {
-    uploadZone.addEventListener('click', function() { alert('\uD83D\uDCCE File browser would open here'); });
+    uploadZone.addEventListener('click', function() { alert('📎 File browser would open here'); });
   }
 
   // ─── Quick action buttons ──────────────────────
   document.querySelectorAll('.qactions .btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       if (btn.textContent.includes('Add Task')) {
-        document.querySelector('.layer-tab[data-layer="tasks"]').click();
+        var tasksTab = document.querySelector('.layer-tab[data-layer="tasks"]');
+        if (tasksTab) tasksTab.click();
       } else if (btn.textContent.includes('Message Team')) {
-        document.querySelector('.layer-tab[data-layer="collab"]').click();
-      }
-    });
-  });
-
-  // ─── Composer Send ─────────────────────────────
-  var sendBtns = document.querySelectorAll('.composer .btn-primary');
-  sendBtns.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var ta = btn.closest('.composer').querySelector('textarea');
-      if (ta && ta.value.trim()) {
-        alert('\uD83D\uDCAC Message sent: "' + ta.value.substring(0, 60) + (ta.value.length > 60 ? '\u2026' : '') + '"');
-        ta.value = '';
+        var teamTab = document.querySelector('.layer-tab[data-layer="team"]');
+        if (teamTab) teamTab.click();
       }
     });
   });
@@ -1638,17 +1335,26 @@ a:hover{text-decoration:underline}
   document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     var num = parseInt(e.key);
-    if (num >= 1 && num <= 8) {
-      var layers = ['overview','team','tasks','timeline','budget','files','activity','collab'];
+    if (num >= 1 && num <= 7) {
+      var layers = ['overview','team','tasks','timeline','budget','files','activity'];
       var idx = num - 1;
       if (layers[idx]) activateLayer(layers[idx]);
     }
   });
 
   // ─── Start ACMI ────────────────────────────────
-  setACMIMessage('Connecting\u2026');
-  initACMI();
+  setACMIMessage('Connecting…');
+  if (projectId) {
+    initACMI();
+  }
 
+})();
+</script>
+<!-- ─── Theme sync from localStorage ──────────────────── -->
+<script>
+(function() {
+  var theme = localStorage.getItem('gsd:theme');
+  if (theme === 'deep') document.body.classList.add('theme-deep');
 })();
 </script>
 </body>
