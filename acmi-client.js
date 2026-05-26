@@ -708,7 +708,7 @@
    * Falls back to polling if WebSocket fails.
    */
   ACMIClient.prototype.connectWebSocket = function (wsUrl) {
-    // WebSocket not supported in proxy mode — silently no-op
+    // WebSocket not supported in proxy/vercel mode
     return;
     var self = this;
     if (this._ws) {
@@ -718,8 +718,13 @@
     // Detect URL if not provided
     if (!wsUrl) {
       var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      var host = window.location.host || 'localhost:8080';
-      wsUrl = protocol + '//' + host + '/ws';
+      var host = window.location.host || 'localhost:3000';
+      wsUrl = protocol + '//' + host;
+    }
+
+    // Initialize exponential backoff counter if not defined
+    if (this._wsReconnectAttempts == null) {
+      this._wsReconnectAttempts = 0;
     }
 
     console.log('[ACMI WS] Connecting to ' + wsUrl);
@@ -729,6 +734,7 @@
 
       ws.onopen = function () {
         console.log('[ACMI WS] Connected successfully');
+        self._wsReconnectAttempts = 0; // Reset reconnection counter
         self._emit('ws-connected', { url: wsUrl });
       };
 
@@ -739,7 +745,7 @@
           self._emit('ws-message', msg);
 
           // Trigger change events if relevant
-          if (msg.type === 'acmi-change' || msg.event === 'update' || msg.topic === 'acmi') {
+          if (msg.type === 'acmi-change' || msg.type === 'acmi-event' || msg.event === 'update' || msg.topic === 'acmi') {
             self._emit('change', msg);
             if (msg.namespace) {
               self.clearCache(msg.namespace);
@@ -762,14 +768,24 @@
         self._ws = null;
         self._emit('ws-disconnected');
 
-        // Reconnect after delay (5s)
+        // Reconnect with exponential backoff (max 30s)
+        self._wsReconnectAttempts++;
+        var delay = Math.min(1000 * Math.pow(2, self._wsReconnectAttempts), 30000);
+        console.log('[ACMI WS] Reconnecting in ' + (delay / 1000) + 's (attempt #' + self._wsReconnectAttempts + ')...');
         setTimeout(function () {
           self.connectWebSocket(wsUrl);
-        }, 5000);
+        }, delay);
       };
     } catch (e) {
       console.warn('[ACMI WS] WebSocket initialization failed:', e);
       self._emit('ws-failed', e);
+
+      // Retry initialization
+      self._wsReconnectAttempts++;
+      var delay2 = Math.min(1000 * Math.pow(2, self._wsReconnectAttempts), 30000);
+      setTimeout(function () {
+        self.connectWebSocket(wsUrl);
+      }, delay2);
     }
   };
 
