@@ -4,7 +4,9 @@
   "description": "GSD Dashboard — ACMI Fleet Command Center",
   "scripts": {
     "start": "source ~/clawd/.env && node server.mjs",
-    "dev": "node server.mjs"
+    "dev": "node server.mjs",
+    "seed": "PROXY_URL=http://127.0.0.1:3000/api/acmi node seed.mjs",
+    "kill-3000": "node kill-port-3000.js"
   },
   "type": "module"
 }

@@ -689,3 +689,45 @@ h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
   .btn-sm { font-size: 10px; padding: 4px 8px; }
   .collab-actions { flex-wrap: wrap; gap: 6px; }
 }
+
+/* ─── Global Top Bar and Breadcrumbs (MZM Premium UI) ─────────────── */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--paper);
+}
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.back-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--d-fast) var(--ease);
+}
+.back-link:hover {
+  color: var(--ink-1);
+  background: var(--paper-elev);
+  text-decoration: none;
+}
+

@@ -108,8 +108,21 @@
   <div style="height:24px"></div>
   <div class="pulse" style="width:35%"></div>
 </div>
-<a href="../gsd-dashboard.html" class="btn" style="margin-bottom:16px">&larr; Back to Dashboard</a>
-<a href="../gsd-dashboard.html#page-docs" class="btn" style="margin-bottom:16px;margin-left:8px">&larr; Back to Docs</a>
+<!-- ─── Top Bar ──────────────────────────────── -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="../gsd-dashboard.html" class="back-link">← Dashboard</a>
+    <span style="color:var(--ink-5);font-size:12px">|</span>
+    <a href="../gsd-dashboard.html#page-docs" class="back-link">Docs</a>
+    <span style="color:var(--ink-5);font-size:12px">|</span>
+    <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-1);font-weight:600" id="breadcrumb-current">Loading…</span>
+  </div>
+  <div class="top-bar-right">
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;" id="themeToggleProj">☾ Dark</span>
+    <span style="color:var(--ink-5);font-size:10px">|</span>
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5)" id="acmiStatus">ACMI · <span style="color:var(--forest)">Online</span></span>
+  </div>
+</div>
 
 <div class="card">
 <h1>ACMI Agent Communication Standard v1.1</h1>
@@ -182,7 +195,8 @@
   try {
     const data = await window.acmi.get('doc', id);
     const p = data.profile || {};
-    document.title = 'ACMI Launchpad \u00b7 ' + (p.title || id);
+    const breadcrumbEl = document.getElementById('breadcrumb-current');
+    if (breadcrumbEl) breadcrumbEl.textContent = p.title || id;
 
     const h1 = document.querySelector('h1');
     if (h1) h1.textContent = p.title || id;
@@ -236,6 +250,9 @@
     var skel = document.getElementById('loading-skeleton');
     if (skel) skel.style.display = 'none';
   } catch (err) {
+    const breadcrumbEl = document.getElementById('breadcrumb-current');
+    if (breadcrumbEl) breadcrumbEl.textContent = 'Error';
+
     // Show error state in skeleton placeholder
     var skel = document.getElementById('loading-skeleton');
     if (skel) {
@@ -473,6 +490,38 @@ document.querySelectorAll('.composer').forEach(function(comp) {
 (function() {
   var theme = localStorage.getItem('gsd:theme');
   if (theme === 'deep') document.body.classList.add('theme-deep');
+})();
+</script>
+
+<!-- ─── Parameter-Preserving Back Links & Escape Key Navigation ─── -->
+<script>
+(function() {
+  var searchParams = window.location.search;
+  if (searchParams) {
+    document.querySelectorAll('.back-link, a[href*="gsd-dashboard.html"]').forEach(function(el) {
+      var href = el.getAttribute('href');
+      if (href && href.indexOf('?') === -1) {
+        var hashIdx = href.indexOf('#');
+        if (hashIdx !== -1) {
+          el.setAttribute('href', href.substring(0, hashIdx) + searchParams + href.substring(hashIdx));
+        } else {
+          el.setAttribute('href', href + searchParams);
+        }
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      var backLink = document.querySelector('.back-link, a[href*="gsd-dashboard.html"]');
+      if (backLink) {
+        e.preventDefault();
+        backLink.click();
+      }
+    }
+  });
 })();
 </script>
 

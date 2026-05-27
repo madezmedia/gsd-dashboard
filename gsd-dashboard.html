@@ -379,7 +379,7 @@
       margin-right: 0;
     }
     @media (max-width: 900px) {
-      .nav-toggle { display: none; } /* mobile already hides sidebar */
+      .nav-toggle { display: flex; margin-right: 0; }
     }
 
     /* ─── Pages Container ─────────────────────────────────────────── */
@@ -1743,12 +1743,52 @@
     .theme-deep .pipeline-funnel-new .funnel-row .stage-bar { background: var(--paper-deep); }
     .theme-deep .pipeline-funnel-new .funnel-row .stage-bar .fill { background: var(--forest-2); }
 
-    /* ─── Responsive */
+    /* ─── Responsive ──────────────────────────────────────────────── */
+    .sidebar-backdrop { display: none; }
 
- ──────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .app-shell { grid-template-columns: 1fr; }
-      .app-nav { display: none; }
+      .app-nav {
+        display: block;
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        bottom: 0;
+        width: var(--nav-w);
+        height: calc(100vh - var(--header-h));
+        z-index: 99;
+        transform: translateX(0);
+        transition: transform var(--d-norm) var(--ease), width 0s, padding 0s, border 0s;
+        background: var(--paper);
+        border-right: 1px solid var(--border);
+        padding: 12px 6px;
+        box-shadow: var(--shadow-lg);
+      }
+      .app-shell.nav-collapsed .app-nav {
+        transform: translateX(-100%);
+        width: var(--nav-w) !important;
+        padding: 12px 6px !important;
+        border-right: 1px solid var(--border) !important;
+      }
+      .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        width: 100vw;
+        height: calc(100vh - var(--header-h));
+        background: rgba(45, 74, 62, 0.4);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        z-index: 98;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--d-norm) var(--ease);
+      }
+      .app-shell:not(.nav-collapsed) .sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+      }
       .page { padding: 20px; }
       .kpi-strip { grid-template-columns: repeat(3, 1fr); }
       .kanban-board { grid-template-columns: 1fr 1fr; }
@@ -2717,7 +2757,7 @@
     </div>
     <div class="page-hdr-actions">
       <button class="btn btn-primary btn-sm" data-action="add-note">+ New Note</button>
-      <a href="screens/note-detail.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+      <a href="screens/note-detail.html" id="noteDetailBtn" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
     </div>
   </div>
 
@@ -3063,7 +3103,7 @@ The three-slot model replaces the traditional "single document" approach — age
     <div class="page-hdr-actions">
       <button class="btn btn-primary btn-sm">+ New Doc</button>
       <button class="btn btn-sm">Templates</button>
-      <a href="screens/doc-viewer.html" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
+      <a href="screens/doc-viewer.html" id="docDetailBtn" class="btn btn-sm" style="text-decoration:none;color:var(--ink-3);">Detail →</a>
     </div>
   </div>
 
@@ -3420,8 +3460,22 @@ The three-slot model replaces the traditional "single document" approach — age
       return;
     }
 
+    // Ctrl+1-8 or Cmd+1-8 → switch views
+    if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '8') {
+      var viewIndex = parseInt(e.key, 10) - 1;
+      var navItems = document.querySelectorAll('.app-nav .nav-item[data-page]');
+      if (navItems[viewIndex]) {
+        e.preventDefault();
+        var pageId = navItems[viewIndex].getAttribute('data-page');
+        goPage(pageId, navItems[viewIndex]);
+      }
+      return;
+    }
+
     // Escape → close search
-    if (e.key === 'Escape') closeSearch();
+    if (e.key === 'Escape') {
+      closeSearch();
+    }
   });
 
   // ─── Quick Search ───────────────────────────────────────────────
@@ -3771,6 +3825,14 @@ The three-slot model replaces the traditional "single document" approach — age
     if (textarea) {
       textarea.value = content;
     }
+
+    // Update Detail button link dynamically preserving parameters
+    var detailBtn = document.getElementById('noteDetailBtn');
+    if (detailBtn) {
+      var searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('id', noteId);
+      detailBtn.setAttribute('href', 'screens/note-detail.html?' + searchParams.toString());
+    }
   }
 
   function createNewNote() {
@@ -3855,6 +3917,14 @@ The three-slot model replaces the traditional "single document" approach — age
       vt.textContent = title;
       vm.textContent = type + ' · Updated ' + _timeAgo(updated);
       vb.innerHTML = renderMarkdown(content);
+    }
+
+    // Update Detail button link dynamically preserving parameters
+    var detailBtn = document.getElementById('docDetailBtn');
+    if (detailBtn) {
+      var searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('id', docId);
+      detailBtn.setAttribute('href', 'screens/doc-viewer.html?' + searchParams.toString());
     }
   }
 
@@ -4386,6 +4456,10 @@ The three-slot model replaces the traditional "single document" approach — age
       });
       notesSub.textContent = notes.length + ' notes · ' + allTags.length + ' tags · synchronized';
     }
+
+    if (_activeNoteId) {
+      selectNote(_activeNoteId);
+    }
   }
 
   // 5. Calendar Page & Merged Timeline
@@ -4498,6 +4572,10 @@ The three-slot model replaces the traditional "single document" approach — age
 
     var docsSub = document.querySelector('#page-docs .page-hdr-sub');
     if (docsSub) docsSub.textContent = docs.length + ' documents · synchronized';
+
+    if (_activeDocId) {
+      selectDoc(_activeDocId);
+    }
   }
 
   // 7. Settings Page & Telemetry Health
@@ -5133,15 +5211,63 @@ The three-slot model replaces the traditional "single document" approach — age
     });
   }
 
-  // ─── Restore last page from localStorage ────────────────────────
+  // ─── Restore last page or route from hash / params ────────────────────────
   (function() {
     try {
-      var saved = localStorage.getItem('gsd:currentPage');
-      if (saved && document.getElementById(saved)) {
-        goPage(saved, getNavItem(saved));
+      var targetPage = '';
+      
+      // 1. Try reading from URL hash (e.g. #page-projects)
+      if (window.location.hash) {
+        var cleanHash = window.location.hash.substring(1);
+        if (cleanHash && document.getElementById(cleanHash)) {
+          targetPage = cleanHash;
+        }
+      }
+      
+      // 2. Try reading from URL query parameters (e.g. ?page=page-projects)
+      if (!targetPage) {
+        var urlParams = new URLSearchParams(window.location.search);
+        var qPage = urlParams.get('page');
+        if (qPage && document.getElementById(qPage)) {
+          targetPage = qPage;
+        }
+      }
+      
+      // 3. Try reading from localStorage
+      if (!targetPage) {
+        var saved = localStorage.getItem('gsd:currentPage');
+        if (saved && document.getElementById(saved)) {
+          targetPage = saved;
+        }
+      }
+      
+      // Apply page selection (defaulting to page-command if nothing selected)
+      if (targetPage) {
+        goPage(targetPage, getNavItem(targetPage));
+      } else {
+        goPage('page-command', getNavItem('page-command'));
       }
     } catch(e) {}
   })();
+
+  // ─── Hashchange Real-Time Router ─────────────────────────────────
+  window.addEventListener('hashchange', function() {
+    try {
+      if (window.location.hash) {
+        var cleanHash = window.location.hash.substring(1);
+        if (cleanHash) {
+          var pagePart = cleanHash.split('&')[0];
+          if (document.getElementById(pagePart)) {
+            goPage(pagePart, getNavItem(pagePart));
+          } else if (document.getElementById(cleanHash)) {
+            goPage(cleanHash, getNavItem(cleanHash));
+          }
+        }
+      }
+    } catch(e) {
+      console.error('[ACMI Hashchange] Router failed:', e);
+    }
+  });
 
   // ─── Drag-to-complete on urgent items ────────────────────────────
   document.querySelectorAll('.urgent-item').forEach(function(item) {

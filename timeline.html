@@ -264,10 +264,64 @@
     .stats-bar .stat .num { color: var(--ink); font-weight: 500; }
 
     @media (max-width: 768px) {
+      .header-left .back-link { display: none !important; }
       .toolbar { padding: 8px 12px; }
       .filter-chip-group { order: 3; width: 100%; }
       .tl-event { padding: 6px 12px; }
       .day-divider { padding: 10px 12px 4px; }
+      .mobile-nav { display: block; }
+      .stats-bar { margin-bottom: 48px; }
+    }
+
+    /* ─── Mobile Nav Bar ──────────────────────────────────────────── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: var(--paper-warm);
+      border-top: 1px solid var(--ink-rule);
+      z-index: 100;
+      overflow-x: auto;
+    }
+    .mobile-nav .items {
+      display: flex;
+      gap: 0;
+      height: 100%;
+    }
+    .mobile-nav .mob-item {
+      flex: 1;
+      min-width: 48px;
+      min-height: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--ink-fade);
+      cursor: pointer;
+      transition: color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+      border: none;
+      background: none;
+      padding: 4px;
+      text-decoration: none;
+    }
+    .mobile-nav .mob-item.active {
+      color: var(--accent);
+      font-weight: 600;
+      border-top: 2px solid var(--accent);
+    }
+    .mobile-nav .mob-item:active {
+      transform: scale(1.05);
+    }
+    .mobile-nav .mob-item svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
   </style>
 </head>
@@ -308,370 +362,340 @@
 
     <!-- Stream -->
     <div class="stream-wrapper" id="stream">
-
-      <!-- Day divider -->
-      <div class="day-divider">Today · May 24</div>
-
-      <!-- Event 1 -->
-      <div class="tl-event" data-kind="scope-decision" data-source="design-agency" data-corr="designTeamAuditKickoff">
-        <div class="tl-line is-accent"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">design-agency</span>
-            <span class="tl-kind">scope-decision</span>
-            <span class="tl-ns">thread:design-team-review</span>
-            <span class="tl-ts">14:10:23</span>
-          </div>
-          <div class="tl-summary">
-            Audit kickoff: cowork-kanban redesign — Mad EZ v3 + ACMI DS <span class="at">@team</span>
-            <span class="live-badge">new</span>
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">designTeamAuditKickoff-2026-05-24</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">scope-decision</span></div>
-            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:design-agency</span></div>
-            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Audit kickoff: cowork-kanban redesign — Mad EZ v3 + ACMI DS @team</span></div>
-            <div class="tl-detail-row"><span class="key">namespace</span><span class="val">thread:design-team-review</span></div>
-          </div>
-        </div>
+      <!-- Dynamic stream will be rendered here -->
+      <div class="tl-empty" id="emptyState" style="display: none;">
+        <p>No events match the current filter criteria.</p>
       </div>
-
-      <!-- Event 2 -->
-      <div class="tl-event" data-kind="milestone-shipped" data-source="ux-researcher">
-        <div class="tl-line is-accent"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">ux-researcher</span>
-            <span class="tl-kind">milestone-shipped</span>
-            <span class="tl-ns">work:cowork-kanban-audit</span>
-            <span class="tl-ts">14:08:47</span>
-          </div>
-          <div class="tl-summary">
-            Mobile viewport scale report — 4 breakpoints verified <span class="at">@design-agency</span>
-            <span class="live-badge">new</span>
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">mobileViewportAudit-2026-05-24</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">milestone-shipped</span></div>
-            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:ux-researcher</span></div>
-            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Mobile viewport scale report — 4 breakpoints verified @design-agency</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 3 -->
-      <div class="tl-event" data-kind="incident-update" data-source="ui-designer">
-        <div class="tl-line is-warn"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">ui-designer</span>
-            <span class="tl-kind warn-kind">incident-update</span>
-            <span class="tl-ns">agent:ui-designer</span>
-            <span class="tl-ts">14:02:15</span>
-          </div>
-          <div class="tl-summary">
-            Letterpress tactile states blocked — awaiting accent color approval <span class="at">@brand-guardian</span>
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">letterpressTactileBlock-2026-05-24</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">incident-update</span></div>
-            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:ui-designer</span></div>
-            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Letterpress tactile states blocked — awaiting accent color approval @brand-guardian</span></div>
-            <div class="tl-detail-row"><span class="key">parentCorrelationId</span><span class="val corr">designTeamAuditKickoff-2026-05-24</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 4 -->
-      <div class="tl-event" data-kind="coord-note" data-source="inclusive-visuals">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">inclusive-visuals</span>
-            <span class="tl-kind quiet-kind">coord-note</span>
-            <span class="tl-ns">thread:design-team-review</span>
-            <span class="tl-ts">13:48:32</span>
-          </div>
-          <div class="tl-summary">
-            WCAG contrast check: #2d4a3e / #faf9f5 passes AA at 14px+
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">wcagContrastCheck-1778400000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">coord-note</span></div>
-            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:inclusive-visuals</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 5 -->
-      <div class="tl-event" data-kind="fleet-audit" data-source="ops-center">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">ops-center</span>
-            <span class="tl-kind quiet-kind">fleet-audit</span>
-            <span class="tl-ns">agent:ops-center</span>
-            <span class="tl-ts">13:22:05</span>
-          </div>
-          <div class="tl-summary">
-            Fleet audit: 0 stalled projects, 1 archival candidate identified
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">opsCenterFleetAudit-1778390000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">fleet-audit</span></div>
-            <div class="tl-detail-row"><span class="key">summary</span><span class="val">Fleet audit: 0 stalled projects, 1 archival candidate identified</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 6 -->
-      <div class="tl-event" data-kind="design-system-spec" data-source="design-agency">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">design-agency</span>
-            <span class="tl-kind">design-system-spec</span>
-            <span class="tl-ns">thread:design-team-review</span>
-            <span class="tl-ts">13:15:42</span>
-          </div>
-          <div class="tl-summary">
-            Full palette + typography spec documented (warm ivory foundation, charcoal ink scale, forest green accent)
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">designSystemSpec-2026-05-24</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">design-system-spec</span></div>
-            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:design-agency</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 7 -->
-      <div class="tl-event" data-kind="coord-note" data-source="brand-guardian">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">brand-guardian</span>
-            <span class="tl-kind quiet-kind">coord-note</span>
-            <span class="tl-ns">thread:design-team-review</span>
-            <span class="tl-ts">12:58:10</span>
-          </div>
-          <div class="tl-summary">
-            Validating forest green accent rules against MZM tokens — 3 variant scale confirmed
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">accentValidation-1778380000000</span></div>
-            <div class="tl-detail-row"><span class="key">parentCorrelationId</span><span class="val corr">designTeamAuditKickoff-2026-05-24</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Day divider -->
-      <div class="day-divider">May 23</div>
-
-      <!-- Event 8 -->
-      <div class="tl-event" data-kind="task-delegation" data-source="design-agency">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">design-agency</span>
-            <span class="tl-kind">task-delegation</span>
-            <span class="tl-ns">thread:agent-coordination</span>
-            <span class="tl-ts">16:45:00</span>
-          </div>
-          <div class="tl-summary">
-            Delegated typographic audit <span class="at">@ux-architect</span> — Montserrat/Raleway pairing review
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">agencyHandoffUxArchitect-1778400000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">task-delegation</span></div>
-            <div class="tl-detail-row"><span class="key">source</span><span class="val">agent:design-agency</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 9 -->
-      <div class="tl-event" data-kind="handoff-ack" data-source="brand-guardian">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">brand-guardian</span>
-            <span class="tl-kind">handoff-ack</span>
-            <span class="tl-ns">thread:agent-coordination</span>
-            <span class="tl-ts">16:12:30</span>
-          </div>
-          <div class="tl-summary">
-            Handoff ack: color system validation underway <span class="at">@design-agency</span>
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">brandGuardianColorAck-1778398000000</span></div>
-            <div class="tl-detail-row"><span class="key">parentCorrelationId</span><span class="val corr">agencyHandoffUxArchitect-1778400000000</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 10 -->
-      <div class="tl-event" data-kind="milestone-shipped" data-source="design-agency">
-        <div class="tl-line is-accent"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">design-agency</span>
-            <span class="tl-kind">milestone-shipped</span>
-            <span class="tl-ns">work:cowork-kanban-audit</span>
-            <span class="tl-ts">14:22:15</span>
-          </div>
-          <div class="tl-summary">
-            Design tokens finalized — 6 ink values, 3 accent variants, radii scale <span class="at">@mikey</span>
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">designTokensFinalized-1778380000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">milestone-shipped</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 11 -->
-      <div class="tl-event" data-kind="work-created" data-source="ops-center">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">ops-center</span>
-            <span class="tl-kind quiet-kind">work-created</span>
-            <span class="tl-ns">work:lifecycle</span>
-            <span class="tl-ts">11:05:00</span>
-          </div>
-          <div class="tl-summary">
-            Work item created: cowork-kanban-design-audit (4 milestones, assigned to design-agency)
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">workItemCoworkAudit-1778370000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">work-created</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 12 -->
-      <div class="tl-event" data-kind="heartbeat" data-source="visual-storyteller">
-        <div class="tl-line"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">visual-storyteller</span>
-            <span class="tl-kind quiet-kind">heartbeat</span>
-            <span class="tl-ns">agent:visual-storyteller</span>
-            <span class="tl-ts">10:30:00</span>
-          </div>
-          <div class="tl-summary">
-            Idle — awaiting design researcher input on mobile viewport audit
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">visualStorytellerHeartbeat-1778360000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">heartbeat</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Event 13 -->
-      <div class="tl-event" data-kind="incident-update" data-source="gemini-cli">
-        <div class="tl-line is-danger"></div>
-        <div class="tl-body">
-          <div class="tl-meta">
-            <span class="tl-source">gemini-cli</span>
-            <span class="tl-kind danger-kind">incident-update</span>
-            <span class="tl-ns">work:vapi-security</span>
-            <span class="tl-ts">09:15:22</span>
-          </div>
-          <div class="tl-summary">
-            VAPI security fix kit ready — deployment blocked by missing API key <span class="at">@mikey</span>
-          </div>
-          <div class="tl-detail">
-            <div class="tl-detail-row"><span class="key">correlationId</span><span class="val corr">vapiSecurityKitReady-1778350000000</span></div>
-            <div class="tl-detail-row"><span class="key">kind</span><span class="val">incident-update</span></div>
-            <div class="tl-detail-row"><span class="key">summary</span><span class="val">VAPI security fix kit ready — deployment blocked by missing API key @mikey</span></div>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <!-- Stats bar -->
     <div class="stats-bar">
-      <span class="stat">events <span class="num" id="visibleCount">13</span></span>
-      <span class="stat">sources <span class="num">7</span></span>
-      <span class="stat">kinds <span class="num">8</span></span>
-      <span class="stat">namespaces <span class="num">4</span></span>
+      <span class="stat">events <span class="num" id="visibleCount">0</span></span>
+      <span class="stat">sources <span class="num" id="sourcesCount">0</span></span>
+      <span class="stat">kinds <span class="num" id="kindsCount">0</span></span>
+      <span class="stat">namespaces <span class="num" id="namespacesCount">0</span></span>
       <span class="stat">live <span class="num" style="color:var(--accent);">now</span></span>
     </div>
   </div>
 
+  <!-- Live ACMI Hydration & Mobile Navigation Setup -->
+  <script src="acmi-client.js"></script>
   <script>
-    (function () {
-      var events = Array.prototype.slice.call(document.querySelectorAll('.tl-event'));
-      var searchInput = document.getElementById('searchInput');
+    // Escape HTML utility
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Time clock formatter
+    function formatClockTime(ts) {
+      if (!ts) return '12:00:00';
+      var d = new Date(ts);
+      if (isNaN(d.getTime())) return '12:00:00';
+      var h = String(d.getHours()).padStart(2, '0');
+      var m = String(d.getMinutes()).padStart(2, '0');
+      var s = String(d.getSeconds()).padStart(2, '0');
+      return h + ':' + m + ':' + s;
+    }
+
+    // URL parameter preservation utility
+    function preserveUrlParams() {
+      var params = window.location.search;
+      if (!params) return;
+      document.querySelectorAll('a[href]').forEach(function(el) {
+        var href = el.getAttribute('href');
+        if (href && !href.startsWith('http') && !href.startsWith('#')) {
+          var base = href.split('?')[0];
+          var existingParams = href.split('?')[1] || '';
+          
+          var merged = new URLSearchParams(params);
+          var anchorParams = new URLSearchParams(existingParams);
+          anchorParams.forEach(function(val, key) {
+            merged.set(key, val);
+          });
+          
+          el.setAttribute('href', base + '?' + merged.toString());
+        }
+      });
+    }
+
+    // Dynamic Mobile Bottom Nav Bar Append
+    function appendMobileNav() {
+      if (document.getElementById('mobileNav')) return;
+      var navHtml = 
+        '<nav class="mobile-nav" id="mobileNav">' +
+          '<div class="items">' +
+            '<a href="acmi-fleet-command.html" class="mob-item" id="mob-fleet">' +
+              '<svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 5h12M5 1v12" stroke="currentColor" stroke-width="1.2"/></svg>' +
+              '<span>Fleet</span>' +
+            '</a>' +
+            '<a href="agent.html" class="mob-item" id="mob-agents">' +
+              '<svg viewBox="0 0 14 14"><circle cx="7" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>' +
+              '<span>Agents</span>' +
+            '</a>' +
+            '<a href="timeline.html" class="mob-item active" id="mob-timeline">' +
+              '<svg viewBox="0 0 14 14"><path d="M1 3h12M1 7h12M1 11h12M2 3a1 1 0 110-2 1 1 0 010 2zm0 4a1 1 0 110-2 1 1 0 010 2zm0 4a1 1 0 110-2 1 1 0 010 2z" stroke="currentColor" stroke-width="1.2" fill="currentColor"/></svg>' +
+              '<span>Timeline</span>' +
+            '</a>' +
+            '<a href="gsd-dashboard.html" class="mob-item" id="mob-work">' +
+              '<svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 4v6M7 4v6M10 4v6" stroke="currentColor" stroke-width="1.2"/></svg>' +
+              '<span>Work</span>' +
+            '</a>' +
+          '</div>' +
+        '</nav>';
+      document.body.insertAdjacentHTML('beforeend', navHtml);
+    }
+
+    var client = null;
+    var allEvents = [];
+    var initFired = false;
+
+    function initTimeline() {
+      if (initFired) return;
+      initFired = true;
+      appendMobileNav();
+
+      client = new ACMIClient();
+
+      hydrateTimeline();
+
+      // Connect WebSockets for live updates
+      client.connectWebSocket();
+      client.on('change', function(msg) {
+        console.log('[Timeline WS] Change detected, silently reloading...', msg);
+        hydrateTimeline();
+      });
+
+      // Bind search filter event listeners
+      document.getElementById('searchInput').addEventListener('input', applyFilters);
+
       var filterChips = document.querySelectorAll('.filter-chip[data-filter]');
-      var clearBtn = document.getElementById('clearFilters');
-      var visibleCount = document.getElementById('visibleCount');
-
-      function applyFilters() {
-        var search = searchInput.value.toLowerCase().trim();
-        var activeFilter = document.querySelector('.filter-chip[data-filter].active');
-        var filterKind = activeFilter ? activeFilter.getAttribute('data-filter') : 'all';
-        var visible = 0;
-
-        events.forEach(function (el) {
-          var kind = el.getAttribute('data-kind') || '';
-          var source = el.getAttribute('data-source') || '';
-          var corr = el.getAttribute('data-corr') || '';
-          var text = el.querySelector('.tl-summary').textContent.toLowerCase();
-
-          var matchFilter = (filterKind === 'all' || kind === filterKind);
-          var matchSearch = true;
-          if (search) {
-            matchSearch = text.includes(search) ||
-                          source.toLowerCase().includes(search) ||
-                          corr.toLowerCase().includes(search);
-          }
-
-          if (matchFilter && matchSearch) {
-            el.style.display = '';
-            visible++;
-          } else {
-            el.style.display = 'none';
-          }
-        });
-
-        if (visibleCount) visibleCount.textContent = visible;
-      }
-
-      // Search
-      searchInput.addEventListener('input', applyFilters);
-
-      // Filter chips
-      filterChips.forEach(function (chip) {
-        chip.addEventListener('click', function () {
-          filterChips.forEach(function (c) { c.classList.remove('active'); });
+      filterChips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          filterChips.forEach(function(c) { c.classList.remove('active'); });
           this.classList.add('active');
           applyFilters();
         });
       });
 
-      // Clear
-      clearBtn.addEventListener('click', function () {
-        searchInput.value = '';
-        filterChips.forEach(function (c) { c.classList.remove('active'); });
+      document.getElementById('clearFilters').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        filterChips.forEach(function(c) { c.classList.remove('active'); });
         document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
         applyFilters();
       });
 
-      // Expand on click
-      events.forEach(function (el) {
-        el.addEventListener('click', function (e) {
-          if (e.target.closest('.tl-detail')) return;
-          this.classList.toggle('expanded');
+      // Event delegation for accordion toggling
+      document.getElementById('stream').addEventListener('click', function(e) {
+        var eventCard = e.target.closest('.tl-event');
+        if (!eventCard) return;
+        if (e.target.closest('.tl-detail')) return;
+        eventCard.classList.toggle('expanded');
+      });
+    }
+
+    function hydrateTimeline() {
+      if (!client) return;
+      client.dashboardBootstrap().then(function(data) {
+        console.log('[Timeline Hydration] Loaded bootstrap data:', data);
+        allEvents = data.timeline || [];
+        
+        // Update total events count in header
+        var countNode = document.getElementById('eventCount');
+        if (countNode) {
+          countNode.textContent = allEvents.length + ' events';
+        }
+
+        applyFilters();
+      }).catch(function(err) {
+        console.error('[Timeline Hydration] Error:', err);
+      });
+    }
+
+    function applyFilters() {
+      var search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      var activeChip = document.querySelector('.filter-chip[data-filter].active');
+      var filterKind = activeChip ? activeChip.getAttribute('data-filter') : 'all';
+
+      var filtered = allEvents.filter(function(e) {
+        var kind = e.kind || '';
+        var source = e.source || '';
+        var corr = e.correlationId || '';
+        var ns = e.namespace || '';
+        var text = (e.summary || e.text || '').toLowerCase();
+
+        var matchFilter = (filterKind === 'all' || kind === filterKind);
+        var matchSearch = true;
+        if (search) {
+          matchSearch = text.indexOf(search) !== -1 ||
+                        source.toLowerCase().indexOf(search) !== -1 ||
+                        corr.toLowerCase().indexOf(search) !== -1 ||
+                        ns.toLowerCase().indexOf(search) !== -1;
+        }
+
+        return matchFilter && matchSearch;
+      });
+
+      renderTimeline(filtered);
+    }
+
+    function renderTimeline(events) {
+      var streamNode = document.getElementById('stream');
+      var emptyNode = document.getElementById('emptyState');
+      
+      // Remove all elements except emptyState
+      var children = Array.prototype.slice.call(streamNode.children);
+      children.forEach(function(child) {
+        if (child !== emptyNode) {
+          streamNode.removeChild(child);
+        }
+      });
+
+      if (events.length === 0) {
+        emptyNode.style.display = 'block';
+        updateStats(0, 0, 0, 0);
+        return;
+      }
+      emptyNode.style.display = 'none';
+
+      // Group events by day
+      var groups = {};
+      var groupOrder = [];
+      
+      events.forEach(function(e) {
+        var dateStr = 'Today';
+        if (e.timestamp) {
+          var date = new Date(e.timestamp);
+          var today = new Date();
+          var yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+
+          if (date.toDateString() === today.toDateString()) {
+            dateStr = 'Today · ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          } else if (date.toDateString() === yesterday.toDateString()) {
+            dateStr = 'Yesterday · ' + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          } else {
+            dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          }
+        }
+        if (!groups[dateStr]) {
+          groups[dateStr] = [];
+          groupOrder.push(dateStr);
+        }
+        groups[dateStr].push(e);
+      });
+
+      var uniqueSources = {};
+      var uniqueKinds = {};
+      var uniqueNamespaces = {};
+
+      groupOrder.forEach(function(day) {
+        // Append day divider
+        var dividerHtml = '<div class="day-divider">' + escapeHtml(day) + '</div>';
+        streamNode.insertAdjacentHTML('beforeend', dividerHtml);
+
+        var dayEvents = groups[day];
+        dayEvents.forEach(function(e) {
+          var kind = e.kind || 'event';
+          var source = e.source || 'system';
+          var ns = e.namespace || '';
+
+          uniqueSources[source] = true;
+          uniqueKinds[kind] = true;
+          if (ns) uniqueNamespaces[ns] = true;
+
+          // Compute color indicator classes
+          var lineClass = 'tl-line';
+          var kindClass = 'tl-kind';
+          
+          if (kind === 'scope-decision' || kind === 'milestone-shipped' || kind === 'design-system-spec' || kind === 'task-delegation') {
+            lineClass = 'tl-line is-accent';
+          } else if (kind === 'incident-update') {
+            var summaryLower = (e.summary || e.text || '').toLowerCase();
+            if (summaryLower.indexOf('blocked') !== -1 || summaryLower.indexOf('error') !== -1 || summaryLower.indexOf('fail') !== -1) {
+              lineClass = 'tl-line is-danger';
+              kindClass = 'tl-kind danger-kind';
+            } else {
+              lineClass = 'tl-line is-warn';
+              kindClass = 'tl-kind warn-kind';
+            }
+          } else {
+            kindClass = 'tl-kind quiet-kind';
+          }
+
+          var timeStr = e.timestamp ? formatClockTime(e.timestamp) : '12:00:00';
+          
+          // Render properties in detail panel dynamically as clean key-value pre lists
+          var detailsRowsHtml = '';
+          for (var key in e) {
+            if (e.hasOwnProperty(key) && e[key] !== undefined && e[key] !== null) {
+              var val = typeof e[key] === 'object' ? JSON.stringify(e[key]) : e[key];
+              var corrClass = (key === 'correlationId' || key === 'parentCorrelationId') ? 'val corr' : 'val';
+              detailsRowsHtml += 
+                '<div class="tl-detail-row">' +
+                  '<span class="key">' + escapeHtml(key) + '</span>' +
+                  '<span class="' + corrClass + '">' + escapeHtml(val) + '</span>' +
+                '</div>';
+            }
+          }
+
+          var eventHtml = 
+            '<div class="tl-event" data-kind="' + escapeHtml(kind) + '" data-source="' + escapeHtml(source) + '" data-corr="' + escapeHtml(e.correlationId || '') + '">' +
+              '<div class="' + lineClass + '"></div>' +
+              '<div class="tl-body">' +
+                '<div class="tl-meta">' +
+                  '<span class="tl-source">' + escapeHtml(source) + '</span>' +
+                  '<span class="' + kindClass + '">' + escapeHtml(kind) + '</span>' +
+                  (ns ? '<span class="tl-ns">' + escapeHtml(ns) + '</span>' : '') +
+                  '<span class="tl-ts">' + escapeHtml(timeStr) + '</span>' +
+                '</div>' +
+                '<div class="tl-summary">' +
+                  escapeHtml(e.summary || e.text || '') +
+                '</div>' +
+                '<div class="tl-detail">' +
+                  detailsRowsHtml +
+                '</div>' +
+              '</div>' +
+            '</div>';
+
+          streamNode.insertAdjacentHTML('beforeend', eventHtml);
         });
       });
 
-      // Initial count
-      applyFilters();
-    })();
+      // Update metadata metrics counts in stats bar
+      updateStats(
+        events.length, 
+        Object.keys(uniqueSources).length, 
+        Object.keys(uniqueKinds).length, 
+        Object.keys(uniqueNamespaces).length
+      );
+
+      // Preserve query params across nav clicks
+      preserveUrlParams();
+    }
+
+    function updateStats(visible, sources, kinds, namespaces) {
+      var visibleNode = document.getElementById('visibleCount');
+      var sourcesNode = document.getElementById('sourcesCount');
+      var kindsNode = document.getElementById('kindsCount');
+      var nsNode = document.getElementById('namespacesCount');
+
+      if (visibleNode) visibleNode.textContent = visible;
+      if (sourcesNode) sourcesNode.textContent = sources;
+      if (kindsNode) kindsNode.textContent = kinds;
+      if (nsNode) nsNode.textContent = namespaces;
+    }
+
+    // Initialize on ready
+    document.addEventListener('DOMContentLoaded', initTimeline);
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      initTimeline();
+    }
   </script>
 </body>
 </html>

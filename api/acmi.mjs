@@ -29,6 +29,7 @@ async function upstashCmd(cmdArray) {
 async function executeAcmiTool(tool, params) {
   switch (tool) {
 
+    case 'list':
     case 'acmi_list': {
       const pattern = `acmi:${params.namespace}:*`;
       const raw = await upstashCmd(['KEYS', pattern]);
@@ -43,6 +44,7 @@ async function executeAcmiTool(tool, params) {
       return [...ids];
     }
 
+    case 'get':
     case 'acmi_get': {
       const entityId = `${params.namespace}:${params.id}`;
       const profileRaw = await upstashCmd(['GET', `acmi:${entityId}:profile`]);
@@ -54,16 +56,20 @@ async function executeAcmiTool(tool, params) {
       return { id: params.id, profile, signals, timeline };
     }
 
+    case 'profile':
     case 'acmi_profile': {
       const entityId = `${params.namespace}:${params.id}`;
-      const profileStr = typeof params.profile === 'string' ? params.profile : JSON.stringify(params.profile);
+      const rawProfile = params.profile !== undefined ? params.profile : params.data;
+      const profileStr = typeof rawProfile === 'string' ? rawProfile : JSON.stringify(rawProfile || {});
       await upstashCmd(['SET', `acmi:${entityId}:profile`, profileStr]);
       return { success: true };
     }
 
+    case 'signal':
     case 'acmi_signal': {
       const entityId = `${params.namespace}:${params.id}`;
-      const newSignals = typeof params.signals === 'string' ? JSON.parse(params.signals) : params.signals;
+      const rawSignals = params.signals !== undefined ? params.signals : params.data;
+      const newSignals = typeof rawSignals === 'string' ? JSON.parse(rawSignals) : rawSignals || {};
       const existingRaw = await upstashCmd(['GET', `acmi:${entityId}:signals`]);
       const existing = existingRaw ? JSON.parse(existingRaw) : {};
       const merged = { ...existing, ...newSignals };
@@ -71,6 +77,7 @@ async function executeAcmiTool(tool, params) {
       return { success: true };
     }
 
+    case 'event':
     case 'acmi_event': {
       const entityId = `${params.namespace}:${params.id}`;
       const ts = Date.now();
@@ -85,6 +92,7 @@ async function executeAcmiTool(tool, params) {
       return { success: true };
     }
 
+    case 'cat':
     case 'acmi_cat': {
       const keys = params.keys || [];
       const limit = params.limit || 50;

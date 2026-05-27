@@ -573,10 +573,89 @@
       .fleet-health { grid-template-columns: repeat(2, 1fr); }
       .agent-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
     }
-    @media (max-width: 600px) {
-      .header-meta .header-clock { display: none; }
-      .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .agent-grid { grid-template-columns: 1fr; }
+    @media (max-width: 768px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: var(--header-h) 1fr;
+      }
+      .app-nav {
+        display: none !important;
+      }
+      .mobile-nav {
+        display: block;
+      }
+      .app-main {
+        grid-row: 2;
+        padding: 16px 16px 64px 16px;
+      }
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+      .fleet-health {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .agent-grid {
+        grid-template-columns: 1fr;
+      }
+      .header-meta .header-clock {
+        display: none;
+      }
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+
+    /* ─── Mobile Nav Bar ──────────────────────────────────────────── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: var(--paper-warm);
+      border-top: 1px solid var(--ink-rule);
+      z-index: 100;
+      overflow-x: auto;
+    }
+    .mobile-nav .items {
+      display: flex;
+      gap: 0;
+      height: 100%;
+    }
+    .mobile-nav .mob-item {
+      flex: 1;
+      min-width: 48px;
+      min-height: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--ink-fade);
+      cursor: pointer;
+      transition: color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+      border: none;
+      background: none;
+      padding: 4px;
+      text-decoration: none;
+    }
+    .mobile-nav .mob-item.active {
+      color: var(--accent);
+      font-weight: 600;
+      border-top: 2px solid var(--accent);
+    }
+    .mobile-nav .mob-item:active {
+      transform: scale(1.05);
+    }
+    .mobile-nav .mob-item svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
   </style>
 </head>
@@ -685,7 +764,7 @@
             <a href="agent.html" class="section-link">View all →</a>
           </div>
 
-          <div class="agent-grid">
+          <div class="agent-grid" id="agentGrid">
             <!-- design-agency -->
             <a href="agent.html?id=design-agency" class="agent-card">
               <div class="top">
@@ -932,7 +1011,7 @@
           <h2 class="section-title">Active Correlation Chain</h2>
           <span class="section-link">designTeamAuditKickoff-2026-05-24</span>
         </div>
-        <div style="display:flex;gap:0;border:1px solid var(--ink-rule);border-radius:var(--radius-md);overflow:hidden;">
+        <div id="correlationChain" style="display:flex;gap:0;border:1px solid var(--ink-rule);border-radius:var(--radius-md);overflow:hidden;">
           <div style="flex:1;padding:10px 12px;background:var(--paper);border-right:1px solid var(--ink-rule);">
             <div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:2px;">⟵ parent</div>
             <div style="font-size:11px;color:var(--ink-mute);">opsCenterArchivalProtocolRatified</div>
@@ -953,21 +1032,333 @@
     </main>
   </div>
 
+  <!-- Live ACMI Hydration & Mobile Navigation Setup -->
+  <script src="acmi-client.js"></script>
   <script>
+    // Escape HTML utility
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Time Formatting Utilities
+    function formatTimeAgo(ts) {
+      if (!ts) return 'just now';
+      var ms = Date.now() - new Date(ts).getTime();
+      if (isNaN(ms) || ms < 0) return 'just now';
+      var sec = Math.floor(ms / 1000);
+      if (sec < 60) return sec + 's ago';
+      var min = Math.floor(sec / 60);
+      if (min < 60) return min + 'm ago';
+      var hr = Math.floor(min / 60);
+      if (hr < 24) return hr + 'h ago';
+      return Math.floor(hr / 24) + 'd ago';
+    }
+
+    // Clock formatting utility
+    function formatClockTime(ts) {
+      if (!ts) return '';
+      var d = new Date(ts);
+      if (isNaN(d.getTime())) return '';
+      var h = String(d.getHours()).padStart(2, '0');
+      var m = String(d.getMinutes()).padStart(2, '0');
+      return h + ':' + m;
+    }
+
+    // URL parameter preservation utility (Sovereign Context)
+    function preserveUrlParams() {
+      var params = window.location.search;
+      if (!params) return;
+      document.querySelectorAll('a[href]').forEach(function(el) {
+        var href = el.getAttribute('href');
+        if (href && !href.startsWith('http') && !href.startsWith('#')) {
+          var base = href.split('?')[0];
+          var existingParams = href.split('?')[1] || '';
+          
+          var merged = new URLSearchParams(params);
+          var anchorParams = new URLSearchParams(existingParams);
+          anchorParams.forEach(function(val, key) {
+            merged.set(key, val);
+          });
+          
+          el.setAttribute('href', base + '?' + merged.toString());
+        }
+      });
+    }
+
+    // Dynamic Mobile Bottom Nav Bar Append
+    function appendMobileNav() {
+      if (document.getElementById('mobileNav')) return;
+      var navHtml = 
+        '<nav class="mobile-nav" id="mobileNav">' +
+          '<div class="items">' +
+            '<a href="acmi-fleet-command.html" class="mob-item active" id="mob-fleet">' +
+              '<svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 5h12M5 1v12" stroke="currentColor" stroke-width="1.2"/></svg>' +
+              '<span>Fleet</span>' +
+            '</a>' +
+            '<a href="agent.html" class="mob-item" id="mob-agents">' +
+              '<svg viewBox="0 0 14 14"><circle cx="7" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>' +
+              '<span>Agents</span>' +
+            '</a>' +
+            '<a href="timeline.html" class="mob-item" id="mob-timeline">' +
+              '<svg viewBox="0 0 14 14"><path d="M1 3h12M1 7h12M1 11h12M2 3a1 1 0 110-2 1 1 0 010 2zm0 4a1 1 0 110-2 1 1 0 010 2zm0 4a1 1 0 110-2 1 1 0 010 2z" stroke="currentColor" stroke-width="1.2" fill="currentColor"/></svg>' +
+              '<span>Timeline</span>' +
+            '</a>' +
+            '<a href="gsd-dashboard.html" class="mob-item" id="mob-work">' +
+              '<svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 4v6M7 4v6M10 4v6" stroke="currentColor" stroke-width="1.2"/></svg>' +
+              '<span>Work</span>' +
+            '</a>' +
+          '</div>' +
+        '</nav>';
+      document.body.insertAdjacentHTML('beforeend', navHtml);
+    }
+
     // Live clock
     function tick() {
+      var clockEl = document.getElementById('clock');
+      if (!clockEl) return;
       var now = new Date();
       var h = String(now.getHours()).padStart(2, '0');
       var m = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('clock').textContent = h + ':' + m + ' UTC-4';
+      clockEl.textContent = h + ':' + m + ' UTC-4';
     }
-    tick();
-    setInterval(tick, 30000);
 
-    // Simulate live agent indicator pulse
-    document.querySelectorAll('.agent-indicator.online').forEach(function(dot) {
-      dot.style.animation = 'acmi-pulse 2.5s ease-in-out infinite';
-    });
+    // Live ACMI Hydration
+    var client = null;
+    var initFired = false;
+    function initACMI() {
+      if (initFired) return;
+      initFired = true;
+      appendMobileNav();
+      tick();
+      setInterval(tick, 30000);
+
+      // Create instance of ACMIClient
+      client = new ACMIClient();
+
+      // Perform initial hydration
+      hydrateFleet();
+
+      // Connect WebSockets for live sync
+      client.connectWebSocket();
+      client.on('change', function(msg) {
+        console.log('[Fleet WS] Live state change received, re-hydrating views silently...', msg);
+        hydrateFleet();
+      });
+    }
+
+    function hydrateFleet() {
+      if (!client) return;
+      client.dashboardBootstrap().then(function(data) {
+        console.log('[Fleet Hydration] Bootstrap data:', data);
+        
+        var agents = data.agents || [];
+        var onlineAgentsCount = agents.filter(function(a) {
+          var status = (a.signals && a.signals.status) || (a.profile && a.profile.status) || 'offline';
+          return status === 'online' || status === 'idle' || status === 'active';
+        }).length || agents.length;
+        
+        var activeThreadsCount = data.summary.activeThreadsCount || 0;
+        if (!activeThreadsCount && data.timeline) {
+          var threads = {};
+          data.timeline.forEach(function(e) {
+            if (e.namespace && e.namespace.startsWith('thread:')) {
+              threads[e.namespace] = true;
+            }
+          });
+          activeThreadsCount = Object.keys(threads).length;
+        }
+        if (!activeThreadsCount) activeThreadsCount = 3;
+
+        var workItems = data.workItems || [];
+        var blockedCount = workItems.filter(function(w) {
+          return (w.signals && w.signals.status === 'blocked') || (w.profile && w.profile.status === 'stalled');
+        }).length;
+        agents.forEach(function(a) {
+          var status = (a.signals && a.signals.status) || (a.profile && a.profile.status);
+          if (status === 'blocked' || status === 'stalled') blockedCount++;
+        });
+
+        // Update KPI Nodes
+        var subTitleNode = document.querySelector('.page-title .sub');
+        if (subTitleNode) {
+          subTitleNode.textContent = 'Live ACMI agent cluster · ' + onlineAgentsCount + ' agents online';
+        }
+        
+        var statsNodes = document.querySelectorAll('.fleet-health .health-stat .value');
+        if (statsNodes.length >= 4) {
+          statsNodes[0].textContent = onlineAgentsCount;
+          statsNodes[1].textContent = activeThreadsCount;
+          statsNodes[2].textContent = workItems.length;
+          statsNodes[3].textContent = blockedCount;
+          
+          if (blockedCount > 0) {
+            statsNodes[3].className = 'value blocked';
+          } else {
+            statsNodes[3].className = 'value';
+          }
+        }
+
+        // Hydrate Agent Roster Grid
+        var agentGridNode = document.getElementById('agentGrid');
+        if (agentGridNode) {
+          agentGridNode.innerHTML = '';
+          agents.forEach(function(agent) {
+            var sig = agent.signals || {};
+            var profile = agent.profile || {};
+            var status = sig.status || profile.status || 'offline';
+            
+            var statusClass = 'offline';
+            if (status === 'online' || status === 'active') statusClass = 'online';
+            else if (status === 'idle') statusClass = 'idle';
+            else if (status === 'blocked') statusClass = 'blocked';
+
+            var signalText = sig.message || sig.text || profile.description || 'System connection active';
+            var signalTag = sig.tag || (status === 'blocked' ? '[blocked]' : '[heartbeat]');
+            var relativeTime = sig.timestamp ? formatTimeAgo(sig.timestamp) : '1m ago';
+            var stepText = sig.step || status;
+
+            var agentCardHtml = 
+              '<a href="agent.html?id=' + encodeURIComponent(agent.id) + '" class="agent-card" data-agent="' + agent.id + '">' +
+                '<div class="top">' +
+                  '<span class="agent-indicator ' + statusClass + '" style="animation: acmi-pulse 2.5s ease-in-out infinite;"></span>' +
+                  '<span class="name">' + escapeHtml(profile.name || agent.id) + '</span>' +
+                  '<span class="role">' + escapeHtml(profile.role || 'Agent') + '</span>' +
+                '</div>' +
+                '<div class="signal">' +
+                  '<span class="tag">' + escapeHtml(signalTag) + '</span> ' + escapeHtml(signalText) +
+                '</div>' +
+                '<div class="ts">' + escapeHtml(relativeTime) + ' · ' + escapeHtml(stepText) + '</div>' +
+              '</a>';
+            agentGridNode.insertAdjacentHTML('beforeend', agentCardHtml);
+          });
+        }
+
+        // Hydrate Recent Timeline Feed (Top 5)
+        var timelineFeedNode = document.querySelector('.timeline-feed');
+        if (timelineFeedNode && data.timeline) {
+          timelineFeedNode.innerHTML = '';
+          var recentEvents = data.timeline.slice(0, 5);
+          recentEvents.forEach(function(e) {
+            var isAccent = e.kind === 'scope-decision' || e.kind === 'milestone-shipped';
+            var lineClass = isAccent ? 'tl-line is-accent' : 'tl-line';
+            var timeStr = e.timestamp ? formatClockTime(e.timestamp) : '12:00';
+            var eventHtml = 
+              '<div class="tl-event" onclick="location.href=\'timeline.html\'" style="cursor:pointer;">' +
+                '<div class="' + lineClass + '"></div>' +
+                '<div class="tl-body">' +
+                  '<div class="tl-meta">' +
+                    '<span class="tl-source">' + escapeHtml(e.source || 'system') + '</span>' +
+                    '<span class="tl-kind">' + escapeHtml(e.kind || 'event') + '</span>' +
+                    '<span class="tl-ts">' + escapeHtml(timeStr) + '</span>' +
+                  '</div>' +
+                  '<div class="tl-summary">' +
+                    escapeHtml(e.summary || e.text || '') +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+            timelineFeedNode.insertAdjacentHTML('beforeend', eventHtml);
+          });
+        }
+
+        // Hydrate Active Work Items List
+        var workListNode = document.querySelector('.work-list');
+        if (workListNode && data.workItems) {
+          workListNode.innerHTML = '';
+          var itemsToShow = data.workItems.slice(0, 5);
+          itemsToShow.forEach(function(w) {
+            var sig = w.signals || {};
+            var profile = w.profile || {};
+            var status = sig.status || profile.status || 'active';
+            var statusClass = 'active';
+            if (status === 'stalled' || status === 'blocked') statusClass = 'stalled';
+            else if (status === 'completed' || status === 'complete') statusClass = 'completed';
+
+            var relativeTime = sig.timestamp ? formatTimeAgo(sig.timestamp) : '5m ago';
+            var assignee = profile.assignee || w.id || 'agent';
+
+            var workItemHtml = 
+              '<div class="work-item">' +
+                '<div class="wi-top">' +
+                  '<span class="wi-status ' + statusClass + '">' + escapeHtml(status) + '</span>' +
+                '</div>' +
+                '<div class="wi-title">' + escapeHtml(profile.name || w.id) + '</div>' +
+                '<div class="wi-meta">' +
+                  '<span class="assignee">' + escapeHtml(assignee) + '</span> · ' + escapeHtml(relativeTime) +
+                '</div>' +
+              '</div>';
+            workListNode.insertAdjacentHTML('beforeend', workItemHtml);
+          });
+        }
+
+        // Hydrate Active Correlation Chain
+        var correlationChainNode = document.getElementById('correlationChain');
+        if (correlationChainNode && data.timeline && data.timeline.length > 0) {
+          var latestEvent = data.timeline[0];
+          var parentId = latestEvent.parentCorrelationId || '';
+          var currentId = latestEvent.correlationId || '';
+          
+          var parentEvent = null;
+          if (parentId) {
+            parentEvent = data.timeline.find(function(ev) {
+              return ev.correlationId === parentId || (ev.id && ev.id === parentId);
+            });
+          }
+          
+          var childEvent = data.timeline.find(function(ev) {
+            return ev.parentCorrelationId === currentId && ev.correlationId !== currentId;
+          });
+
+          var parentName = parentEvent ? (parentEvent.summary || parentEvent.correlationId) : (parentId || 'none');
+          var parentTime = parentEvent ? formatClockTime(parentEvent.timestamp) : '';
+          var currentName = latestEvent.summary || latestEvent.correlationId || 'Active Task';
+          var currentTime = formatClockTime(latestEvent.timestamp);
+          var childName = childEvent ? (childEvent.summary || childEvent.correlationId) : 'pending';
+          var childTime = childEvent ? formatClockTime(childEvent.timestamp) : '';
+
+          var chainTitleNode = correlationChainNode.previousElementSibling ? correlationChainNode.previousElementSibling.querySelector('.section-link') : null;
+          if (chainTitleNode) {
+            chainTitleNode.textContent = currentId || 'active-thread';
+          }
+
+          correlationChainNode.innerHTML = 
+            '<div style="flex:1;padding:10px 12px;background:var(--paper);border-right:1px solid var(--ink-rule);min-width:0;">' +
+              '<div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:2px;">⟵ parent</div>' +
+              '<div style="font-size:11px;color:var(--ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + escapeHtml(parentName) + '">' + escapeHtml(parentName) + '</div>' +
+              '<div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);">' + escapeHtml(parentTime ? 'Today · ' + parentTime : 'N/A') + '</div>' +
+            '</div>' +
+            '<div style="flex:1;padding:10px 12px;background:var(--paper-warm);border-right:1px solid var(--ink-rule);min-width:0;">' +
+              '<div style="font-family:var(--font-mono);font-size:10px;color:var(--accent);margin-bottom:2px;">● current</div>' +
+              '<div style="font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + escapeHtml(currentName) + '">' + escapeHtml(currentName) + '</div>' +
+              '<div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);">' + escapeHtml('Today · ' + currentTime) + '</div>' +
+            '</div>' +
+            '<div style="flex:1;padding:10px 12px;background:var(--paper);min-width:0;">' +
+              '<div style="font-family:var(--font-mono);font-size:10px;color:var(--ink-fade);margin-bottom:2px;">⟶ child</div>' +
+              '<div style="font-size:11px;color:var(--ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + escapeHtml(childName) + '">' + escapeHtml(childName) + '</div>' +
+              '<div style="font-family:var(--font-mono);font-size:9px;color:var(--ink-quiet);">' + escapeHtml(childTime ? 'Today · ' + childTime : 'pending') + '</div>' +
+            '</div>';
+        }
+
+        // Preserve URL Search parameters
+        preserveUrlParams();
+      }).catch(function(err) {
+        console.error('[Fleet Hydration] Error:', err);
+      });
+    }
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', initACMI);
+    // Fallback if DOMContentLoaded already fired
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      initACMI();
+    }
+
+    // Inject active status pulse animation styles
     var style = document.createElement('style');
     style.textContent = '@keyframes acmi-pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }';
     document.head.appendChild(style);

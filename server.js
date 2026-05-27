@@ -302,6 +302,35 @@ async function upstashCmd(cmdArray, overrideUrl = null, overrideToken = null) {
   return data.result;
 }
 
+// ─── Upstash Redis KV Pipeline Proxy Driver ─────────────────────────────────
+async function upstashPipeline(commands, overrideUrl = null, overrideToken = null) {
+  if (!commands || commands.length === 0) return [];
+  const ctx = acmiContext.getStore() || {};
+  const url = overrideUrl || ctx.customUrl || process.env.UPSTASH_REDIS_REST_URL || 'https://loved-platypus-102968.upstash.io';
+  const token = overrideToken || ctx.customToken || process.env.UPSTASH_REDIS_REST_TOKEN || 'gQAAAAAAAZI4AAIgcDJhNDFlNmUwMjQ5ZWI0ZDNmYWUzNDU2NDc4ZWUxMmQwOA';
+  
+  const res = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(commands.map(cmd => cmd.map(String)))
+  });
+  
+  if (!res.ok) {
+    throw new Error(`Upstash Redis pipeline error: ${res.status} ${await res.text()}`);
+  }
+  
+  const results = await res.json();
+  return results.map(item => {
+    if (item.error) {
+      throw new Error(`Upstash Redis pipeline command error: ${item.error}`);
+    }
+    return item.result;
+  });
+}
+
 // ─── Gemini text-embedding-004 Embedding Driver ──────────────────────────────────
 async function triggerEmbeddingIndexing(namespace, id, title, content) {
   // Execute asynchronously
@@ -801,7 +830,8 @@ async function executeAcmiTool(tool, params) {
 
     case 'acmi_profile': {
       const entityId = `${params.namespace}:${params.id}`;
-      const profileStr = typeof params.profile === 'string' ? params.profile : JSON.stringify(params.profile);
+      const rawProfile = params.profile !== undefined ? params.profile : params.data;
+      const profileStr = typeof rawProfile === 'string' ? rawProfile : JSON.stringify(rawProfile || {});
       await upstashCmd(['SET', `acmi:${entityId}:profile`, profileStr]);
       
       // Asynchronously trigger embedding indexing for notes and documents
@@ -822,7 +852,8 @@ async function executeAcmiTool(tool, params) {
 
     case 'acmi_signal': {
       const entityId = `${params.namespace}:${params.id}`;
-      const signalsStr = typeof params.signals === 'string' ? params.signals : JSON.stringify(params.signals);
+      const rawSignals = params.signals !== undefined ? params.signals : params.data;
+      const signalsStr = typeof rawSignals === 'string' ? rawSignals : JSON.stringify(rawSignals || {});
       const newSignals = JSON.parse(signalsStr);
       
       const existingRaw = await upstashCmd(['GET', `acmi:${entityId}:signals`]);
@@ -869,37 +900,49 @@ async function executeAcmiTool(tool, params) {
       }
 
       const allEvents = [];
-      const expandedKeys = new Set();
-
-      for (const key of keys) {
+      
+      // Pipeline KEYS searches
+      const keysCommands = [];
+      const nonPatternKeys = [];
+      keys.forEach(key => {
         if (key.includes('*')) {
           let pat = key.startsWith('acmi:') ? key : `acmi:${key}`;
           if (!pat.endsWith(':timeline')) pat = `${pat}:timeline`;
-          const matched = await upstashCmd(['KEYS', pat]);
-          if (Array.isArray(matched)) {
-            // Sane limit of 30 keys per wildcard namespace pattern
-            const capped = matched.slice(0, 30);
-            capped.forEach(k => expandedKeys.add(k));
-          }
+          keysCommands.push(['KEYS', pat]);
         } else {
           let fk = key.startsWith('acmi:') ? key : `acmi:${key}`;
           if (!fk.endsWith(':timeline')) fk = `${fk}:timeline`;
-          expandedKeys.add(fk);
+          nonPatternKeys.push(fk);
         }
-      }
+      });
 
+      const keysResults = keysCommands.length > 0 ? await upstashPipeline(keysCommands).catch(() => []) : [];
+      const expandedKeys = new Set(nonPatternKeys);
+      keysResults.forEach(matched => {
+        if (Array.isArray(matched)) {
+          // Sane limit of 30 keys per wildcard namespace pattern
+          const capped = matched.slice(0, 30);
+          capped.forEach(k => expandedKeys.add(k));
+        }
+      });
+
+      // Pipeline ZRANGEBYSCORE calls
+      const rangeCommands = [];
+      const min = sinceMs > 0 ? String(sinceMs) : '-inf';
       // Sane limit of 50 total keys scanned in single query
       const expandedKeysArray = Array.from(expandedKeys).slice(0, 50);
+      expandedKeysArray.forEach(k => {
+        rangeCommands.push(['ZRANGEBYSCORE', k, min, '+inf']);
+      });
 
-      for (const k of expandedKeysArray) {
-        const min = sinceMs > 0 ? String(sinceMs) : '-inf';
-        const raw = await upstashCmd(['ZRANGEBYSCORE', k, min, '+inf']);
+      const rangeResults = rangeCommands.length > 0 ? await upstashPipeline(rangeCommands).catch(() => []) : [];
+      rangeResults.forEach(raw => {
         if (Array.isArray(raw)) {
           raw.forEach(r => {
             try { allEvents.push(JSON.parse(r)); } catch (e) {}
           });
         }
-      }
+      });
 
       allEvents.sort((a, b) => a.ts - b.ts);
       return allEvents.slice(-limit);
@@ -928,63 +971,97 @@ async function executeAcmiTool(tool, params) {
       const maxWork = params.maxWork || 20;
       const timelineSince = params.timelineSince || '7d';
 
-      // 1. List all entity types in parallel
-      const [agentIds, workIds, configData, taskIds, noteIds, eventIds, docIds] = await Promise.all([
-        executeAcmiTool('acmi_list', { namespace: 'agent' }),
-        executeAcmiTool('acmi_list', { namespace: 'work' }),
-        executeAcmiTool('acmi_get', { namespace: 'config', id: 'dashboard' }).catch(() => null),
-        executeAcmiTool('acmi_list', { namespace: 'task' }).catch(() => []),
-        executeAcmiTool('acmi_list', { namespace: 'note' }).catch(() => []),
-        executeAcmiTool('acmi_list', { namespace: 'event' }).catch(() => []),
-        executeAcmiTool('acmi_list', { namespace: 'doc' }).catch(() => [])
-      ]);
+      // 1. List all entity types and config in parallel using pipeline
+      const p1Commands = [
+        ['KEYS', 'acmi:agent:*:profile'],
+        ['KEYS', 'acmi:work:*:profile'],
+        ['GET', 'acmi:config:dashboard:profile'],
+        ['GET', 'acmi:config:dashboard:signals'],
+        ['KEYS', 'acmi:task:*:profile'],
+        ['KEYS', 'acmi:note:*:profile'],
+        ['KEYS', 'acmi:event:*:profile'],
+        ['KEYS', 'acmi:doc:*:profile']
+      ];
 
-      // 2. Batch-fetch top N agents
+      const p1Results = await upstashPipeline(p1Commands).catch(err => {
+        console.error('[Bootstrap] Pipeline 1 failed:', err);
+        return Array(8).fill([]);
+      });
+
+      // Helper to extract IDs from KEYS response
+      const extractIds = (keys, namespace) => {
+        const prefix = `acmi:${namespace}:`;
+        return (keys || []).map(k => k.slice(prefix.length, k.length - ':profile'.length));
+      };
+
+      const agentIds = extractIds(p1Results[0], 'agent');
+      const workIds = extractIds(p1Results[1], 'work');
+      const configProfileRaw = p1Results[2];
+      const configSignalsRaw = p1Results[3];
+      const taskIds = extractIds(p1Results[4], 'task');
+      const noteIds = extractIds(p1Results[5], 'note');
+      const eventIds = extractIds(p1Results[6], 'event');
+      const docIds = extractIds(p1Results[7], 'doc');
+
+      const configData = {
+        profile: configProfileRaw ? JSON.parse(configProfileRaw) : {},
+        signals: configSignalsRaw ? JSON.parse(configSignalsRaw) : {}
+      };
+
+      // 2. Batch-fetch top N agents, work items, tasks, notes, events, docs profiles/signals
       const agentSlice = (agentIds || []).slice(0, maxAgents);
-      const agentPromises = agentSlice.map(id =>
-        executeAcmiTool('acmi_get', { namespace: 'agent', id }).catch(() => null)
-      );
-      const agentResults = await Promise.all(agentPromises);
-      const agents = agentSlice.map((id, i) => ({
-        id,
-        profile: agentResults[i]?.profile || null,
-        signals: agentResults[i]?.signals || null
-      }));
-
-      // 3. Batch-fetch top N work items
       const workSlice = (workIds || []).slice(0, maxWork);
-      const workPromises = workSlice.map(id =>
-        executeAcmiTool('acmi_get', { namespace: 'work', id }).catch(() => null)
-      );
-      const workResults = await Promise.all(workPromises);
-      const workItems = workSlice.map((id, i) => ({
-        id,
-        profile: workResults[i]?.profile || null,
-        signals: workResults[i]?.signals || null
-      }));
+      const taskSlice = (taskIds || []).slice(0, 20);
+      const noteSlice = (noteIds || []).slice(0, 20);
+      const eventSlice = (eventIds || []).slice(0, 50);
+      const docSlice = (docIds || []).slice(0, 20);
 
-      // 4. Batch-fetch tasks, notes, events, and docs
-      const tasks = await Promise.all((taskIds || []).slice(0, 20).map(async id => {
-        const res = await executeAcmiTool('acmi_get', { namespace: 'task', id }).catch(() => null);
-        return res ? { id, profile: res.profile, signals: res.signals } : null;
-      })).then(r => r.filter(Boolean));
+      const p2Commands = [];
 
-      const notes = await Promise.all((noteIds || []).slice(0, 20).map(async id => {
-        const res = await executeAcmiTool('acmi_get', { namespace: 'note', id }).catch(() => null);
-        return res ? { id, profile: res.profile, signals: res.signals } : null;
-      })).then(r => r.filter(Boolean));
+      const addSliceGets = (namespace, slice) => {
+        slice.forEach(id => {
+          p2Commands.push(['GET', `acmi:${namespace}:${id}:profile`]);
+          p2Commands.push(['GET', `acmi:${namespace}:${id}:signals`]);
+        });
+      };
 
-      const events = await Promise.all((eventIds || []).slice(0, 50).map(async id => {
-        const res = await executeAcmiTool('acmi_get', { namespace: 'event', id }).catch(() => null);
-        return res ? { id, profile: res.profile, signals: res.signals } : null;
-      })).then(r => r.filter(Boolean));
+      addSliceGets('agent', agentSlice);
+      addSliceGets('work', workSlice);
+      addSliceGets('task', taskSlice);
+      addSliceGets('note', noteSlice);
+      addSliceGets('event', eventSlice);
+      addSliceGets('doc', docSlice);
 
-      const docs = await Promise.all((docIds || []).slice(0, 20).map(async id => {
-        const res = await executeAcmiTool('acmi_get', { namespace: 'doc', id }).catch(() => null);
-        return res ? { id, profile: res.profile, signals: res.signals } : null;
-      })).then(r => r.filter(Boolean));
+      const p2Results = p2Commands.length > 0 ? await upstashPipeline(p2Commands).catch(err => {
+        console.error('[Bootstrap] Pipeline 2 failed:', err);
+        return [];
+      }) : [];
 
-      // 5. Fetch merged timeline
+      let resIdx = 0;
+      const parseSliceResults = (namespace, slice) => {
+        return slice.map(id => {
+          const profileRaw = p2Results[resIdx++];
+          const signalsRaw = p2Results[resIdx++];
+          try {
+            return {
+              id,
+              profile: profileRaw ? JSON.parse(profileRaw) : null,
+              signals: signalsRaw ? JSON.parse(signalsRaw) : null
+            };
+          } catch (e) {
+            return { id, profile: null, signals: null };
+          }
+        });
+      };
+
+      const agents = parseSliceResults('agent', agentSlice);
+      const workItems = parseSliceResults('work', workSlice);
+      const tasks = parseSliceResults('task', taskSlice);
+      const notes = parseSliceResults('note', noteSlice);
+      const events = parseSliceResults('event', eventSlice);
+      const docs = parseSliceResults('doc', docSlice);
+
+      // 3. Fetch merged timeline (already optimized inside acmi_cat)
       const timeline = await executeAcmiTool('acmi_cat', {
         keys: ['agent:*', 'thread:*', 'work:*'],
         since: timelineSince,
@@ -994,7 +1071,7 @@ async function executeAcmiTool(tool, params) {
       return {
         agents,
         workItems,
-        config: configData?.profile || configData || {},
+        config: configData.profile || configData || {},
         tasks,
         notes,
         events,

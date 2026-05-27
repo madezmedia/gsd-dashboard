@@ -109,8 +109,21 @@
   <div style="height:24px"></div>
   <div class="pulse" style="width:35%"></div>
 </div>
-<a href="../gsd-dashboard.html" class="btn" style="margin-bottom:16px">&larr; Back to Dashboard</a>
-<a href="../gsd-dashboard.html#page-notes" class="btn" style="margin-bottom:16px;margin-left:8px">&larr; Back to Notes</a>
+<!-- ─── Top Bar ──────────────────────────────── -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <a href="../gsd-dashboard.html" class="back-link">← Dashboard</a>
+    <span style="color:var(--ink-5);font-size:12px">|</span>
+    <a href="../gsd-dashboard.html#page-notes" class="back-link">Notes</a>
+    <span style="color:var(--ink-5);font-size:12px">|</span>
+    <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-1);font-weight:600" id="breadcrumb-current">Loading…</span>
+  </div>
+  <div class="top-bar-right">
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;" id="themeToggleProj">☾ Dark</span>
+    <span style="color:var(--ink-5);font-size:10px">|</span>
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink-5)" id="acmiStatus">ACMI · <span style="color:var(--forest)">Online</span></span>
+  </div>
+</div>
 
 <div class="card">
 <input class="title-input" value="Fleet Agent Context Architecture — Design Notes" placeholder="Note title…">
@@ -165,164 +178,339 @@ while (true) {
 </div>
 
 <script>
-// ─── ACMI Data Loading ─────────────────────────
+// ─── ACMI Note Detail Live Integration ─────────────────────────
 (async function() {
-  const params = new URLSearchParams(window.location.search);
-  let id = params.get('id');
-  if (!id) {
-    try {
-      const ids = await window.acmi.list('note');
-      if (ids && ids.length > 0) id = ids[0];
-    } catch(e) {}
+  'use strict';
+
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  var currentNote = null;
+  var tagsList = [];
+  var isPinned = false;
+  var saveTimeout = null;
+
+  // 1. Resolve and Load Note ID
+  async function resolveId() {
     if (!id) {
-      document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">No notes found.</p></div>';
+      try {
+        var ids = await window.acmi.list('note');
+        if (ids && ids.length > 0) {
+          id = ids[0];
+        }
+      } catch (e) {
+        console.error('Failed to list notes:', e);
+      }
+    }
+    if (!id) {
+      showError('No notes found in ACMI note namespace. Please verify seeder has run.');
+      return false;
+    }
+    return true;
+  }
+
+  // 2. Fetch and Hydrate UI
+  async function loadNoteData(force) {
+    try {
+      var data = await window.acmi.get('note', id, { force: !!force });
+      currentNote = data;
+      var p = data.profile || {};
+      var s = data.signals || {};
+
+      // Title & Breadcrumbs
+      var title = p.title || id;
+      document.title = 'ACMI Launchpad \u00b7 ' + title;
+      var titleInput = document.querySelector('.title-input');
+      if (titleInput && document.activeElement !== titleInput) {
+        titleInput.value = p.title || '';
+      }
+      var breadcrumb = document.getElementById('breadcrumb-current');
+      if (breadcrumb) breadcrumb.textContent = title;
+
+      // Editor Body (Only hydrate if not currently focused to avoid cursor jumping)
+      var editor = document.querySelector('.editor');
+      if (editor && document.activeElement !== editor) {
+        editor.innerHTML = p.content || p.body || '';
+      }
+
+      // Signals & Pin State
+      isPinned = !!s.pinned;
+      var pinBtn = document.getElementById('pinBtn');
+      if (pinBtn) {
+        pinBtn.classList.toggle('active', isPinned);
+        pinBtn.innerHTML = isPinned ? '📌 Pinned' : '📌 Pin';
+      }
+
+      // Tags
+      tagsList = p.tags || [];
+      renderTags();
+
+      // Metadata Grid
+      var metaValues = document.querySelectorAll('.meta-item .value');
+      if (metaValues.length >= 4) {
+        metaValues[0].textContent = formatDate(p.created || s.created || '2026-05-24T12:00:00Z');
+        metaValues[1].textContent = formatDate(p.modified || s.modified || new Date().toISOString());
+        metaValues[2].textContent = 'v' + (s.version || 1);
+        metaValues[3].textContent = p.author || '@mikey';
+      }
+
+      // Word count
+      updateWordCount();
+
+      // Status Bar Save Indicator
+      var saveIndicator = document.getElementById('saveIndicator');
+      if (saveIndicator) {
+        var savedAtStr = p.modified ? new Date(p.modified).toLocaleTimeString() : 'just now';
+        saveIndicator.textContent = 'Saved \u00b7 ' + savedAtStr;
+      }
+
+      // Collaboration Timeline Sync
+      if (window.renderLiveComments) {
+        window.renderLiveComments(data.timeline || []);
+      }
+
+      // Hide Loading Skeleton
+      var skeleton = document.getElementById('loading-skeleton');
+      if (skeleton) skeleton.style.display = 'none';
+    } catch (err) {
+      showError(err.message || 'Connection error to ACMI server');
+    }
+  }
+
+  // 3. Render Tags Chips
+  function renderTags() {
+    var tagInputContainer = document.querySelector('.tag-input');
+    if (!tagInputContainer) return;
+
+    var html = '';
+    tagsList.forEach(function(t) {
+      html += '<span class="tag-chip">' + escapeHtml(t) + ' <span class="close" data-tag="' + escapeHtml(t) + '">&times;</span></span>';
+    });
+    html += '<input id="new-tag-field" placeholder="Add tag\u2026">';
+    tagInputContainer.innerHTML = html;
+  }
+
+  // Add/Remove Tags
+  window.addTag = async function(tagText) {
+    tagText = tagText.trim().toLowerCase();
+    if (tagText && tagsList.indexOf(tagText) === -1) {
+      tagsList.push(tagText);
+      renderTags();
+      await saveNote(true); // Save instantly
+    }
+  };
+
+  window.removeTag = async function(tagText) {
+    tagsList = tagsList.filter(function(t) { return t !== tagText; });
+    renderTags();
+    await saveNote(true); // Save instantly
+  };
+
+  // Tag Input Keydowns
+  document.querySelector('.tag-input').addEventListener('keydown', function(e) {
+    if (e.target && e.target.id === 'new-tag-field' && e.key === 'Enter') {
+      e.preventDefault();
+      var tagText = e.target.value.trim();
+      if (tagText) {
+        window.addTag(tagText);
+        e.target.value = '';
+      }
+    }
+  });
+
+  // Tag Close Clicks (Event Delegation)
+  document.querySelector('.tag-input').addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('close')) {
+      var tagText = e.target.getAttribute('data-tag');
+      if (tagText) {
+        window.removeTag(tagText);
+      }
+    }
+  });
+
+  // 4. Save Note Profile & Signals
+  async function saveNote(immediate) {
+    if (!immediate) {
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(function() { saveNote(true); }, 1500);
+      var indicator = document.getElementById('saveIndicator');
+      if (indicator) indicator.textContent = 'Saving changes…';
       return;
     }
-  }
-  try {
-    const data = await window.acmi.get('note', id);
-    const p = data.profile || {};
-    document.title = 'ACMI Launchpad \u00b7 ' + (p.title || id);
 
-    const titleInput = document.querySelector('.title-input');
-    if (titleInput) titleInput.value = p.title || '';
-
-    const editor = document.querySelector('.editor');
-    if (editor && p.body) editor.innerHTML = p.body;
-
-    // Tags
-    const tagInput = document.querySelector('.tag-input');
-    if (tagInput && p.tags && Array.isArray(p.tags)) {
-      var chips = '';
-      p.tags.forEach(function(t) {
-        chips += '<span class="tag-chip">' + t + ' <span class="close">&times;</span></span>';
-      });
-      chips += '<input placeholder="Add tag\u2026">';
-      tagInput.innerHTML = chips;
-    }
-
-    // Metadata
-    const metaItems = document.querySelectorAll('.meta-item .value');
-    if (metaItems.length >= 4 && p.meta) {
-      if (metaItems[0] && p.meta.created) metaItems[0].textContent = p.meta.created;
-      if (metaItems[1] && p.meta.modified) metaItems[1].textContent = p.meta.modified;
-      if (metaItems[2] && p.meta.version) metaItems[2].textContent = p.meta.version;
-      if (metaItems[3] && p.meta.author) metaItems[3].textContent = p.meta.author;
-    }
-
-    // Status bar
-    const saveIndicator = document.getElementById('saveIndicator');
-    if (saveIndicator && p.savedAt) saveIndicator.textContent = 'Saved \u00b7 ' + p.savedAt;
-
-    // Update word count from loaded content
-    if (editor) {
-      var text = editor.innerText || '';
-      var words = text.trim() ? text.trim().split(/\s+/).length : 0;
-      var wc = document.getElementById('wordCount');
-      if (wc) wc.textContent = words + ' words';
-    }
-
-    // Hide loading skeleton
-    var skel = document.getElementById('loading-skeleton');
-    if (skel) skel.style.display = 'none';
-  } catch (err) {
-    // Show error state in skeleton placeholder
-    var skel = document.getElementById('loading-skeleton');
-    if (skel) {
-      skel.className = 'state-placeholder error';
-      skel.innerHTML = '<div class="icon"><svg viewBox="0 0 24 24" width="32" height="32"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="12" y1="8" x2="12" y2="13" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg></div><div class="msg"><strong>Failed to load</strong><br>' + (err.message || 'Connection error') + '</div>';
-    } else {
-      document.querySelector('.wrap').innerHTML = '<div class="card"><p style="color:#c75050">Error loading note: ' + err.message + '</p></div>';
-    }
-  }
-})();
-
-// Toolbar commands
-document.querySelectorAll('[data-cmd]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const cmd = btn.dataset.cmd;
-    const editor = document.querySelector('.editor');
-    editor.focus();
-    if (cmd === 'bold') document.execCommand('bold');
-    else if (cmd === 'italic') document.execCommand('italic');
-    else if (cmd === 'heading') document.execCommand('formatBlock', false, '<h2>');
-    else if (cmd === 'code') document.execCommand('insertHTML', false, '<code style="background:rgba(45,74,62,.08);padding:2px 6px;border-radius:3px;font-family:JetBrains Mono,monospace;font-size:13px">code</code>');
-    else if (cmd === 'list') document.execCommand('insertUnorderedList');
-  });
-});
-
-// Word count
-const editor = document.querySelector('.editor');
-function updateWordCount() {
-  const text = editor.innerText || '';
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  document.getElementById('wordCount').textContent = words + ' words';
-}
-editor.addEventListener('input', updateWordCount);
-updateWordCount();
-
-// Save note to ACMI
-(function() {
-  var noteId = null;
-  var saveTimer = null;
-
-  function getNoteId() {
-    if (noteId) return noteId;
-    var params = new URLSearchParams(window.location.search);
-    noteId = params.get('id') || 'note-' + Date.now();
-    return noteId;
-  }
-
-  function saveNote() {
-    var titleEl = document.querySelector('.title-input');
+    if (saveTimeout) clearTimeout(saveTimeout);
+    
+    var titleInput = document.querySelector('.title-input');
     var editor = document.querySelector('.editor');
-    if (!titleEl || !editor) return;
-    var title = titleEl.value.trim() || 'Untitled';
-    var body = editor.innerHTML || '';
-    var tags = [];
-    document.querySelectorAll('.tag-chip').forEach(function(chip) {
-      var txt = chip.textContent.replace(/\×$/, '').trim();
-      if (txt) tags.push(txt);
-    });
-    var indicator = document.getElementById('saveIndicator');
-    if (indicator) indicator.textContent = 'Saving…';
-    window.acmi.profile('note', getNoteId(), {
-      title: title,
-      body: body,
-      tags: tags,
-      savedAt: new Date().toISOString()
-    }).then(function() {
-      var wc = document.getElementById('wordCount');
-      var words = 0;
-      if (editor) {
-        var text = editor.innerText || '';
-        words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    if (!titleInput || !editor) return;
+
+    var title = titleInput.value.trim() || id;
+    var content = editor.innerHTML;
+    var rawText = editor.innerText || '';
+    var preview = rawText.substring(0, 120).replace(/\n/g, ' ') + (rawText.length > 120 ? '…' : '');
+    var words = rawText.trim() ? rawText.trim().split(/\s+/).length : 0;
+    var nowIso = new Date().toISOString();
+
+    var saveIndicator = document.getElementById('saveIndicator');
+    if (saveIndicator) saveIndicator.textContent = 'Auto-saving…';
+
+    try {
+      // Fetch existing note details to preserve unedited metadata
+      var existingCreated = '2026-05-24T12:00:00Z';
+      var existingAuthor = '@mikey';
+      if (currentNote && currentNote.profile) {
+        existingCreated = currentNote.profile.created || existingCreated;
+        existingAuthor = currentNote.profile.author || existingAuthor;
       }
-      if (indicator) indicator.textContent = 'Saved · just now';
-      if (wc) wc.textContent = words + ' words';
-    }).catch(function(err) {
-      console.error('[ACMI] note save failed:', err);
-      if (indicator) indicator.textContent = 'Save failed';
-    });
+
+      // Update ACMI Profile
+      await window.acmi.profile('note', id, {
+        title: title,
+        content: content,
+        preview: preview,
+        tags: tagsList,
+        created: existingCreated,
+        modified: nowIso,
+        author: existingAuthor
+      });
+
+      // Update ACMI Signals
+      await window.acmi.signal('note', id, {
+        pinned: isPinned,
+        wordCount: words,
+        version: currentNote && currentNote.signals ? (currentNote.signals.version || 1) + 1 : 1,
+        modified: nowIso
+      });
+
+      // Clear list cache so dashboard updates
+      window.acmi.clearCache('note');
+
+      if (saveIndicator) {
+        saveIndicator.textContent = 'Saved · ' + new Date().toLocaleTimeString();
+      }
+      
+      // Update local note structure partially
+      if (currentNote) {
+        currentNote.profile = currentNote.profile || {};
+        currentNote.profile.title = title;
+        currentNote.profile.content = content;
+        currentNote.profile.tags = tagsList;
+        currentNote.profile.modified = nowIso;
+        currentNote.signals = currentNote.signals || {};
+        currentNote.signals.pinned = isPinned;
+        currentNote.signals.wordCount = words;
+      }
+      
+      var breadcrumb = document.getElementById('breadcrumb-current');
+      if (breadcrumb) breadcrumb.textContent = title;
+      document.title = 'ACMI Launchpad \u00b7 ' + title;
+
+    } catch (e) {
+      console.error('Auto-save failed:', e);
+      if (saveIndicator) saveIndicator.textContent = '⚠️ Auto-save failed';
+    }
   }
 
-  window.saveNoteToACMI = saveNote;
+  // Set up save input listeners
+  document.querySelector('.title-input').addEventListener('input', function() { saveNote(false); });
+  document.querySelector('.editor').addEventListener('input', function() {
+    updateWordCount();
+    saveNote(false);
+  });
+  document.querySelector('.title-input').addEventListener('blur', function() { saveNote(true); });
+  document.querySelector('.editor').addEventListener('blur', function() { saveNote(true); });
 
-  var editor = document.querySelector('.editor');
-  var titleInput = document.querySelector('.title-input');
-  if (editor) {
-    editor.addEventListener('blur', function() {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(saveNote, 500);
-    });
+  // 5. Pin Toggling
+  window.togglePinState = async function() {
+    isPinned = !isPinned;
+    var pinBtn = document.getElementById('pinBtn');
+    if (pinBtn) {
+      pinBtn.classList.toggle('active', isPinned);
+      pinBtn.innerHTML = isPinned ? '📌 Pinned' : '📌 Pin';
+    }
+    await saveNote(true); // Save pinned state immediately
+  };
+
+  // Add Pin Button to Toolbar dynamically if not present
+  var toolbar = document.querySelector('.toolbar');
+  if (toolbar && !document.getElementById('pinBtn')) {
+    var pinBtn = document.createElement('button');
+    pinBtn.id = 'pinBtn';
+    pinBtn.title = 'Pin Note';
+    pinBtn.style.marginLeft = 'auto';
+    pinBtn.addEventListener('click', window.togglePinState);
+    toolbar.appendChild(pinBtn);
   }
-  if (titleInput) {
-    titleInput.addEventListener('blur', function() {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(saveNote, 500);
+
+  // Helpers
+  function formatDate(isoStr) {
+    if (!isoStr) return '';
+    try {
+      var d = new Date(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      var yr = d.getFullYear();
+      var mo = String(d.getMonth() + 1).padStart(2, '0');
+      var dy = String(d.getDate()).padStart(2, '0');
+      var hr = String(d.getHours()).padStart(2, '0');
+      var mi = String(d.getMinutes()).padStart(2, '0');
+      return yr + '-' + mo + '-' + dy + ' ' + hr + ':' + mi;
+    } catch(e) {
+      return isoStr;
+    }
+  }
+
+  function updateWordCount() {
+    var editor = document.querySelector('.editor');
+    if (!editor) return;
+    var text = editor.innerText || '';
+    var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    var wc = document.getElementById('wordCount');
+    if (wc) wc.textContent = words + ' word' + (words === 1 ? '' : 's');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function showError(msg) {
+    var breadcrumb = document.getElementById('breadcrumb-current');
+    if (breadcrumb) breadcrumb.textContent = 'Error';
+    var skeleton = document.getElementById('loading-skeleton');
+    if (skeleton) {
+      skeleton.className = 'state-placeholder error';
+      skeleton.innerHTML = '<div class="icon"><svg viewBox="0 0 24 24" width="32" height="32"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="12" y1="8" x2="12" y2="13" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg></div><div class="msg"><strong>Failed to sync with ACMI</strong><br>' + escapeHtml(msg) + '</div>';
+    } else {
+      var wrap = document.querySelector('.wrap');
+      if (wrap) {
+        wrap.innerHTML = '<div class="card"><p style="color:#c75050;font-weight:500">Error loading note: ' + escapeHtml(msg) + '</p></div>';
+      }
+    }
+  }
+
+  // 6. Start Initialization
+  var ok = await resolveId();
+  if (ok) {
+    // Wire standard editor toolbar commands
+    document.querySelectorAll('[data-cmd]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var cmd = btn.dataset.cmd;
+        var editor = document.querySelector('.editor');
+        if (!editor) return;
+        editor.focus();
+        if (cmd === 'bold') document.execCommand('bold');
+        else if (cmd === 'italic') document.execCommand('italic');
+        else if (cmd === 'heading') document.execCommand('formatBlock', false, '<h2>');
+        else if (cmd === 'code') document.execCommand('insertHTML', false, '<code style="background:rgba(45,74,62,.08);padding:2px 6px;border-radius:3px;font-family:JetBrains Mono,monospace;font-size:13px">code</code>');
+        else if (cmd === 'list') document.execCommand('insertUnorderedList');
+        saveNote(false); // Save formatting changes soon
+      });
     });
+
+    await loadNoteData();
+    window.refreshNoteData = loadNoteData;
   }
 })();
+
 </script>
 
 <!-- ═══════════════════════════════════════════════
@@ -529,11 +717,59 @@ document.querySelectorAll('.composer').forEach(function(comp) {
 });
 </script>
 
-<!-- ─── Theme sync from localStorage ──────────────────── -->
+<!-- ─── Theme sync & Toggle from localStorage ──────────────────── -->
 <script>
 (function() {
   var theme = localStorage.getItem('gsd:theme');
-  if (theme === 'deep') document.body.classList.add('theme-deep');
+  var toggle = document.getElementById('themeToggleProj');
+  if (theme === 'deep') {
+    document.body.classList.add('theme-deep');
+    if (toggle) toggle.textContent = '☀ Light';
+  } else {
+    if (toggle) toggle.textContent = '☾ Dark';
+  }
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      document.body.classList.toggle('theme-deep');
+      var isDark = document.body.classList.contains('theme-deep');
+      try {
+        localStorage.setItem('gsd:theme', isDark ? 'deep' : 'light');
+        toggle.textContent = isDark ? '☀ Light' : '☾ Dark';
+      } catch(e) {}
+    });
+  }
+})();
+</script>
+
+<!-- ─── Parameter-Preserving Back Links & Escape Key Navigation ─── -->
+<script>
+(function() {
+  var searchParams = window.location.search;
+  if (searchParams) {
+    document.querySelectorAll('.back-link, a[href*="gsd-dashboard.html"]').forEach(function(el) {
+      var href = el.getAttribute('href');
+      if (href && href.indexOf('?') === -1) {
+        var hashIdx = href.indexOf('#');
+        if (hashIdx !== -1) {
+          el.setAttribute('href', href.substring(0, hashIdx) + searchParams + href.substring(hashIdx));
+        } else {
+          el.setAttribute('href', href + searchParams);
+        }
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      var backLink = document.querySelector('.back-link, a[href*="gsd-dashboard.html"]');
+      if (backLink) {
+        e.preventDefault();
+        backLink.click();
+      }
+    }
+  });
 })();
 </script>
 

@@ -119,6 +119,47 @@ for (const d of docs) {
 }
 console.log(`  ✅ ${docs.length} docs seeded\n`);
 
+// ─── 4.5. WORK/PROJECTS (6) ───────────────────────────────────
+console.log('🏗️ Seeding work items / projects...');
+const workItems = [
+  {
+    id: 'acmi-fleet-ops',
+    profile: { title: 'ACMI Fleet Ops', status: 'live', progress: 70, lead: '@fleet-orch', description: 'Edge compute rollout', members: 4, revenue: null },
+    signals: { completed: false, lastActivity: '4m ago', progress: 70, status: 'live' }
+  },
+  {
+    id: 'ownerscout',
+    profile: { title: 'OwnerScout', status: 'stalled', progress: 65, lead: '@claude-engineer', description: 'Blocked: VAPI key', members: null, revenue: '$8,752/mo' },
+    signals: { completed: false, lastActivity: '2h ago', progress: 65, status: 'stalled' }
+  },
+  {
+    id: 'cowork-kanban',
+    profile: { title: 'cowork-kanban Redesign', status: 'live', progress: 90, lead: '@design-agency', description: 'Awaiting audit sign-off', members: null, revenue: null },
+    signals: { completed: false, lastActivity: '1d ago', progress: 90, status: 'live' }
+  },
+  {
+    id: 'secret-manager',
+    profile: { title: 'Secret Manager', status: 'live', progress: 50, lead: '@gemini-cli', description: '6/12 .env files done', members: null, revenue: null },
+    signals: { completed: false, lastActivity: '3d ago', progress: 50, status: 'live' }
+  },
+  {
+    id: 'whop-launch',
+    profile: { title: 'Whop Launch', status: 'live', progress: 40, lead: '@growth-hacker', description: 'Phase 1 complete', members: null, revenue: 'Revenue TBD' },
+    signals: { completed: false, lastActivity: '1w ago', progress: 40, status: 'live' }
+  },
+  {
+    id: 'postiz-calendar',
+    profile: { title: 'Postiz Content Calendar', status: 'draft', progress: 15, lead: '@content-writer', description: 'Q3 planning phase', members: null, revenue: null },
+    signals: { completed: false, lastActivity: '2w ago', progress: 15, status: 'draft' }
+  }
+];
+
+for (const w of workItems) {
+  await profile('work', w.id, w.profile);
+  await signal('work', w.id, w.signals);
+}
+console.log(`  ✅ ${workItems.length} work items seeded\n`);
+
 // ─── 5. CONFIG ────────────────────────────────────────────────
 console.log('⚙️  Seeding config...');
 await profile('config', 'dashboard', {
