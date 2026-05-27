@@ -192,8 +192,46 @@ async function handleTool(tool, params) {
     // ── Delete ──────────────────────────────────────────────────
     case 'delete':
     case 'acmi_delete': {
-      // Handled by the daemon's ACMI delete tool — pass through for now
       return { ok: false, error: 'delete not supported via proxy' };
+    }
+
+    // ── Agent lifecycle ────────────────────────────────────────
+    case 'spawn':
+    case 'acmi_spawn': {
+      const { agentId, sessionId, modelId } = params;
+      const sid = sessionId || 'session-' + Date.now();
+      const now = Date.now();
+      await redis('HSET', `acmi:agent:${agentId}:sessions`, sid, JSON.stringify({ modelId: modelId || 'unknown', startedAt: now }));
+      await redis('HSET', `acmi:agent:${agentId}:signals`, 'lastSpawnAt', now.toString());
+      return { ok: true, agentId, sessionId: sid };
+    }
+
+    case 'active':
+    case 'acmi_active': {
+      const { agentId, action, threadKey, role } = params;
+      const key = `acmi:agent:${agentId}:active`;
+      if (action === 'add') {
+        await redis('HSET', key, threadKey, JSON.stringify({ role: role || 'participant', joinedAt: Date.now() }));
+        return { ok: true, action: 'add', threadKey };
+      } else if (action === 'remove') {
+        await redis('HDEL', key, threadKey);
+        return { ok: true, action: 'remove', threadKey };
+      } else if (action === 'list') {
+        const raw = await redis('HGETALL', key);
+        const threads = [];
+        for (let i = 0; i < raw.length; i += 2) { try { threads.push(JSON.parse(raw[i+1])); } catch {} }
+        return { ok: true, threads };
+      }
+      return { ok: false, error: 'unknown action' };
+    }
+
+    case 'rollup_set':
+    case 'acmi_rollup_set': {
+      const { agentId, rollup } = params;
+      const key = `acmi:agent:${agentId}:rollup:latest`;
+      const data = typeof rollup === 'string' ? JSON.parse(rollup) : rollup;
+      await redis('SET', key, JSON.stringify(data));
+      return { ok: true, key };
     }
 
     // ── Work item operations ────────────────────────────────────
